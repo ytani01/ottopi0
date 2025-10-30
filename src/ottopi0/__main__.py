@@ -3,11 +3,14 @@
 #
 """__main__.py"""
 
+import os
+
 import click
+import uvicorn
 
 from . import __version__
 from .utils.clickutils import click_common_opts
-from .utils.mylogger import get_logger
+from .utils.mylogger import errmsg, get_logger
 
 
 @click.group()
@@ -26,20 +29,45 @@ def cli(ctx, debug):
 
 
 @cli.command()
+@click.option(
+    "--host",
+    "-i",
+    type=str,
+    default="0.0.0.0",
+    show_default=True,
+    help="hostname or ipaddr",
+)
+@click.option(
+    "--port",
+    "-p",
+    type=int,
+    default=8000,
+    show_default=True,
+    help="port number",
+)
 @click_common_opts(__version__)
-def svr(ctx, debug):
+def svr(ctx, host, port, debug):
     """Ir Analyze."""
     __log = get_logger(__name__, debug)
     __log.debug("cmd_name=%s", ctx.command.name)
+    __log.debug("host=%s, port=%s", host, port)
 
-    # app = None
-    # try:
-    #     app = Svr(debug=debug)
-    #     app.main()
+    APP = "ottopi0.svr:app"
+    ENV_DEBUG = "SVR_DEBUG"
 
-    # except Exception as _e:
-    #     __log.error(errmsg(_e))
+    os.environ[ENV_DEBUG] = "1" if debug else "0"
 
-    # finally:
-    #     if app:
-    #         app.end()
+    try:
+        uvicorn.run(
+            APP,
+            host=host,
+            port=port,
+            reload=True,
+            log_level="debug" if debug else "warning",
+        )
+
+    except Exception as _e:
+        __log.error(errmsg(_e))
+
+    finally:
+        click.echo("END.")

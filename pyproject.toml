@@ -19,6 +19,9 @@ requires-python = ">=3.11"
 dependencies = [
     "blessed>=1.22.0",
     "click>=8.3.0",
+    "fastapi>=0.120.2",
+    "json-rpc>=1.15.0",
+    "uvicorn>=0.38.0",
 ]
 
 [build-system]
@@ -46,7 +49,7 @@ docstring-code-line-length = 78
 "conftest.py" = ["F401", "F811"]
 
 [[tool.mypy.overrides]]
-module = ['pigpio', 'requests']
+module = ['fastapi', 'uvicorn', 'jsonrpc']
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
