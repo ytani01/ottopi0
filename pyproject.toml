@@ -1,0 +1,53 @@
+[project]
+name = "ottopi0"
+dynamic = ["version"]
+description = "OttoPi3: Otto DIY like biped robot for Raspberry Pi"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Yoichi Tanibayashi", email = "yoichi@tanibayashi.jp" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: System :: Hardware",
+    "Topic :: System :: Hardware :: Hardware Drivers",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "blessed>=1.22.0",
+    "click>=8.3.0",
+]
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[project.scripts]
+ottopi0 = "ottopi0.__main__:cli"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "pyright>=1.1.406",
+    "pytest>=8.4.2",
+    "ruff>=0.14.0",
+]
+
+[tool.ruff.format]
+docstring-code-line-length = 78
+
+[tool.ruff.lint.per-file-ignores]
+"conftest.py" = ["F401", "F811"]
+
+[[tool.mypy.overrides]]
+module = ['pigpio', 'requests']
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+pythonpath = "tests"
