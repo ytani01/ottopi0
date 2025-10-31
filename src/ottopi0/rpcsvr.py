@@ -7,10 +7,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from jsonrpc import JSONRPCResponseManager, dispatcher
 
+from .func_calc import Calc
 from .utils.mylogger import get_logger
 
 ENV_DEBUG = "SVR_DEBUG"
-
 
 class Robot:
     """Robot class."""
@@ -40,6 +40,11 @@ async def lifespan(app: FastAPI):
 
     __log = get_logger(__name__, debug)
     __log.debug("debug=%s", debug)
+    
+    _calc = Calc()
+    dispatcher.add_method(_calc.add)
+    dispatcher.add_method(_calc.sub)
+    dispatcher.add_method(_calc.calc)
 
     app.state.svr_app = Robot(debug=debug)
     app.state.debug = debug
@@ -50,12 +55,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
-
-@dispatcher.add_method
-def add(a: float, b: float) -> float:
-    """Add function."""
-    return a + b
 
 
 @app.post("/api")
@@ -75,4 +74,4 @@ async def handle(request: Request):
         print(_res.data)
         return _res.data
     else:
-        return {}
+        return {}    

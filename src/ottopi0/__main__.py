@@ -49,15 +49,15 @@ def cli(ctx, debug):
 def rpcsvr(ctx, host, port, debug):
     """JSON-RPC 2.0 server.
 
-# sample client
+    # sample client
 
-curl -X POST -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "add", "params": [2, 3], "id": 1}' http://localhost:8000/api
-"""
+    curl -X POST -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "add", "params": [2, 3], "id": 1}' http://localhost:8000/api
+    """
     __log = get_logger(__name__, debug)
     __log.debug("cmd_name=%s", ctx.command.name)
     __log.debug("host=%s, port=%s", host, port)
 
-    _app= f"{__package__}.svr:app"
+    _app = f"{__package__}.rpcsvr:app"
     click.echo(f"_app={_app}")
 
     _env_debug = "SVR_DEBUG"
