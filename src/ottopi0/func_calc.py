@@ -13,6 +13,7 @@ def sub(a: float, b: float) -> float:
 
 class Calc:
     """Calc."""
+
     def add(self, a: float, b: float) -> float:
         """Add function."""
         print(self.__class__.__name__)
@@ -30,3 +31,5 @@ class Calc:
 
         if func == "sub":
             return self.sub(a, b)
+
+        return 0.0

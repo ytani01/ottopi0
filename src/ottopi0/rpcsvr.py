@@ -12,6 +12,7 @@ from .utils.mylogger import get_logger
 
 ENV_DEBUG = "SVR_DEBUG"
 
+
 class Robot:
     """Robot class."""
 
@@ -40,7 +41,7 @@ async def lifespan(app: FastAPI):
 
     __log = get_logger(__name__, debug)
     __log.debug("debug=%s", debug)
-    
+
     _calc = Calc()
     dispatcher.add_method(_calc.add)
     dispatcher.add_method(_calc.sub)
@@ -74,4 +75,4 @@ async def handle(request: Request):
         print(_res.data)
         return _res.data
     else:
-        return {}    
+        return {}
