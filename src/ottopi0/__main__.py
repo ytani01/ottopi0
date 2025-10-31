@@ -46,24 +46,32 @@ def cli(ctx, debug):
     help="port number",
 )
 @click_common_opts(__version__)
-def svr(ctx, host, port, debug):
-    """Ir Analyze."""
+def rpcsvr(ctx, host, port, debug):
+    """JSON-RPC 2.0 server.
+
+# sample client
+
+curl -X POST -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "add", "params": [2, 3], "id": 1}' http://localhost:8000/api
+"""
     __log = get_logger(__name__, debug)
     __log.debug("cmd_name=%s", ctx.command.name)
     __log.debug("host=%s, port=%s", host, port)
 
-    APP = "ottopi0.svr:app"
-    ENV_DEBUG = "SVR_DEBUG"
+    _app= f"{__package__}.svr:app"
+    click.echo(f"_app={_app}")
 
-    os.environ[ENV_DEBUG] = "1" if debug else "0"
+    _env_debug = "SVR_DEBUG"
+    click.echo(f"_env_debug={_env_debug}")
+
+    os.environ[_env_debug] = "1" if debug else "0"
 
     try:
         uvicorn.run(
-            APP,
+            _app,
             host=host,
             port=port,
             reload=True,
-            log_level="debug" if debug else "warning",
+            log_level="debug" if debug else "info",
         )
 
     except Exception as _e:
