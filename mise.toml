@@ -42,7 +42,7 @@ uv sync
 
 echo "# pip"
 uv pip install -U --group dev -e .
-# uv pip install -U --group samples -e .
+uv pip install -U --group samples -e .
 '''
 alias = "upproject"
 # depends = ["upgradeuv"]
