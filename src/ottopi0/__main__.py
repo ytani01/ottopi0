@@ -8,7 +8,7 @@ import os
 import click
 import uvicorn
 
-from . import __version__
+from . import ENV_DEBUG, __version__
 from .utils.clickutils import click_common_opts
 from .utils.mylogger import errmsg, get_logger
 
@@ -64,10 +64,9 @@ def rpcsvr(ctx, host, port, debug):
     _api = f"{__package__}.rpcsvr:api"
     click.echo(f"_api={_api}")
 
-    _env_debug = "SVR_DEBUG"
-    click.echo(f"_env_debug={_env_debug}")
+    click.echo(f"ENV_DEBUG={ENV_DEBUG}")
 
-    os.environ[_env_debug] = "1" if debug else "0"
+    os.environ[ENV_DEBUG] = "1" if debug else "0"
 
     try:
         uvicorn.run(
