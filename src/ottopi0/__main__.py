@@ -51,14 +51,18 @@ def rpcsvr(ctx, host, port, debug):
 
     # sample client
 
+    ```sh
+
     curl -X POST -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "method": "add", "params": [2, 3], "id": 1}' http://localhost:8000/api
+
+    ```
     """
     __log = get_logger(__name__, debug)
     __log.debug("cmd_name=%s", ctx.command.name)
     __log.debug("host=%s, port=%s", host, port)
 
-    _app = f"{__package__}.rpcsvr:app"
-    click.echo(f"_app={_app}")
+    _api = f"{__package__}.rpcsvr:api"
+    click.echo(f"_api={_api}")
 
     _env_debug = "SVR_DEBUG"
     click.echo(f"_env_debug={_env_debug}")
@@ -67,7 +71,7 @@ def rpcsvr(ctx, host, port, debug):
 
     try:
         uvicorn.run(
-            _app,
+            _api,
             host=host,
             port=port,
             reload=True,

@@ -14,10 +14,10 @@ ENV_DEBUG = "SVR_DEBUG"
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(api: FastAPI):
     """Lifespan manager for the application."""
     debug = os.getenv(ENV_DEBUG) == "1"
-    app.state.debug = debug
+    api.state.debug = debug
 
     __log = get_logger(__name__, debug)
     __log.debug("debug=%s", debug)
@@ -33,10 +33,10 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+api = FastAPI(lifespan=lifespan)
 
 
-@app.post("/api")
+@api.post("/api")
 async def handle_req(request: Request):
     """API."""
     __debug = request.app.state.debug
