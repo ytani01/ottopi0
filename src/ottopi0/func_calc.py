@@ -1,16 +1,6 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
-def add(a: float, b: float) -> float:
-    """Add function."""
-    return a + b
-
-
-def sub(a: float, b: float) -> float:
-    """Sample function."""
-    return a - b
-
-
 class Calc:
     """Calc."""
 
