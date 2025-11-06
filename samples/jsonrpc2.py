@@ -7,17 +7,21 @@ from ottopi0 import get_logger, click_common_opts, errmsg
 
 class Func:
     """Func."""
-    def __init__(self, debug=False) -> None:
+    def __init__(self, hdr, debug=False) -> None:
         """Constractor."""
         self.__debug = debug
         self.__log = get_logger(self.__class__.__name__, self.__debug)
         self.__log.debug("")
 
+        self.hdr = hdr
+
     def func1(self, a):
-        return f"func1 {a}"
+        self.__log.debug("a=%s", a)
+        return f"{self.hdr}: func1 {a}"
 
     def func2(self, a, b):
-        return f"func2 {a} {b}"
+        self.__log.debug("a=%s,b=%s", a, b)
+        return f"{self.hdr}: func2 {a} {b}"
 
 
 class App:
@@ -32,7 +36,9 @@ class App:
         self.rpc_id = 1
 
         self.dispacher = Dispatcher()
-        self.dispacher.add_class(Func)
+        self.obj_func = Func("AAA", debug=self.__debug)
+        self.dispacher.add_object(self.obj_func)
+
 
     def main(self):
         """Main."""
