@@ -1,12 +1,14 @@
-import click
 import json
 
-from jsonrpc import JSONRPCResponseManager, Dispatcher
-from ottopi0 import get_logger, click_common_opts, errmsg
+import click
+from jsonrpc import Dispatcher, JSONRPCResponseManager
+
+from ottopi0 import click_common_opts, errmsg, get_logger
 
 
 class Func:
     """Func."""
+
     def __init__(self, hdr, debug=False) -> None:
         """Constractor."""
         self.__debug = debug
@@ -39,14 +41,13 @@ class App:
         self.obj_func = Func("AAA", debug=self.__debug)
         self.dispacher.add_object(self.obj_func)
 
-
     def main(self):
         """Main."""
         self.__log.debug("")
 
         while True:
             try:
-                line  = input("> ")
+                line = input("> ")
                 if not line:
                     continue
             except EOFError:
@@ -55,12 +56,12 @@ class App:
             args = line.split()
 
             rpc_req_data = {
-                    "method": args[0],
-                    "params": args[1:],
-                    "jsonrpc": "2.0",
-                    "id": self.rpc_id,
+                "method": args[0],
+                "params": args[1:],
+                "jsonrpc": "2.0",
+                "id": self.rpc_id,
             }
-                    
+
             rpc_req_jsonstr = json.dumps(rpc_req_data)
             self.__log.debug("rpc_req_jsonstr=%a", rpc_req_jsonstr)
 

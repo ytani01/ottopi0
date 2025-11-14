@@ -1,13 +1,14 @@
-import click
 import json
 
-from jsonrpc import JSONRPCResponseManager, Dispatcher
+import click
+from jsonrpc import Dispatcher, JSONRPCResponseManager
 
-from ottopi0 import get_logger, click_common_opts, CliWithHistory
+from ottopi0 import CliWithHistory, click_common_opts, get_logger
 
 
 class Func:
     """Func."""
+
     def __init__(self, debug=False) -> None:
         """Constractor."""
         self.__debug = debug
@@ -23,11 +24,12 @@ class Func:
 
 class Cli(CliWithHistory):
     """CLI."""
+
     HISTORY_FILE = "/tmp/hist"
-    
+
     def __init__(self, debug=False):
         super().__init__(history_file=self.HISTORY_FILE, debug=debug)
-        self.__debug=debug
+        self.__debug = debug
         self.__log = get_logger(self.__class__.__name__, self.__debug)
         self.__log.debug("")
 
@@ -40,7 +42,7 @@ class Cli(CliWithHistory):
         self.__log.debug("instr=%s", instr)
         args = instr.split()
         self.__log.debug("args=%s", args)
-        
+
         parsed_data = {
             "data": {
                 "method": args[0],
@@ -74,7 +76,7 @@ class Cli(CliWithHistory):
                 "status": Cli.RESULT_STATUS["ERR"],
             }
         return result_data
-    
+
 
 @click.command()
 @click_common_opts("0.0.1")
