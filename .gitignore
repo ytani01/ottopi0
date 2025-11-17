@@ -6,6 +6,9 @@ servo.json
 .markdown*
 .serena/
 
+# FreeCAD
+*.FCBak
+
 .env
 
 .pypirc
