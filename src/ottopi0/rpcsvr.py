@@ -9,6 +9,7 @@ from jsonrpc import JSONRPCResponseManager, dispatcher
 
 from . import ENV_DEBUG
 from .func_calc import Calc
+from .func_servo import Servo
 from .utils.mylogger import get_logger
 
 
@@ -28,6 +29,7 @@ async def lifespan(api: FastAPI):
     # class単位で登録
     # "calc.method" という名前になる
     dispatcher.add_class(Calc)
+    dispatcher.add_class(Servo)
 
     __log.debug("dispatcher: %s", [func for func in dispatcher])
 

@@ -21,7 +21,9 @@ class App:
         self.bt = pibtinput.PiBtInput(debug=self.__debug)
         self.prev_onkeys: dict[str, int] = {}
 
-        self.servo = pi0servo.JsonRpcWorker(self.pi, self.pins, debug=self.__debug)
+        self.servo = pi0servo.JsonRpcWorker(
+            self.pi, self.pins, debug=self.__debug
+        )
         self.parser = pi0servo.StrCmdToJson(
             [1] * len(self.pins), debug=self.__debug
         )
@@ -45,17 +47,25 @@ class App:
             parsed_json = {}
 
             if key_name == "KEY_C":
-                parsed_json = self.parser.cmdstr_to_jsonliststr("ms:.05 mr:5,0")
+                parsed_json = self.parser.cmdstr_to_jsonliststr(
+                    "ms:.05 mr:5,0"
+                )
                 self.servo.call(parsed_json)
             if key_name == "KEY_D":
-                parsed_json = self.parser.cmdstr_to_jsonliststr("ms:.05 mr:-5,0")
+                parsed_json = self.parser.cmdstr_to_jsonliststr(
+                    "ms:.05 mr:-5,0"
+                )
                 self.servo.call(parsed_json)
 
             if key_name == "KEY_E":
-                parsed_json = self.parser.cmdstr_to_jsonliststr("ms:.05 mr:0,5")
+                parsed_json = self.parser.cmdstr_to_jsonliststr(
+                    "ms:.05 mr:0,5"
+                )
                 self.servo.call(parsed_json)
             if key_name == "KEY_F":
-                parsed_json = self.parser.cmdstr_to_jsonliststr("ms:.05 mr:0,-5")
+                parsed_json = self.parser.cmdstr_to_jsonliststr(
+                    "ms:.05 mr:0,-5"
+                )
                 self.servo.call(parsed_json)
 
             if key_name == "KEY_K":
