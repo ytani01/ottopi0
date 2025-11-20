@@ -21,7 +21,7 @@ class App:
         self.bt = pibtinput.PiBtInput(debug=self.__debug)
         self.prev_onkeys: dict[str, int] = {}
 
-        self.servo = pi0servo.ThreadWorker(self.pi, self.pins, debug=False)
+        self.servo = pi0servo.JsonRpcWorker(self.pi, self.pins, debug=self.__debug)
         self.parser = pi0servo.StrCmdToJson(
             [1] * len(self.pins), debug=self.__debug
         )
@@ -36,26 +36,36 @@ class App:
             self.prev_onkeys = onkeys.copy()
 
             if key_state == pibtinput.PiBtInput.KEY["up"]:
-                parsed_json = self.parser.cmdstr_to_json("ca")
-                self.servo.send(parsed_json)
+                parsed_json = self.parser.cmdstr_to_jsonliststr("ca")
+                self.servo.call(parsed_json)
                 return True
+
+            print(key_name)
 
             parsed_json = {}
 
             if key_name == "KEY_C":
-                parsed_json = self.parser.cmdstr_to_json("mr:5,0")
-                self.servo.send(parsed_json)
-
+                parsed_json = self.parser.cmdstr_to_jsonliststr("ms:.05 mr:5,0")
+                self.servo.call(parsed_json)
             if key_name == "KEY_D":
-                parsed_json = self.parser.cmdstr_to_json("mr:-5,0")
-                self.servo.send(parsed_json)
+                parsed_json = self.parser.cmdstr_to_jsonliststr("ms:.05 mr:-5,0")
+                self.servo.call(parsed_json)
 
             if key_name == "KEY_E":
-                parsed_json = self.parser.cmdstr_to_json("mr:0,5")
-                self.servo.send(parsed_json)
+                parsed_json = self.parser.cmdstr_to_jsonliststr("ms:.05 mr:0,5")
+                self.servo.call(parsed_json)
             if key_name == "KEY_F":
-                parsed_json = self.parser.cmdstr_to_json("mr:0,-5")
-                self.servo.send(parsed_json)
+                parsed_json = self.parser.cmdstr_to_jsonliststr("ms:.05 mr:0,-5")
+                self.servo.call(parsed_json)
+
+            if key_name == "KEY_K":
+                parsed_json = self.parser.cmdstr_to_jsonliststr(
+                    "ms:.5 mv:0,0 mv:45,30 mv:0,0 mv:-45,-30 mv:0,0"
+                )
+                self.servo.call(parsed_json)
+
+            if key_name == "KEY_S":
+                return False
 
             return True
 
@@ -64,8 +74,9 @@ class App:
         self.__log.debug("")
 
         input_dev = self.bt.search_input_devs(self.btdev)
+        self.__log.debug("input_dev=%s", input_dev)
         if not input_dev:
-            self.__log.error("no such device: %s", list(self.btdev))
+            self.__log.error("no such device: %s", self.btdev)
             return
         if len(input_dev) > 1:
             self.__log.error("anbiguous: %s", [d.name for d in input_dev])
@@ -93,6 +104,10 @@ def main(ctx, btdev, pins, debug):
     __log.debug("command name: %s", ctx.command.name)
     __log.debug("btdev=%s, pins=%s", btdev, pins)
 
+    if not pins:
+        __log.error("pins=%s", pins)
+        return
+
     pi = None
     app = None
     try:
@@ -105,6 +120,7 @@ def main(ctx, btdev, pins, debug):
             app.end()
         if pi:
             pi.stop()
+        click.echo("done")
 
 
 if __name__ == "__main__":
