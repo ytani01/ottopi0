@@ -8,7 +8,10 @@ import os
 import click
 import uvicorn
 
+from ottopi0.rpcclnt_bt import RpcClntBt
+
 from . import ENV_DEBUG, __version__
+from .rpcclnt_bt import RpcClntBt
 from .utils.clickutils import click_common_opts
 from .utils.mylogger import errmsg, get_logger
 
@@ -127,3 +130,50 @@ def rpcsvr(ctx, pins, angle_factors, host, port, debug):
 
     finally:
         click.echo("END.")
+
+
+@cli.command()
+@click.argument("btdev_keyword", type=str, nargs=-1)
+@click.option(
+    "--host",
+    "-i",
+    type=str,
+    default="0.0.0.0",
+    show_default=True,
+    help="hostname or ipaddr",
+)
+@click.option(
+    "--port",
+    "-p",
+    type=int,
+    default=8000,
+    show_default=True,
+    help="port number",
+)
+@click_common_opts(__version__)
+def rpcclntbt(ctx, btdev_keyword, host, port, debug):
+    """JSON-RPC Client for BlueTooth controller."""
+    __log = get_logger(__name__, debug)
+    __log.debug("command name: %s", ctx.command.name)
+    __log.debug(
+        "btdev_keyword=%s, host=%s, port=%s",
+        btdev_keyword, host, port
+    )
+
+    if len(btdev_keyword) == 0:
+        __log.error("no btdev_keyword:%s", btdev_keyword)
+        return
+
+    url = f"http://{host}:{port}/api"
+    __log.debug("url=%s", url)
+
+    app = None
+    try:
+        app = RpcClntBt(btdev_keyword, url, debug=debug)
+        app.main()
+    except Exception as _e:
+        __log.error(errmsg(_e))
+    finally:
+        if app:
+            app.end()
+        click.echo("Done.")
