@@ -2,6 +2,7 @@
 # (c) 2025 Yoichi Tanibayashi
 #
 import os
+import pigpio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -29,11 +30,18 @@ async def lifespan(api: FastAPI):
     # class単位で登録
     # "calc.method" という名前になる
     dispatcher.add_class(Calc)
-    dispatcher.add_class(Servo)
+
+    servo = Servo()
+    servo._start()
+    dispatcher.add_object(servo)
 
     __log.debug("dispatcher: %s", [func for func in dispatcher])
 
     yield
+
+    print("AAA")
+    servo._end()
+    print("BBB")
 
 
 api = FastAPI(lifespan=lifespan)

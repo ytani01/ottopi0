@@ -110,7 +110,7 @@ def rpcsvr2(ctx, pins, angle_factors, host, port, debug):
 
     PINS: 16,19.26,20
 
-    AGNLE_FACTORS: -1,1,-1,1
+    AGNLE_FACTORS: mpmp (= -1,1,-1,1)
     
 
     # sample client
@@ -130,15 +130,37 @@ def rpcsvr2(ctx, pins, angle_factors, host, port, debug):
     __log.debug("pins=%s, angle_factors=%s", pins, angle_factors)
     __log.debug("host=%s, port=%s", host, port)
 
+    if len(pins.split(',')) != len(angle_factors):
+        __log.error(
+            "invalid length of angle_factor:%a, len=%d",
+            angle_factors, len(angle_factors)
+        )
+        return
+
+    # e.g. "mpmp" -> "-1,1,-1,1"
+    af_list = []
+    for ch in angle_factors:
+        if ch == 'p':
+            af_list.append(1)
+        elif ch == 'm':
+            af_list.append(-1)
+        else:
+            __log.error("invalid angle factor charactor: %s", ch)
+            return
+
+    af_list_str = ",".join(map(str, af_list))
+    __log.debug("af_list_str=%s", af_list_str)
+    
+    
     click.echo(f"ENV_DEBUG={ENV_DEBUG}")
     os.environ[ENV_DEBUG] = "1" if debug else "0"
 
     os.environ[f"{__package__}_PINS"] = f"{pins}"
-    os.environ[f"{__package__}_ANGLE_FACTORS"] = f"{angle_factors}"
+    os.environ[f"{__package__}_ANGLE_FACTORS"] = f"{af_list_str}"
 
+    # start API
     _api = f"{__package__}.rpcsvr:api"
     click.echo(f"_api={_api}")
-
 
     try:
         uvicorn.run(

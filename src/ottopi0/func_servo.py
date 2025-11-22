@@ -29,6 +29,22 @@ class Servo:
             self.pi, self.pins, debug=self.__debug
         )
 
+    def _start(self):
+        """Start."""
+        self.__log.debug("")
+        self.servo.start()
+
+    def _end(self):
+        self.__log.debug("")
+        self.servo.end()
+        self.pi.stop()
 
     def foo(self):
-        pass
+        self.__log.debug("")
+        return "foo"
+
+    def call(self, cmd_str):
+        """Call."""
+        self.__log.debug("cmd_str=%s", cmd_str)
+
+        self.servo.call(cmd_str)
