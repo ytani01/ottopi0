@@ -8,8 +8,6 @@ import os
 import click
 import uvicorn
 
-from ottopi0.rpcclnt_bt import RpcClntBt
-
 from . import ENV_DEBUG, __version__
 from .rpcclnt_bt import RpcClntBt
 from .utils.clickutils import click_common_opts
@@ -156,8 +154,7 @@ def rpcclntbt(ctx, btdev_keyword, host, port, debug):
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
     __log.debug(
-        "btdev_keyword=%s, host=%s, port=%s",
-        btdev_keyword, host, port
+        "btdev_keyword=%s, host=%s, port=%s", btdev_keyword, host, port
     )
 
     if len(btdev_keyword) == 0:

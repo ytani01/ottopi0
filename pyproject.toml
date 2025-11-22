@@ -53,7 +53,7 @@ docstring-code-line-length = 78
 "conftest.py" = ["F401", "F811"]
 
 [[tool.mypy.overrides]]
-module = ['fastapi', 'uvicorn', 'jsonrpc', 'pi0servo', 'pibtinput', 'pigpio']
+module = ['requests', 'fastapi', 'uvicorn', 'jsonrpc', 'pi0servo', 'pibtinput', 'pigpio']
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
