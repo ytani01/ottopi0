@@ -2,9 +2,9 @@
 # (c) 2025 Yoichi Tanibayashi
 #
 import os
-import pigpio
 from contextlib import asynccontextmanager
 
+import pigpio
 from fastapi import FastAPI, Request
 from jsonrpc import JSONRPCResponseManager, dispatcher
 
@@ -31,15 +31,34 @@ async def lifespan(api: FastAPI):
     # "calc.method" という名前になる
     dispatcher.add_class(Calc)
 
-    servo = Servo()
+    ### pigpio
+    pi = pigpio.pi()
+
+    ### servo
+    pins_str = os.environ[f"{__package__}_PINS"]
+    servo_pins = [int(p) for p in pins_str.split(",")]
+    __log.debug("servo_pins=%s", servo_pins)
+
+    angle_factors_str = os.environ[f"{__package__}_ANGLE_FACTORS"]
+    angle_factors = [int(p) for p in angle_factors_str.split(",")]
+    __log.debug("angle_factors=%s", angle_factors)
+
+    servo = Servo(pi, servo_pins, angle_factors, debug=debug)
     servo._start()
+
     dispatcher.add_object(servo)
 
+    ###
     __log.debug("dispatcher: %s", [func for func in dispatcher])
 
     yield
 
     servo._end()
+
+    try:
+        pi.stop()
+    except Exception as _e:
+        __log.error(errmsg(_e))
 
 
 api = FastAPI(lifespan=lifespan)
@@ -58,14 +77,11 @@ async def handle_req(request: Request):
     __log.debug("req_str=%s", _req_str)
 
     _res = JSONRPCResponseManager.handle(_req_str, dispatcher)
-    try:
-        __log.info("res=%s", _res.data)
-    except Exception as _e:
-        __log.error(errmsg(_e))
-
     if _res:
         __log.debug("res.data=%s: %s", _res.data, type(_res.data).__name__)
-        __log.debug("res.json=%s: %s", _res.json, type(_res.json).__name__)
+        # __log.debug("res.json=%s: %s", _res.json, type(_res.json).__name__)
+        if isinstance(_res.data, dict):
+            __log.info("result=%s", _res.data.get("result"))
         return _res.data  # returnは、dict型でよい
     else:
         return {}

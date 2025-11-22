@@ -81,19 +81,20 @@ def rpcsvr(ctx, pins, angle_factors, host, port, debug):
     __log.debug("pins=%s, angle_factors=%s", pins, angle_factors)
     __log.debug("host=%s, port=%s", host, port)
 
-    if len(pins.split(',')) != len(angle_factors):
+    if len(pins.split(",")) != len(angle_factors):
         __log.error(
             "invalid length of angle_factor:%a, len=%d",
-            angle_factors, len(angle_factors)
+            angle_factors,
+            len(angle_factors),
         )
         return
 
     # e.g. "mpmp" -> "-1,1,-1,1"
     af_list = []
     for ch in angle_factors:
-        if ch == 'p':
+        if ch == "p":
             af_list.append(1)
-        elif ch == 'm':
+        elif ch == "m":
             af_list.append(-1)
         else:
             __log.error("invalid angle factor charactor: %s", ch)
@@ -101,8 +102,7 @@ def rpcsvr(ctx, pins, angle_factors, host, port, debug):
 
     af_list_str = ",".join(map(str, af_list))
     __log.debug("af_list_str=%s", af_list_str)
-    
-    
+
     click.echo(f"ENV_DEBUG={ENV_DEBUG}")
     os.environ[ENV_DEBUG] = "1" if debug else "0"
 

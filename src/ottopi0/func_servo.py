@@ -1,36 +1,26 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
-import os
-import pigpio
-import pi0servo
+from pi0servo import JsonRpcWorker, StrCmdToJson
 
-from . import ENV_DEBUG, get_logger
+from . import get_logger
+
 
 class Servo:
     """Servo."""
 
-    def __init__(self) -> None:
-        self.__debug = os.environ[ENV_DEBUG] == "1"
+    def __init__(self, pi, pins, angle_factors, debug=False) -> None:
+        """Constractor."""
+        self.__debug = debug
         self.__log = get_logger(self.__class__.__name__, self.__debug)
-        self.__log.debug("")
+        self.__log.debug("pins=%s, angle_factors=%s", pins, angle_factors)
 
-        pins_str = os.environ[f"{__package__}_PINS"]
-        self.pins = [int(p) for p in pins_str.split(",")]
-        self.__log.debug("pins=%s", self.pins)
+        self.pi = pi
+        self.pins = pins
+        self.angle_factors = angle_factors
 
-        angle_factors_str = os.environ[f"{__package__}_ANGLE_FACTORS"]
-        self.angle_factors = [int(p) for p in angle_factors_str.split(",")]
-        self.__log.debug("angle_factors=%s", self.angle_factors)
-
-        self.pi = pigpio.pi()
-
-        self.parser = pi0servo.StrCmdToJson(
-            self.angle_factors, debug=self.__debug
-        )
-        self.servo = pi0servo.JsonRpcWorker(
-            self.pi, self.pins, debug=self.__debug
-        )
+        self.parser = StrCmdToJson(self.angle_factors, debug=self.__debug)
+        self.servo = JsonRpcWorker(self.pi, self.pins, debug=self.__debug)
 
     def _start(self):
         """Start."""
@@ -38,13 +28,10 @@ class Servo:
         self.servo.start()
 
     def _end(self):
+        """End."""
         self.__log.debug("")
         self.servo.end()
-        self.pi.stop()
-
-    def foo(self):
-        self.__log.debug("")
-        return "foo"
+        self.__log.debug("done")
 
     def call(self, cmd_str):
         """Call."""
