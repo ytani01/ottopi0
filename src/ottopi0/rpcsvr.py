@@ -11,7 +11,7 @@ from jsonrpc import JSONRPCResponseManager, dispatcher
 from . import ENV_DEBUG
 from .func_calc import Calc
 from .func_servo import Servo
-from .utils.mylogger import get_logger
+from .utils.mylogger import errmsg, get_logger
 
 
 @asynccontextmanager
@@ -39,9 +39,7 @@ async def lifespan(api: FastAPI):
 
     yield
 
-    print("AAA")
     servo._end()
-    print("BBB")
 
 
 api = FastAPI(lifespan=lifespan)
@@ -60,7 +58,10 @@ async def handle_req(request: Request):
     __log.debug("req_str=%s", _req_str)
 
     _res = JSONRPCResponseManager.handle(_req_str, dispatcher)
-    __log.debug("res=%s", _res.__dict__)
+    try:
+        __log.info("res=%s", _res.data)
+    except Exception as _e:
+        __log.error(errmsg(_e))
 
     if _res:
         __log.debug("res.data=%s: %s", _res.data, type(_res.data).__name__)

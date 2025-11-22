@@ -25,6 +25,9 @@ class Servo:
 
         self.pi = pigpio.pi()
 
+        self.parser = pi0servo.StrCmdToJson(
+            self.angle_factors, debug=self.__debug
+        )
         self.servo = pi0servo.JsonRpcWorker(
             self.pi, self.pins, debug=self.__debug
         )
@@ -47,4 +50,8 @@ class Servo:
         """Call."""
         self.__log.debug("cmd_str=%s", cmd_str)
 
-        self.servo.call(cmd_str)
+        jsonrpcstr = self.parser.cmdstr_to_jsonliststr(cmd_str)
+        self.__log.debug("jsonrpcstr=%s", jsonrpcstr)
+
+        ret = self.servo.call(jsonrpcstr)
+        return ret
