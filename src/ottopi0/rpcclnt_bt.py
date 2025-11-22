@@ -11,21 +11,14 @@ class RpcClntBt:
     """RPC Client: BlueTooth."""
 
     KEY_BIND = {
-        "KEY_C": "ms:.05 mr:5,0,0,0",
-        "KEY_D": "ms:.05 mr:-5,0,0,0",
-        "KEY_E": "ms:.05 mr:0,5,0,0",
-        "KEY_F": "ms:.05 mr:0,-5,0,0",
-        "KEY_H": "ms:.05 mr:0,0,0,5",
-        "KEY_J": "ms:.05 mr:0,0,0,-5",
-        "KEY_G": "ms:.05 mr:0,0,5,0",
-        "KEY_I": "ms:.05 mr:0,0,-5,0",
-    }
-
-    KEY_BIND2 = {
         "KEY_C": {"idx": 0, "angle_diff": 5},
         "KEY_D": {"idx": 0, "angle_diff": -5},
         "KEY_E": {"idx": 1, "angle_diff": 5},
         "KEY_F": {"idx": 1, "angle_diff": -5},
+        "KEY_G": {"idx": 2, "angle_diff": 5},
+        "KEY_I": {"idx": 2, "angle_diff": -5},
+        "KEY_H": {"idx": 3, "angle_diff": 5},
+        "KEY_J": {"idx": 3, "angle_diff": -5},
     }
 
     def __init__(self, btdev_keyword, url, debug=False):
@@ -92,31 +85,33 @@ class RpcClntBt:
         self.prev_onkeys = onkeys.copy()
 
         if key_state == PiBtInput.KEY["up"]:
+            # キーを離したらコマンドをキャンセルして停止
             self.rpc_call("ca")
             return True
 
         print(key_name)
 
         if key_name == "KEY_S":
+            # 終了
             self.is_active = False
             self.__log.info("END")
             return False
 
-        # if key_name not in self.KEY_BIND:
-        #     return True
-        # self.rpc_call(self.KEY_BIND[key_name])
-
+        # make angle_diffs
         angle_diffs = [0, 0, 0, 0]
         for key in onkeys:
-            print(key)
-            if key in self.KEY_BIND2.keys():
-                val = self.KEY_BIND2[key]
+            if key in self.KEY_BIND.keys():
+                val = self.KEY_BIND[key]
                 print(val)
                 angle_diffs[val["idx"]] = val["angle_diff"]
-
         self.__log.debug("angle_diffs=%s", angle_diffs)
 
-        cmd_str = "ms:0.05 st:1 mr:" + ",".join(map(str, angle_diffs))
+        if angle_diffs == [0, 0, 0, 0]:
+            self.__log.debug("ignore: %s", angle_diffs)
+            return True
+
+        # make cmd_str
+        cmd_str = "ms:0.05 st:5 mr:" + ",".join(map(str, angle_diffs))
         self.__log.debug("cmd_str=%s", cmd_str)
 
         self.rpc_call(cmd_str)
