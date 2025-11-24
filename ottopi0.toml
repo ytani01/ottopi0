@@ -1,0 +1,25 @@
+[default]
+
+[servo]
+pins = [16,19,26,20]
+angle_factors = [-1,1,-1,1]  # "mpmp"
+
+[rpc]
+proto = "http"
+host = "0.0.0.0"
+port = 8000
+apipath = "/api"
+
+[rpcclnt_bt]
+init_cmd = "ms:.2 st:40"
+keys = [  # "mR"は、特別扱い
+        "KEY_S: ms:1 st:40 mv:0,0,0,0",
+        "KEY_C: mR,0,5",
+        "KEY_D: mR,0,-5",
+        "KEY_E: mR,1,5",
+        "KEY_F: mR,1,-5",
+        "KEY_G: mR,2,5",
+        "KEY_I: mR,2,-5",
+        "KEY_H: mR,3,5",
+        "KEY_J: mR,3,-5",
+]        

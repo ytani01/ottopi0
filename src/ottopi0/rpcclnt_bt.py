@@ -4,22 +4,12 @@
 import requests
 from pibtinput import PiBtInput
 
+from . import Config
 from .utils.mylogger import errmsg, get_logger
 
 
 class RpcClntBt:
     """RPC Client: BlueTooth."""
-
-    KEY_BIND = {
-        "KEY_C": {"idx": 0, "angle_diff": 5},
-        "KEY_D": {"idx": 0, "angle_diff": -5},
-        "KEY_E": {"idx": 1, "angle_diff": 5},
-        "KEY_F": {"idx": 1, "angle_diff": -5},
-        "KEY_G": {"idx": 2, "angle_diff": 5},
-        "KEY_I": {"idx": 2, "angle_diff": -5},
-        "KEY_H": {"idx": 3, "angle_diff": 5},
-        "KEY_J": {"idx": 3, "angle_diff": -5},
-    }
 
     def __init__(self, btdev_keyword, url, debug=False):
         """Constractor."""
@@ -27,17 +17,30 @@ class RpcClntBt:
         self.__log = get_logger(self.__class__.__name__, self.__debug)
         self.__log.debug("btdev_keyword=%s, url=%s", btdev_keyword, url)
 
-        self.bt_input = PiBtInput(debug=self.__debug)
+        self.bt_input = PiBtInput(debug=False)
         self.url = url
 
         self.prev_onkeys: dict[str, int] = {}
 
-        self.input_dev = self.bt_input.search_input_devs(btdev_keyword)
-        self.__log.debug("input_dev=%s", self.input_dev)
-
         self.rpc_id = 0
 
-        self.is_active = True
+        self.is_active = False
+
+        self.input_dev = self.bt_input.search_input_devs(btdev_keyword)
+        self.__log.debug("input_dev=%s", self.input_dev)
+        if not self.input_dev:
+            self.__log.error("No input device")
+        else:
+            self.is_active = True
+
+        self.key_bind = {}
+        self.__log.debug("keys:%s", Config.rpcclnt_bt.get("keys"))
+        for b in Config.rpcclnt_bt.get("keys"):
+            key, cmd = b.split(":", 1)
+            self.key_bind[key] = cmd.strip()
+        self.__log.debug("key_bind=%s", self.key_bind)
+
+        print("KEY_S" in self.key_bind)
 
     def main(self):
         """Main."""
@@ -76,7 +79,7 @@ class RpcClntBt:
     def cb_ev(self, key_name, key_state, onkeys):
         """Event Callback."""
         self.__log.debug(
-            "key_name=%s,key_state=%s,onkeys=%s", key_name, key_state, onkeys
+            "key_name=%a,key_state=%s,onkeys=%s", key_name, key_state, onkeys
         )
 
         if onkeys == self.prev_onkeys:
@@ -91,31 +94,20 @@ class RpcClntBt:
 
         print(key_name)
 
-        if key_name == "KEY_S":
-            ## 終了
-            #self.is_active = False
-            #self.__log.info("END")
-            self.rpc_call("ms:1 st:30 mv:0,0,0,0")
-            return False
-
-        # make angle_diffs
         angle_diffs = [0, 0, 0, 0]
         for key in onkeys:
-            if key in self.KEY_BIND.keys():
-                val = self.KEY_BIND[key]
-                print(val)
-                angle_diffs[val["idx"]] = val["angle_diff"]
-        self.__log.debug("angle_diffs=%s", angle_diffs)
+            if key in self.key_bind:
+                cmd = self.key_bind[key]
+                if cmd.startswith("mR"):
+                    params = cmd.split(",")
+                    angle_diffs[int(params[1])] = int(params[2])
+                else:
+                    self.rpc_call(cmd)
 
-        if angle_diffs == [0, 0, 0, 0]:
-            self.__log.debug("ignore: %s", angle_diffs)
-            return True
-
-        # make cmd_str
-        cmd_str = "ms:0.2 st:10 mr:" + ",".join(map(str, angle_diffs))
-        self.__log.debug("cmd_str=%s", cmd_str)
-
-        self.rpc_call(cmd_str)
+        if angle_diffs != [0, 0, 0, 0]:
+            self.__log.debug("angle_diffs=%s", angle_diffs)
+            cmd_str = "ms:0.2 st:10 mr:" + ",".join(map(str, angle_diffs))
+            self.rpc_call(cmd_str)
 
         return True
 
