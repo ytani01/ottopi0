@@ -8,10 +8,23 @@ import os
 import click
 import uvicorn
 
-from . import ENV_DEBUG, __version__
+from . import ENV_DEBUG, Config,  __version__
 from .rpcclnt_bt import RpcClntBt
 from .utils.clickutils import click_common_opts
 from .utils.mylogger import errmsg, get_logger
+
+
+DEF_SERVO_PINS = list(Config.servo.pins)
+click.echo(f"DEF_SERVO_PINS={DEF_SERVO_PINS}")
+DEF_SERVO_ANGLE_FACTORS = list(Config.servo.angle_factors)
+click.echo(f"DEF_SERVO_ANGLE_FACTORS={DEF_SERVO_ANGLE_FACTORS}")
+
+DEF_PROTO = Config.rpc.proto
+DEF_HOST = Config.rpc.host
+DEF_PORT = Config.rpc.port
+DEF_APIPATH = Config.rpc.apipath
+DEF_URL = f"{DEF_PROTO}://{DEF_HOST}:{DEF_PORT}{DEF_APIPATH}"
+click.echo(f"DEF_URL={DEF_URL}")
 
 
 @click.group()
@@ -36,7 +49,7 @@ def cli(ctx, debug):
     "--host",
     "-i",
     type=str,
-    default="0.0.0.0",
+    default=DEF_HOST,
     show_default=True,
     help="hostname or ipaddr",
 )
@@ -44,7 +57,7 @@ def cli(ctx, debug):
     "--port",
     "-p",
     type=int,
-    default=8000,
+    default=DEF_PORT,
     show_default=True,
     help="port number",
 )
@@ -136,7 +149,7 @@ def rpcsvr(ctx, pins, angle_factors, host, port, debug):
     "--host",
     "-i",
     type=str,
-    default="0.0.0.0",
+    default=DEF_HOST,
     show_default=True,
     help="hostname or ipaddr",
 )
@@ -144,7 +157,7 @@ def rpcsvr(ctx, pins, angle_factors, host, port, debug):
     "--port",
     "-p",
     type=int,
-    default=8000,
+    default=DEF_PORT,
     show_default=True,
     help="port number",
 )

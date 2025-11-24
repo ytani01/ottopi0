@@ -68,3 +68,6 @@ flycheck_*
 *.swp
 *.bak
 *.log
+
+# Ignore dynaconf secret files
+.secrets.*
