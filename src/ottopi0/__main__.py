@@ -26,19 +26,6 @@ DEF_URL = f"{DEF_PROTO}://{DEF_HOST}:{DEF_PORT}{DEF_APIPATH}"
 click.echo(f"DEF_URL={DEF_URL}")
 
 
-DEF_SERVO_PINS = list(Config.servo.pins)
-click.echo(f"DEF_SERVO_PINS={DEF_SERVO_PINS}")
-DEF_SERVO_ANGLE_FACTORS = list(Config.servo.angle_factors)
-click.echo(f"DEF_SERVO_ANGLE_FACTORS={DEF_SERVO_ANGLE_FACTORS}")
-
-DEF_PROTO = Config.rpc.proto
-DEF_HOST = Config.rpc.host
-DEF_PORT = Config.rpc.port
-DEF_APIPATH = Config.rpc.apipath
-DEF_URL = f"{DEF_PROTO}://{DEF_HOST}:{DEF_PORT}{DEF_APIPATH}"
-click.echo(f"DEF_URL={DEF_URL}")
-
-
 @click.group()
 @click_common_opts(__version__)
 def cli(ctx, debug):
