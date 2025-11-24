@@ -92,9 +92,10 @@ class RpcClntBt:
         print(key_name)
 
         if key_name == "KEY_S":
-            # 終了
-            self.is_active = False
-            self.__log.info("END")
+            ## 終了
+            #self.is_active = False
+            #self.__log.info("END")
+            self.rpc_call("ms:1 st:30 mv:0,0,0,0")
             return False
 
         # make angle_diffs
@@ -111,7 +112,7 @@ class RpcClntBt:
             return True
 
         # make cmd_str
-        cmd_str = "ms:0.05 st:5 mr:" + ",".join(map(str, angle_diffs))
+        cmd_str = "ms:0.2 st:10 mr:" + ",".join(map(str, angle_diffs))
         self.__log.debug("cmd_str=%s", cmd_str)
 
         self.rpc_call(cmd_str)
