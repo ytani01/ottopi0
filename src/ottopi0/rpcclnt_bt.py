@@ -85,7 +85,7 @@ class RpcClntBt:
 
         if key_state == PiBtInput.KEY["up"]:
             # キーを離したらコマンドをキャンセルして停止
-            #self.rpc_call("ca")
+            # self.rpc_call("ca")
             return True
 
         print(key_name)
