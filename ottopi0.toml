@@ -11,11 +11,21 @@ port = 8000
 apipath = "/api"
 
 [rpcclnt_bt]
-prefix = "ms:.2 st:30"
+prefix = "ms:.3 st:30"
 mr_prefix = "ms:0.3 st:10 mr:"
 
 [rpcclnt_bt.keys]
-KEY_S = "ms:1 st:40 mv:0,0,0,0"
+# home
+KEY_S = "ca ms:.5 st:30 mv:-20,0,0,20 mv:20,0,0,-20 mv:0,0,0,0"
+
+# walk
+KEY_K = "mv:-31,0,0,25 mv:-20,20,-20,25 mv:0,20,-20,0 mv:25,0,0,-30 mv:25,-20,20,-30 mv:0,-20,20,0"
+
+# happy
+KEY_O = "mv:-15,0,0,-45, mv:0,0,0,0 mv:-45,0,0,-15 mv:0,0,0,0"
+
+# !!
+KEY_N = "ms:.1 st:20 mv:45,0,0,45 sl:.3 mv:0,0,0,0"
 
 [rpcclnt_bt.mr_keys]
 KEY_C = [ 5, 0, 0, 0]
