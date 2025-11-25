@@ -12,4 +12,10 @@
 
 ## == 参考
 
+### 8BitDo Micro
+
+Keyboard mode
+![](docs/8BitDo_Micro_mode-K.jpg)
+
+### Links
 - [Otto DIY](https://www.ottodiy.com/)

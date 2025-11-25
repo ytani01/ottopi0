@@ -11,15 +11,18 @@ port = 8000
 apipath = "/api"
 
 [rpcclnt_bt]
-init_cmd = "ms:.2 st:40"
-keys = [  # "mR"は、特別扱い
-        "KEY_S: ms:1 st:40 mv:0,0,0,0",
-        "KEY_C: mR,0,5",
-        "KEY_D: mR,0,-5",
-        "KEY_E: mR,1,5",
-        "KEY_F: mR,1,-5",
-        "KEY_G: mR,2,5",
-        "KEY_I: mR,2,-5",
-        "KEY_H: mR,3,5",
-        "KEY_J: mR,3,-5",
-]        
+prefix = "ms:.2 st:30"
+mr_prefix = "ms:0.3 st:10 mr:"
+
+[rpcclnt_bt.keys]
+KEY_S = "ms:1 st:40 mv:0,0,0,0"
+
+[rpcclnt_bt.mr_keys]
+KEY_C = [ 5, 0, 0, 0]
+KEY_D = [-5, 0, 0, 0]
+KEY_E = [0,  5, 0, 0]
+KEY_F = [0, -5, 0, 0]
+KEY_G = [0, 0,  5, 0]
+KEY_I = [0, 0, -5, 0]
+KEY_H = [0, 0, 0,  5]
+KEY_J = [0, 0, 0, -5]

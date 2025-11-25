@@ -33,14 +33,10 @@ class RpcClntBt:
         else:
             self.is_active = True
 
-        self.key_bind = {}
-        self.__log.debug("keys:%s", Config.rpcclnt_bt.get("keys"))
-        for b in Config.rpcclnt_bt.get("keys"):
-            key, cmd = b.split(":", 1)
-            self.key_bind[key] = cmd.strip()
-        self.__log.debug("key_bind=%s", self.key_bind)
-
-        print("KEY_S" in self.key_bind)
+        self.conf = Config.rpcclnt_bt
+        self.keys = self.conf.get("keys")
+        self.mr_keys = self.conf.get("mr_keys")
+        self.__log.debug("keys=%s, mr_keys=%s", self.keys, self.mr_keys)
 
     def main(self):
         """Main."""
@@ -94,21 +90,31 @@ class RpcClntBt:
 
         print(key_name)
 
+        if key_name in self.keys:
+            # normal key
+            cmd_str = self.conf.get("prefix") + " " + self.keys.get(key_name)
+            self.__log.debug("cmd_str=%a", cmd_str)
+            self.rpc_call(cmd_str)
+            return True
+
+        # "mr" ?
         angle_diffs = [0, 0, 0, 0]
         for key in onkeys:
-            if key in self.key_bind:
-                cmd = self.key_bind[key]
-                if cmd.startswith("mR"):
-                    params = cmd.split(",")
-                    angle_diffs[int(params[1])] = int(params[2])
-                else:
-                    self.rpc_call(cmd)
+            if key in self.mr_keys:
+                ad = self.mr_keys.get(key)
+                angle_diffs = [a + b for a, b in zip(angle_diffs, ad)]
+        self.__log.debug("angle_diffs=%s", angle_diffs)
 
-        if angle_diffs != [0, 0, 0, 0]:
-            self.__log.debug("angle_diffs=%s", angle_diffs)
-            cmd_str = "ms:0.2 st:10 mr:" + ",".join(map(str, angle_diffs))
-            self.rpc_call(cmd_str)
+        if angle_diffs == [0, 0, 0, 0]:
+            # not "mr"
+            return True
 
+        # "mr" !
+        cmd_str = self.conf.get("mr_prefix")
+        cmd_str += ",".join(map(str, angle_diffs))
+        self.__log.debug("cmd_str=%a", cmd_str)
+
+        self.rpc_call(cmd_str)
         return True
 
     def end(self):
