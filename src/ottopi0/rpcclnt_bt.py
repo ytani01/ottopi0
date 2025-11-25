@@ -88,6 +88,9 @@ class RpcClntBt:
             # self.rpc_call("ca")
             return True
 
+        if key_state == PiBtInput.KEY["hold"]:
+            return True
+
         print(key_name)
 
         if key_name in self.keys:

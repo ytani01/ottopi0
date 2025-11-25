@@ -5,6 +5,7 @@ uv.lock
 *:Zone.Identifier
 
 #
+ottopi0.toml
 servo.json
 .markdown*
 .serena/

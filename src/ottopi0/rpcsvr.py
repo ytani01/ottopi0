@@ -81,7 +81,7 @@ async def handle_req(request: Request):
         __log.debug("res.data=%s: %s", _res.data, type(_res.data).__name__)
         # __log.debug("res.json=%s: %s", _res.json, type(_res.json).__name__)
         if isinstance(_res.data, dict):
-            __log.info("result=%s", _res.data.get("result"))
+            __log.debug("result=%s", _res.data.get("result"))
         return _res.data  # returnは、dict型でよい
     else:
         return {}

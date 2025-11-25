@@ -14,16 +14,16 @@ from .utils.clickutils import click_common_opts
 from .utils.mylogger import errmsg, get_logger
 
 DEF_SERVO_PINS = list(Config.servo.pins)
-click.echo(f"DEF_SERVO_PINS={DEF_SERVO_PINS}")
+#click.echo(f"DEF_SERVO_PINS={DEF_SERVO_PINS}")
 DEF_SERVO_ANGLE_FACTORS = list(Config.servo.angle_factors)
-click.echo(f"DEF_SERVO_ANGLE_FACTORS={DEF_SERVO_ANGLE_FACTORS}")
+#click.echo(f"DEF_SERVO_ANGLE_FACTORS={DEF_SERVO_ANGLE_FACTORS}")
 
 DEF_PROTO = Config.rpc.proto
 DEF_HOST = Config.rpc.host
 DEF_PORT = Config.rpc.port
 DEF_APIPATH = Config.rpc.apipath
 DEF_URL = f"{DEF_PROTO}://{DEF_HOST}:{DEF_PORT}{DEF_APIPATH}"
-click.echo(f"DEF_URL={DEF_URL}")
+#click.echo(f"DEF_URL={DEF_URL}")
 
 
 @click.group()
@@ -60,8 +60,16 @@ def cli(ctx, debug):
     show_default=True,
     help="port number",
 )
+@click.option(
+    "--reload",
+    "-r",
+    is_flag=True,
+    default=False,
+    show_default=True,
+    help="reload flag",
+)
 @click_common_opts(__version__)
-def rpcsvr(ctx, pins, angle_factors, host, port, debug):
+def rpcsvr(ctx, pins, angle_factors, host, port, reload, debug):
     """JSON-RPC 2.0 server.
 
     e.g.
@@ -92,7 +100,7 @@ def rpcsvr(ctx, pins, angle_factors, host, port, debug):
     __log = get_logger(__name__, debug)
     __log.debug("cmd_name=%s", ctx.command.name)
     __log.debug("pins=%s, angle_factors=%s", pins, angle_factors)
-    __log.debug("host=%s, port=%s", host, port)
+    __log.debug("host=%s, port=%s, reload=%s", host, port, reload)
 
     if len(pins.split(",")) != len(angle_factors):
         __log.error(
@@ -116,7 +124,7 @@ def rpcsvr(ctx, pins, angle_factors, host, port, debug):
     af_list_str = ",".join(map(str, af_list))
     __log.debug("af_list_str=%s", af_list_str)
 
-    click.echo(f"ENV_DEBUG={ENV_DEBUG}")
+    #click.echo(f"ENV_DEBUG={ENV_DEBUG}")
     os.environ[ENV_DEBUG] = "1" if debug else "0"
 
     os.environ[f"{__package__}_PINS"] = f"{pins}"
@@ -124,14 +132,14 @@ def rpcsvr(ctx, pins, angle_factors, host, port, debug):
 
     # start API
     _api = f"{__package__}.rpcsvr:api"
-    click.echo(f"_api={_api}")
+    #click.echo(f"_api={_api}")
 
     try:
         uvicorn.run(
             _api,
             host=host,
             port=port,
-            reload=True,
+            reload=reload,
             log_level="debug" if debug else "info",
         )
 

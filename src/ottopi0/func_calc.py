@@ -5,7 +5,7 @@ class Calc:
     """Calc."""
 
     def __init__(self) -> None:
-        print(self.__class__.__name__)
+        #print(self.__class__.__name__)
 
         self.foo = "abc"
 
