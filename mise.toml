@@ -18,7 +18,7 @@ mise self-update
 mise up
 '''
 alias = "upmise"
-depends = ["upgradeapt"]
+#depends = ["upgradeapt"]
 
 [tasks.upgradeuv]
 description = "upgrade uv"
@@ -45,7 +45,7 @@ uv pip install -U -e .
 uv pip install -U --group dev -e .
 '''
 alias = "upproj"
-depends = ["upgradeuv"]
+#depends = ["upgradeuv"]
 
 [tasks.lint]
 description = "linting"

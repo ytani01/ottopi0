@@ -3,13 +3,9 @@
 #
 """__main__.py"""
 
-import os
-
 import click
-import uvicorn
 
 from . import ENVNAME_DEBUG, Config, __version__
-from .rpcclnt_bt import RpcClntBt
 from .utils.clickutils import click_common_opts
 from .utils.mylogger import errmsg, get_logger
 
@@ -92,6 +88,10 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
 
     ```
     """
+    import os
+
+    import uvicorn
+
     __log = get_logger(__name__, debug)
     __log.debug("cmd_name=%s", ctx.command.name)
     __log.debug("servo_pins=%a", servo_pins)
@@ -148,6 +148,8 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
 @click_common_opts(__version__)
 def rpcclntbt(ctx, btdev_keyword, host, port, apipath, debug):
     """JSON-RPC Client for BlueTooth controller."""
+    from .rpcclnt_bt import RpcClntBt
+
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
     __log.debug(
