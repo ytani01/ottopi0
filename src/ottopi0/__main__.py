@@ -143,7 +143,7 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
     type=str,
     default=DEF_RPC_APIPATH,
     show_default=True,
-    help="API path"
+    help="API path",
 )
 @click_common_opts(__version__)
 def rpcclntbt(ctx, btdev_keyword, host, port, apipath, debug):
@@ -152,7 +152,10 @@ def rpcclntbt(ctx, btdev_keyword, host, port, apipath, debug):
     __log.debug("command name: %s", ctx.command.name)
     __log.debug(
         "btdev_keyword=%s,host=%a,port=%s,apipath=%a",
-        btdev_keyword, host, port, apipath
+        btdev_keyword,
+        host,
+        port,
+        apipath,
     )
 
     if len(btdev_keyword) == 0:

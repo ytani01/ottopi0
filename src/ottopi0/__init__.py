@@ -23,7 +23,7 @@ ENVNAME_DEBUG = f"{__package__}_DEBUG"
 
 __all__ = [
     "__version__",
-    "ENV_DEBUG",
+    "ENVNAME_DEBUG",
     "click_common_opts",
     "Config",
     "errmsg",
