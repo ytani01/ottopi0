@@ -8,22 +8,17 @@ import os
 import click
 import uvicorn
 
-from . import ENV_DEBUG, Config, __version__
+from . import ENVNAME_DEBUG, Config, __version__
 from .rpcclnt_bt import RpcClntBt
 from .utils.clickutils import click_common_opts
 from .utils.mylogger import errmsg, get_logger
 
-DEF_SERVO_PINS = list(Config.servo.pins)
-#click.echo(f"DEF_SERVO_PINS={DEF_SERVO_PINS}")
-DEF_SERVO_ANGLE_FACTORS = list(Config.servo.angle_factors)
-#click.echo(f"DEF_SERVO_ANGLE_FACTORS={DEF_SERVO_ANGLE_FACTORS}")
+DEF_SERVO_PINS = Config.servo.pins
 
-DEF_PROTO = Config.rpc.proto
-DEF_HOST = Config.rpc.host
-DEF_PORT = Config.rpc.port
-DEF_APIPATH = Config.rpc.apipath
-DEF_URL = f"{DEF_PROTO}://{DEF_HOST}:{DEF_PORT}{DEF_APIPATH}"
-#click.echo(f"DEF_URL={DEF_URL}")
+DEF_RPC_PROTO = Config.rpc.proto
+DEF_RPC_HOST = Config.rpc.host
+DEF_RPC_PORT = Config.rpc.port
+DEF_RPC_APIPATH = Config.rpc.apipath
 
 
 @click.group()
@@ -42,13 +37,20 @@ def cli(ctx, debug):
 
 
 @cli.command()
-@click.argument("pins", type=str, nargs=1)
-@click.argument("angle_factors", type=str, nargs=1)
+@click.option(
+    "--servo-pins",
+    "--pins",
+    "-s",
+    type=str,
+    default=DEF_SERVO_PINS,
+    show_default=True,
+    help="servo pins",
+)
 @click.option(
     "--host",
     "-i",
     type=str,
-    default=DEF_HOST,
+    default=DEF_RPC_HOST,
     show_default=True,
     help="hostname or ipaddr",
 )
@@ -56,7 +58,7 @@ def cli(ctx, debug):
     "--port",
     "-p",
     type=int,
-    default=DEF_PORT,
+    default=DEF_RPC_PORT,
     show_default=True,
     help="port number",
 )
@@ -69,15 +71,8 @@ def cli(ctx, debug):
     help="reload flag",
 )
 @click_common_opts(__version__)
-def rpcsvr(ctx, pins, angle_factors, host, port, reload, debug):
+def rpcsvr(ctx, servo_pins, host, port, reload, debug):
     """JSON-RPC 2.0 server.
-
-    e.g.
-
-    PINS: 16,19.26,20
-
-    AGNLE_FACTORS: mpmp (= -1,1,-1,1)
-    
 
     # sample client
 
@@ -99,40 +94,14 @@ def rpcsvr(ctx, pins, angle_factors, host, port, reload, debug):
     """
     __log = get_logger(__name__, debug)
     __log.debug("cmd_name=%s", ctx.command.name)
-    __log.debug("pins=%s, angle_factors=%s", pins, angle_factors)
+    __log.debug("servo_pins=%a", servo_pins)
     __log.debug("host=%s, port=%s, reload=%s", host, port, reload)
 
-    if len(pins.split(",")) != len(angle_factors):
-        __log.error(
-            "invalid length of angle_factor:%a, len=%d",
-            angle_factors,
-            len(angle_factors),
-        )
-        return
-
-    # e.g. "mpmp" -> "-1,1,-1,1"
-    af_list = []
-    for ch in angle_factors:
-        if ch == "p":
-            af_list.append(1)
-        elif ch == "m":
-            af_list.append(-1)
-        else:
-            __log.error("invalid angle factor charactor: %s", ch)
-            return
-
-    af_list_str = ",".join(map(str, af_list))
-    __log.debug("af_list_str=%s", af_list_str)
-
-    #click.echo(f"ENV_DEBUG={ENV_DEBUG}")
-    os.environ[ENV_DEBUG] = "1" if debug else "0"
-
-    os.environ[f"{__package__}_PINS"] = f"{pins}"
-    os.environ[f"{__package__}_ANGLE_FACTORS"] = f"{af_list_str}"
+    os.environ[ENVNAME_DEBUG] = "1" if debug else "0"
+    os.environ[f"{__package__}_SERVO_PINS"] = f"{servo_pins}"
 
     # start API
     _api = f"{__package__}.rpcsvr:api"
-    #click.echo(f"_api={_api}")
 
     try:
         uvicorn.run(
@@ -140,7 +109,7 @@ def rpcsvr(ctx, pins, angle_factors, host, port, reload, debug):
             host=host,
             port=port,
             reload=reload,
-            log_level="debug" if debug else "info",
+            log_level="debug" if debug else "warning",
         )
 
     except Exception as _e:
@@ -156,7 +125,7 @@ def rpcsvr(ctx, pins, angle_factors, host, port, reload, debug):
     "--host",
     "-i",
     type=str,
-    default=DEF_HOST,
+    default=DEF_RPC_HOST,
     show_default=True,
     help="hostname or ipaddr",
 )
@@ -164,24 +133,33 @@ def rpcsvr(ctx, pins, angle_factors, host, port, reload, debug):
     "--port",
     "-p",
     type=int,
-    default=DEF_PORT,
+    default=DEF_RPC_PORT,
     show_default=True,
     help="port number",
 )
+@click.option(
+    "--apipath",
+    "-a",
+    type=str,
+    default=DEF_RPC_APIPATH,
+    show_default=True,
+    help="API path"
+)
 @click_common_opts(__version__)
-def rpcclntbt(ctx, btdev_keyword, host, port, debug):
+def rpcclntbt(ctx, btdev_keyword, host, port, apipath, debug):
     """JSON-RPC Client for BlueTooth controller."""
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
     __log.debug(
-        "btdev_keyword=%s, host=%s, port=%s", btdev_keyword, host, port
+        "btdev_keyword=%s,host=%a,port=%s,apipath=%a",
+        btdev_keyword, host, port, apipath
     )
 
     if len(btdev_keyword) == 0:
         __log.error("no btdev_keyword:%s", btdev_keyword)
         return
 
-    url = f"http://{host}:{port}/api"
+    url = f"http://{host}:{port}{apipath}"
     __log.debug("url=%s", url)
 
     app = None

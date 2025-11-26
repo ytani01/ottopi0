@@ -68,9 +68,9 @@ class RpcClntBt:
         result = response.json()
 
         if "result" in result:
-            self.__log.info("result: %s", result["result"])
+            self.__log.debug("result: %s", result["result"])
         elif "error" in result:
-            self.__log.info("error: %s", result["error"])
+            self.__log.debug("error: %s", result["error"])
 
     def cb_ev(self, key_name, key_state, onkeys):
         """Event Callback."""
@@ -91,7 +91,7 @@ class RpcClntBt:
         if key_state == PiBtInput.KEY["hold"]:
             return True
 
-        print(key_name)
+        self.__log.debug("key_name=%a", key_name)
 
         if key_name in self.keys:
             # normal key

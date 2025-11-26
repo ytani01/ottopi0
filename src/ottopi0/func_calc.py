@@ -5,13 +5,10 @@ class Calc:
     """Calc."""
 
     def __init__(self) -> None:
-        #print(self.__class__.__name__)
-
         self.foo = "abc"
 
     def add(self, a: float, b: float) -> float:
         """Add function."""
-        print(self.foo)
         return a + b
 
     def sub(self, a: float, b: float) -> float:

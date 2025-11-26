@@ -19,7 +19,7 @@ SETTINGS_FILE2 = os.path.expanduser("~/ottopi0.toml")
 # 後ろのほうが設定を上書きする
 Config = Dynaconf(settings_files=[SETTINGS_FILE1, SETTINGS_FILE2])
 
-ENV_DEBUG = f"{__package__}_DEBUG"
+ENVNAME_DEBUG = f"{__package__}_DEBUG"
 
 __all__ = [
     "__version__",

@@ -1,8 +1,8 @@
 [default]
 
 [servo]
-pins = [16,19,26,20]
-angle_factors = [-1,1,-1,1]  # "mpmp"
+pins = "22,27-"
+#pins = "16-,19,26-,20"
 
 [rpc]
 proto = "http"
