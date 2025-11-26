@@ -41,10 +41,11 @@ echo "# uv sync"
 uv sync
 
 echo "# pip"
+uv pip install -U -e .
 uv pip install -U --group dev -e .
 '''
 alias = "upproj"
-# depends = ["upgradeuv"]
+depends = ["upgradeuv"]
 
 [tasks.lint]
 description = "linting"

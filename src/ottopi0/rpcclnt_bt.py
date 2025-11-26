@@ -1,6 +1,8 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
+import time
+
 import requests
 from pibtinput import PiBtInput
 
@@ -26,7 +28,8 @@ class RpcClntBt:
 
         self.is_active = False
 
-        self.input_dev = self.bt_input.search_input_devs(btdev_keyword)
+        self.btdev_keyword = btdev_keyword
+        self.input_dev = self.bt_input.search_input_devs(self.btdev_keyword)
         self.__log.debug("input_dev=%s", self.input_dev)
         if not self.input_dev:
             self.__log.error("No input device")
@@ -34,6 +37,7 @@ class RpcClntBt:
             self.is_active = True
 
         self.conf = Config.rpcclnt_bt
+        self.funcs = self.conf.get("funcs")
         self.keys = self.conf.get("keys")
         self.mr_keys = self.conf.get("mr_keys")
         self.__log.debug("keys=%s, mr_keys=%s", self.keys, self.mr_keys)
@@ -45,6 +49,28 @@ class RpcClntBt:
         while self.is_active:
             try:
                 self.bt_input.read_loop(self.input_dev[0], self.cb_ev)
+
+            except requests.exceptions.ConnectionError as e:
+                self.__log.error(errmsg(e))
+
+            except OSError as e:
+                # BlueTooth is lost ?
+                self.__log.error(errmsg(e))
+                time.sleep(3)
+                self.input_dev = self.bt_input.search_input_devs(
+                    self.btdev_keyword
+                )
+                self.__log.error("input_dev=%s", self.input_dev)
+
+            except IndexError as e:
+                # BlueTooth is lost ?
+                self.__log.error(errmsg(e))
+                time.sleep(1)
+                self.input_dev = self.bt_input.search_input_devs(
+                    self.btdev_keyword
+                )
+                self.__log.error("input_dev=%s", self.input_dev)
+
             except Exception as e:
                 self.__log.error(errmsg(e))
 
@@ -62,7 +88,12 @@ class RpcClntBt:
         }
         self.__log.debug("payload=%s", payload)
 
-        response = requests.post(self.url, json=payload)
+        try:
+            response = requests.post(self.url, json=payload)
+        except requests.exceptions.ConnectionError as e:
+            self.__log.error(errmsg(e))
+            return
+
         self.__log.debug("response=%s", response)
 
         result = response.json()

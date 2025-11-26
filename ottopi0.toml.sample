@@ -14,6 +14,26 @@ apipath = "/api"
 prefix = "ms:.4 st:30"
 mr_prefix = "ms:0.3 st:10 mr:"
 
+[rpcclnt_bt.funcs]
+home = "ca mv:-30,0,0,20 mv:0,0,0,0 mv:20,0,0,-30 mv:0,0,0,0"
+
+forward = "ms:.4 mv:-30,0,0,20 mv:-40,20,-20,20 mv:0,20,-20,0 mv:20,0,0,-40 mv:20,-20,20,-30 mv:0,-20,20,0"
+backword = "ms:.4 mv:20,0,0,-30 mv:20,20,-20,-40 mv:0,20,-20,0 mv:-40,0,0,20 mv:-30,-20,20,20 mv:0,-20,20,0"
+turn_left = "ms:.4 mv:-30,0,0,20 mv:0,-20,-20,20 mv:0,-20,-20,0 mv:20,-20,-20,-30 mv:20,0,0,0 mv:0,0,0,0"
+turn_right = "ms:.4 mv:20,0,0,-30 mv:20,-20,-20,0 mv:0,-20,-20,0 mv:-30,-20,-20,20 mv:0,0,0,20 mv:0,0,0,0"
+
+happy = "ms:.2 mv:-15,0,0,-45, mv:0,0,0,0 mv:-45,0,0,-15 mv:0,0,0,0"
+surprise = "ms:.1 st:20 mv:45,0,0,45 sl:.3 mv:0,0,0,0"
+
+servo0_up   = "mr:5,0,0,0"
+servo0_down = "mr:-5,0,0,0"
+servo1_up   = "mr:0,5,0,0"
+servo1_down = "mr:0,-5,0,0"
+servo2_up   = "mr:0,0,5,0"
+servo2_down = "mr:0,0,-5,0"
+servo3_up   = "mr:0,0,0,5"
+servo3_down = "mr:0,0,0,-5"
+
 [rpcclnt_bt.keys]
 # home
 KEY_S = "ca mv:-30,0,0,20 mv:0,0,0,0 mv:20,0,0,-30 mv:0,0,0,0"
@@ -31,7 +51,7 @@ KEY_M = "ms:.4 mv:20,0,0,-30 mv:20,-20,-20,0 mv:0,-20,-20,0 mv:-30,-20,-20,20 mv
 # happy
 KEY_O = "ms:.2 mv:-15,0,0,-45, mv:0,0,0,0 mv:-45,0,0,-15 mv:0,0,0,0"
 
-# !!
+# surprise
 KEY_N = "ms:.1 st:20 mv:45,0,0,45 sl:.3 mv:0,0,0,0"
 
 [rpcclnt_bt.mr_keys]

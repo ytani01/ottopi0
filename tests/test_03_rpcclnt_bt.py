@@ -1,10 +1,12 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import MagicMock, patch
 
 from ottopi0.rpcclnt_bt import RpcClntBt
+
 
 @pytest.fixture
 def mock_pibtinput(mocker):
@@ -14,15 +16,20 @@ def mock_pibtinput(mocker):
     mock.KEY = {"up": 0, "down": 1, "hold": 2}
     return mock
 
+
 @pytest.fixture
 def mock_requests(mocker):
     """Fixture to mock requests.post."""
     return mocker.patch("ottopi0.rpcclnt_bt.requests.post")
 
+
 @pytest.fixture
 def mock_logger(mocker):
     """Fixture to mock the get_logger function."""
-    return mocker.patch("ottopi0.rpcclnt_bt.get_logger", return_value=MagicMock())
+    return mocker.patch(
+        "ottopi0.rpcclnt_bt.get_logger", return_value=MagicMock()
+    )
+
 
 @pytest.fixture
 def mock_config(mocker):
@@ -37,7 +44,7 @@ def mock_config(mocker):
         "mr_keys": {
             "KEY_C": [5, 0, 0, 0],
             "KEY_D": [0, -5, 0, 0],
-        }
+        },
     }
     mock = mocker.patch("ottopi0.rpcclnt_bt.Config")
     mock.rpcclnt_bt = mock_conf_obj
@@ -50,32 +57,40 @@ class TestRpcClntBt:
     BTDEV_KEYWORD = ["test_dev"]
     URL = "http://localhost:8000/api"
 
-    def test_init_device_found(self, mock_pibtinput, mock_config, mock_logger):
+    def test_init_device_found(
+        self, mock_pibtinput, mock_config, mock_logger
+    ):
         """Test initialization when a Bluetooth device is found."""
         mock_pibtinput_instance = mock_pibtinput.return_value
-        mock_pibtinput_instance.search_input_devs.return_value = ["dummy_device"]
+        mock_pibtinput_instance.search_input_devs.return_value = [
+            "dummy_device"
+        ]
 
         client = RpcClntBt(self.BTDEV_KEYWORD, self.URL)
 
         mock_pibtinput.assert_called_once_with(debug=False)
-        mock_pibtinput_instance.search_input_devs.assert_called_once_with(self.BTDEV_KEYWORD)
+        mock_pibtinput_instance.search_input_devs.assert_called_once_with(
+            self.BTDEV_KEYWORD
+        )
         assert client.is_active is True
         assert client.conf == mock_config.rpcclnt_bt
 
-    def test_init_device_not_found(self, mock_pibtinput, mock_config, mock_logger):
+    def test_init_device_not_found(
+        self, mock_pibtinput, mock_config, mock_logger
+    ):
         """Test initialization when no Bluetooth device is found."""
         mock_pibtinput_instance = mock_pibtinput.return_value
         mock_pibtinput_instance.search_input_devs.return_value = []
 
         client = RpcClntBt(self.BTDEV_KEYWORD, self.URL)
-        
+
         assert client.is_active is False
 
     def test_main_loop(self, mock_pibtinput, mock_config, mock_logger):
         """Test the main loop starts and can be exited."""
         client = RpcClntBt(self.BTDEV_KEYWORD, self.URL)
         client.is_active = True
-        
+
         # Make read_loop raise an exception to exit the while loop
         client.bt_input.read_loop.side_effect = [None, KeyboardInterrupt]
 
@@ -83,13 +98,17 @@ class TestRpcClntBt:
             client.main()
 
         assert client.bt_input.read_loop.call_count == 2
-        client.bt_input.read_loop.assert_called_with(client.input_dev[0], client.cb_ev)
+        client.bt_input.read_loop.assert_called_with(
+            client.input_dev[0], client.cb_ev
+        )
 
-    def test_rpc_call(self, mock_pibtinput, mock_config, mock_requests, mock_logger):
+    def test_rpc_call(
+        self, mock_pibtinput, mock_config, mock_requests, mock_logger
+    ):
         """Test the rpc_call method."""
         client = RpcClntBt(self.BTDEV_KEYWORD, self.URL)
         cmd_str = "test_command"
-        
+
         mock_response = MagicMock()
         mock_response.json.return_value = {"result": "ok"}
         mock_requests.return_value = mock_response
@@ -98,7 +117,7 @@ class TestRpcClntBt:
 
         expected_payload = {
             "jsonrpc": 2.0,
-            "id": 1, # First call
+            "id": 1,  # First call
             "method": "servo.call",
             "params": [cmd_str],
         }
@@ -132,7 +151,7 @@ class TestRpcClntBt:
         # angle_diffs = [5,0,0,0] + [0,-5,0,0] = [5,-5,0,0]
         expected_cmd_str = "ms:0.3 st:10 mr:5,-5,0,0"
         client.rpc_call.assert_called_once_with(expected_cmd_str)
-        
+
     def test_cb_ev_key_up(self, mock_pibtinput, mock_config, mock_logger):
         """Test event callback for a key release."""
         client = RpcClntBt(self.BTDEV_KEYWORD, self.URL)
@@ -143,7 +162,7 @@ class TestRpcClntBt:
         onkeys = {}
 
         result = client.cb_ev(key_name, key_state, onkeys)
-        
+
         # The logic for 'up' state currently does nothing but return
         client.rpc_call.assert_not_called()
         assert result is True

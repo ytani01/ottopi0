@@ -18,14 +18,13 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
     "pi0servo",
-    "pibtinput",
-
     "blessed>=1.22.0",
     "click>=8.3.0",
     "dynaconf>=3.2.12",
     "fastapi[standard]>=0.120.2",
     "json-rpc>=1.15.0",
     "uvicorn>=0.38.0",
+    "pibtinput",
 ]
 
 [build-system]
@@ -58,6 +57,7 @@ module = [
     'pigpio',
     'requests',
     'fastapi',
+    'fastapi.testclient',
     'uvicorn',
     'jsonrpc',
     'dynaconf',

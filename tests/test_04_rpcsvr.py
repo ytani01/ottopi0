@@ -2,14 +2,15 @@
 # (c) 2025 Yoichi Tanibayashi
 #
 import os
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 
 # Important: The module under test must be imported AFTER setting up mocks
 # if mocks need to affect top-level code in that module.
 # In this case, we patch dependencies before importing rpcsvr.
+
 
 @pytest.fixture(scope="function")
 def mock_env_and_deps():
@@ -23,11 +24,13 @@ def mock_env_and_deps():
 
     # Mock libraries
     patcher_pigpio = patch("ottopi0.rpcsvr.pigpio", spec=True)
-    patcher_logger = patch("ottopi0.rpcsvr.get_logger", return_value=MagicMock())
+    patcher_logger = patch(
+        "ottopi0.rpcsvr.get_logger", return_value=MagicMock()
+    )
     patcher_servo = patch("ottopi0.rpcsvr.Servo", spec=True)
     patcher_calc = patch("ottopi0.rpcsvr.Calc", spec=True)
     patcher_dispatcher = patch("ottopi0.rpcsvr.dispatcher", spec=True)
-    
+
     # Start all patchers
     mock_pigpio = patcher_pigpio.start()
     mock_logger = patcher_logger.start()
@@ -54,6 +57,7 @@ def mock_env_and_deps():
     del os.environ["ottopi0_DEBUG"]
     del os.environ["ottopi0_SERVO_PINS"]
 
+
 # This fixture depends on the module-level setup fixture
 @pytest.fixture
 def client(mock_env_and_deps):
@@ -63,6 +67,7 @@ def client(mock_env_and_deps):
     """
     # Import the module now that dependencies are mocked
     from ottopi0.rpcsvr import api
+
     with TestClient(api) as test_client:
         yield test_client
 
@@ -85,16 +90,21 @@ class TestRpcsvr:
         # Assertions for startup
         mock_pigpio.pi.assert_called_once()
         mock_dispatcher.add_class.assert_called_once_with(MockCalc)
-        
+
         expected_pins = [20, 26]
         expected_factors = [-1, 1]
         MockServo.assert_called_once_with(
-            mock_pigpio.pi.return_value, expected_pins, expected_factors, debug=True
+            mock_pigpio.pi.return_value,
+            expected_pins,
+            expected_factors,
+            debug=True,
         )
-        
+
         mock_servo_instance = MockServo.return_value
         mock_servo_instance._start.assert_called_once()
-        mock_dispatcher.add_object.assert_called_once_with(mock_servo_instance)
+        mock_dispatcher.add_object.assert_called_once_with(
+            mock_servo_instance
+        )
 
     def test_lifespan_shutdown(self, mock_env_and_deps):
         """
@@ -102,7 +112,7 @@ class TestRpcsvr:
         We create a client instance within this test to control the shutdown.
         """
         from ottopi0.rpcsvr import api
-        
+
         # The 'with' block triggers startup and shutdown
         with TestClient(api):
             pass
@@ -120,7 +130,7 @@ class TestRpcsvr:
         Tests the /api endpoint with a successful JSON-RPC response.
         """
         json_payload = {"jsonrpc": "2.0", "id": 1, "method": "test"}
-        
+
         mock_response = MagicMock()
         mock_response.data = {"jsonrpc": "2.0", "id": 1, "result": "success"}
         mock_handle.return_value = mock_response
@@ -133,7 +143,7 @@ class TestRpcsvr:
         # Verify handle was called with the raw string body and the dispatcher
         mock_handle.assert_called_once_with(
             '{"jsonrpc":"2.0","id":1,"method":"test"}',
-            mock_env_and_deps["dispatcher"]
+            mock_env_and_deps["dispatcher"],
         )
 
     @patch("ottopi0.rpcsvr.JSONRPCResponseManager.handle")
