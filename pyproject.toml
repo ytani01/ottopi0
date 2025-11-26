@@ -17,6 +17,9 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
+    "pi0servo",
+    "pibtinput",
+
     "blessed>=1.22.0",
     "click>=8.3.0",
     "dynaconf>=3.2.12",
@@ -41,10 +44,7 @@ dev = [
     "pyright>=1.1.406",
     "pytest>=8.4.2",
     "ruff>=0.14.0",
-]
-samples = [
-    "pi0servo",
-    "pibtinput",
+    "pytest-mock>=0.14.0",
 ]
 
 [tool.ruff.format]

@@ -1,17 +1,23 @@
 #
-uv.lock
-
-#
-*:Zone.Identifier
+prompts.md
+Plan.md
+Tasks.md
+.serena/
+archives/
 
 #
 ottopi0.toml
 servo.json
 .markdown*
-.serena/
 
 # FreeCAD
 *.FCBak
+
+#
+uv.lock
+
+#
+*:Zone.Identifier
 
 .env
 
