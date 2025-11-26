@@ -22,6 +22,11 @@ class RpcClntBt:
         self.btdev_keyword = btdev_keyword
         self.url = url
 
+        # initialize vars
+        self.prev_onkeys: dict[str, int] = {}
+        self.rpc_id = 0
+        self.is_active = False
+
         # init BlueTooth
         self.bt_input = PiBtInput(debug=False)
         self.input_dev = self.bt_input.search_input_devs(self.btdev_keyword)
@@ -43,11 +48,6 @@ class RpcClntBt:
             self.funcs, self.keys, self.conf.prefix
         )
         self.__log.debug("keymap=%s", self.keymap)
-
-        # initialize vars
-        self.prev_onkeys: dict[str, int] = {}
-        self.rpc_id = 0
-        self.is_active = False
 
     def mk_keymap(self, funcs, keys, cmd_prefix) -> dict[str, str]:
         """Make Key binds."""
