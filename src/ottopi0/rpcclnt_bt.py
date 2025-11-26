@@ -37,15 +37,17 @@ class RpcClntBt:
             self.is_active = True
 
         # load config files
+        self.funcs = Config.funcs
+        self.__log.debug("funcs=%s", self.funcs)
+
         self.conf = Config.rpcclnt_bt
-        self.funcs = self.conf.get("funcs")
         self.keys = self.conf.get("keys")
         self.mr_keys = self.conf.get("mr_keys")
         self.__log.debug("keys=%s, mr_keys=%s", self.keys, self.mr_keys)
 
         # keymap
         self.keymap: dict[str, str] = self.mk_keymap(
-            self.funcs, self.keys, self.conf.prefix
+            self.funcs, self.keys, self.funcs.get("_prefix")
         )
         self.__log.debug("keymap=%s", self.keymap)
 
