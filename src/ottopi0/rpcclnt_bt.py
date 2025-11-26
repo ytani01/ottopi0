@@ -70,7 +70,7 @@ class RpcClntBt:
             _keymap[k] = cmd_prefix + " " + _cmdline
 
         return _keymap
-            
+
     def main(self):
         """Main."""
         self.__log.debug("")
