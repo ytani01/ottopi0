@@ -19,16 +19,11 @@ class RpcClntBt:
         self.__log = get_logger(self.__class__.__name__, self.__debug)
         self.__log.debug("btdev_keyword=%s, url=%s", btdev_keyword, url)
 
-        self.bt_input = PiBtInput(debug=False)
+        self.btdev_keyword = btdev_keyword
         self.url = url
 
-        self.prev_onkeys: dict[str, int] = {}
-
-        self.rpc_id = 0
-
-        self.is_active = False
-
-        self.btdev_keyword = btdev_keyword
+        # init BlueTooth
+        self.bt_input = PiBtInput(debug=False)
         self.input_dev = self.bt_input.search_input_devs(self.btdev_keyword)
         self.__log.debug("input_dev=%s", self.input_dev)
         if not self.input_dev:
@@ -36,12 +31,46 @@ class RpcClntBt:
         else:
             self.is_active = True
 
+        # load config files
         self.conf = Config.rpcclnt_bt
         self.funcs = self.conf.get("funcs")
         self.keys = self.conf.get("keys")
         self.mr_keys = self.conf.get("mr_keys")
         self.__log.debug("keys=%s, mr_keys=%s", self.keys, self.mr_keys)
 
+        # keymap
+        self.keymap: dict[str, str] = self.mk_keymap(
+            self.funcs, self.keys, self.conf.prefix
+        )
+        self.__log.debug("keymap=%s", self.keymap)
+
+        # initialize vars
+        self.prev_onkeys: dict[str, int] = {}
+        self.rpc_id = 0
+        self.is_active = False
+
+    def mk_keymap(self, funcs, keys, cmd_prefix) -> dict[str, str]:
+        """Make Key binds."""
+        self.__log.debug("funcs=%s", funcs)
+        self.__log.debug("keys=%s", keys)
+        self.__log.debug("cmd_prefix=%s", cmd_prefix)
+
+        _keymap = {}
+        for k in keys:
+            _fname = keys.get(k)
+            if not _fname:
+                self.__log.error("%s: no such key definition", k)
+                continue
+            _cmdline = funcs.get(_fname)
+
+            if not _cmdline:
+                self.__log.error("%s: no such function definition", _fname)
+                continue
+
+            _keymap[k] = cmd_prefix + " " + _cmdline
+
+        return _keymap
+            
     def main(self):
         """Main."""
         self.__log.debug("")
@@ -49,10 +78,8 @@ class RpcClntBt:
         while self.is_active:
             try:
                 self.bt_input.read_loop(self.input_dev[0], self.cb_ev)
-
             except requests.exceptions.ConnectionError as e:
                 self.__log.error(errmsg(e))
-
             except OSError as e:
                 # BlueTooth is lost ?
                 self.__log.error(errmsg(e))
@@ -61,7 +88,6 @@ class RpcClntBt:
                     self.btdev_keyword
                 )
                 self.__log.error("input_dev=%s", self.input_dev)
-
             except IndexError as e:
                 # BlueTooth is lost ?
                 self.__log.error(errmsg(e))
@@ -124,11 +150,14 @@ class RpcClntBt:
 
         self.__log.debug("key_name=%a", key_name)
 
-        if key_name in self.keys:
+        if key_name in self.keymap.keys():
             # normal key
-            cmd_str = self.conf.get("prefix") + " " + self.keys.get(key_name)
-            self.__log.debug("cmd_str=%a", cmd_str)
-            self.rpc_call(cmd_str)
+            _cmd_str = self.keymap.get(key_name)
+            self.__log.debug("_cmd_str=%a", _cmd_str)
+
+            if _cmd_str:
+                self.rpc_call(_cmd_str)
+
             return True
 
         # "mr" ?

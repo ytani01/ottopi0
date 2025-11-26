@@ -17,7 +17,6 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "pi0servo",
     "blessed>=1.22.0",
     "click>=8.3.0",
     "dynaconf>=3.2.12",
@@ -25,6 +24,7 @@ dependencies = [
     "json-rpc>=1.15.0",
     "uvicorn>=0.38.0",
     "pibtinput",
+    "pi0servo",
 ]
 
 [build-system]
