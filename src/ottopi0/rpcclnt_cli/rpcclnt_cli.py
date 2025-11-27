@@ -4,6 +4,7 @@
 import os
 import readline
 import requests
+import time
 
 from .. import Config, errmsg, get_logger
 
@@ -74,6 +75,7 @@ class RpcClntCli:
             for c in cmdline.split(" "):
                 self.__log.debug("c=%a", c)
                 self.rpc_call(c)
+                time.sleep(.1)
 
     def end(self):
         """End."""
