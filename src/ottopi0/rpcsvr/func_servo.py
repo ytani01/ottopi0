@@ -41,4 +41,5 @@ class Servo:
         self.__log.debug("jsonrpcstr=%s", jsonrpcstr)
 
         ret = self.servo.call(jsonrpcstr)
+        self.__log.warning("servo.call(%s)", jsonrpcstr)
         return ret
