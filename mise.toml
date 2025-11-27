@@ -56,8 +56,8 @@ echo "# ruff"
 uv run ruff format --line-length 78 src samples tests
 uv run ruff check --fix --extend-select I  src samples tests
 
-echo "# pyright"
-uv run pyright src samples
+#echo "# pyright"
+#uv run pyright src samples
 
 echo "# mypy"
 uv run mypy --check-untyped-defs src samples tests

@@ -17,6 +17,8 @@ from . import (
 
 DEF_SERVO_PINS = Config.servo.pins
 
+DEF_HISTORY_FILE = Config.jsonrpc.client.cli.history_file
+
 DEF_BTDEV_KEYWORD = Config.jsonrpc.client.bluetooth.dev_keyword
 
 DEF_RPC_PROTO = Config.jsonrpc.server.proto
@@ -187,6 +189,69 @@ def rpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
     app = None
     try:
         app = RpcClntBt(btdev_keyword, url, debug=debug)
+        app.main()
+    except Exception as _e:
+        __log.error(errmsg(_e))
+    finally:
+        if app:
+            app.end()
+        click.echo("Done.")
+
+
+@cli.command()
+@click.option(
+    "--historyfile",
+    "--hist",
+    type=str,
+    default=DEF_HISTORY_FILE,
+    show_default=True,
+    help="history file",
+)
+@click.option(
+    "--host",
+    "-i",
+    type=str,
+    default=DEF_RPC_HOST,
+    show_default=True,
+    help="hostname or ipaddr",
+)
+@click.option(
+    "--port",
+    "-p",
+    type=int,
+    default=DEF_RPC_PORT,
+    show_default=True,
+    help="port number",
+)
+@click.option(
+    "--apipath",
+    "-a",
+    type=str,
+    default=DEF_RPC_APIPATH,
+    show_default=True,
+    help="API path",
+)
+@click_common_opts(__version__)
+def rpcclntcli(ctx, historyfile, host, port, apipath, debug):
+    """JSON-RPC Client for BlueTooth controller."""
+    from .rpcclnt_cli.rpcclnt_cli import RpcClntCli
+
+    __log = get_logger(__name__, debug)
+    __log.debug("command name: %s", ctx.command.name)
+    __log.debug(
+        "historyfile=%a, host=%a,port=%s,apipath=%a",
+        historyfile,
+        host,
+        port,
+        apipath,
+    )
+
+    url = f"http://{host}:{port}{apipath}"
+    __log.debug("url=%s", url)
+
+    app = None
+    try:
+        app = RpcClntCli(historyfile, url, debug=debug)
         app.main()
     except Exception as _e:
         __log.error(errmsg(_e))
