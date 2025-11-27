@@ -6,7 +6,9 @@ import readline
 
 import requests
 
-from .. import Config, errmsg, get_logger
+from ..cmdstr_lib import CmdStrLib
+from ..conf_file import ConfFile
+from ..utils.mylogger import errmsg, get_logger
 
 
 class RpcClntCli:
@@ -22,11 +24,13 @@ class RpcClntCli:
         self.url = url
 
         # load config
-        self.funcs = Config.servo.funcs
+        self.conf = ConfFile(debug=self.__debug).conf
+        self.funcs = self.conf.servo.funcs
         self.cmd_prefix = self.funcs._prefix
-        self.__log.debug(
-            "funcs=%s, cmd_prefix=%a", self.funcs, self.cmd_prefix
-        )
+        # self.__log.debug("funcs=%s, self.funcs)
+        self.__log.debug("cmd_prefix=%a", self.cmd_prefix)
+
+        self.cslib = CmdStrLib(self.__debug)
 
         # history file
         self.history_file = os.path.expanduser(
@@ -68,10 +72,11 @@ class RpcClntCli:
                 print("\nEOF")
                 break
 
-            cmdline = self.parse_cmdline(instr)
+            cmdline = self.cslib.expand_func(f"{self.cmd_prefix} {instr}")
             self.__log.debug("cmdline=%a", cmdline)
 
-            self.rpc_call(cmdline)
+            if cmdline != self.cmd_prefix:
+                self.rpc_call(cmdline)
 
     def end(self):
         """End."""
@@ -82,37 +87,6 @@ class RpcClntCli:
             readline.write_history_file(self.history_file)
         except Exception as e:
             self.__log.error("%s: %s", self.history_file, errmsg(e))
-
-    def parse_cmdline(self, cmdline: str):
-        """Parse command line string.
-
-        "fn:func_name" をコマンド列に展開する。
-
-        e.g.
-        "mv:10,20 fn:forward mv:30,40"
-        --> "mv:10,20  mv:11,11 mv:22,22  mv:30:40"
-        """
-        self.__log.debug("cmdline=%a", cmdline)
-
-        cmd_list = []
-        for cmd in cmdline.split(" "):
-            if cmd.startswith("fn:"):
-                funcname = cmd.split(":")[1]
-                self.__log.debug("funcname=%a", funcname)
-
-                try:
-                    cmdstr = self.funcs.get(funcname)
-                    self.__log.debug("cmdstr=%a", cmdstr)
-                    if cmdstr:
-                        cmd_list.append(cmdstr)
-                except Exception as e:
-                    self.__log.error(errmsg(e))
-            else:
-                cmd_list.append(cmd)
-        self.__log.debug("cmd_list=%s", cmd_list)
-
-        cmdline = self.cmd_prefix + " " + " ".join(cmd_list)
-        return cmdline
 
     def rpc_call(self, cmd_str: str):
         """JSON-RPC call."""
@@ -134,9 +108,8 @@ class RpcClntCli:
             self.__log.error(errmsg(e))
             return
 
-        self.__log.debug("response=%s", response)
-
         result = response.json()
+        self.__log.debug("result=%s", result)
 
         if "result" in result:
             self.__log.debug("result: %s", result["result"])

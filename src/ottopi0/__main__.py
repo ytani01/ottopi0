@@ -8,23 +8,23 @@ import click
 from . import (
     ENVNAME_DEBUG,
     PKGNAME,
-    Config,
     __version__,
     click_common_opts,
     errmsg,
     get_logger,
 )
+from .conf_file import ConfFile
 
-DEF_SERVO_PINS = Config.servo.pins
+# config file
+Conf = ConfFile(debug=True).conf
 
-DEF_HISTORY_FILE = Config.jsonrpc.client.cli.history_file
-
-DEF_BTDEV_KEYWORD = Config.jsonrpc.client.bluetooth.dev_keyword
-
-DEF_RPC_PROTO = Config.jsonrpc.server.proto
-DEF_RPC_HOST = Config.jsonrpc.server.host
-DEF_RPC_PORT = Config.jsonrpc.server.port
-DEF_RPC_APIPATH = Config.jsonrpc.server.apipath
+DEF_SERVO_PINS = Conf.servo.pins
+DEF_HISTORY_FILE = Conf.jsonrpc.client.cli.history_file
+DEF_BTDEV_KEYWORD = Conf.jsonrpc.client.bluetooth.dev_keyword
+DEF_RPC_PROTO = Conf.jsonrpc.server.proto
+DEF_RPC_HOST = Conf.jsonrpc.server.host
+DEF_RPC_PORT = Conf.jsonrpc.server.port
+DEF_RPC_APIPATH = Conf.jsonrpc.server.apipath
 
 
 @click.group()

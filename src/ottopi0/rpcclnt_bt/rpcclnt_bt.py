@@ -6,7 +6,9 @@ import time
 import requests
 from pibtinput import PiBtInput
 
-from .. import Config, errmsg, get_logger
+from ..cmdstr_lib import CmdStrLib
+from ..conf_file import ConfFile
+from ..utils.mylogger import errmsg, get_logger
 
 
 class RpcClntBt:
@@ -21,6 +23,8 @@ class RpcClntBt:
         self.btdev_keyword = btdev_keyword
         self.url = url
 
+        self.cslib = CmdStrLib(debug=self.__debug)
+
         # initialize vars
         self.prev_onkeys: dict[str, int] = {}
         self.rpc_id = 0
@@ -32,39 +36,36 @@ class RpcClntBt:
         self.__log.debug("input_dev=%s", self.input_dev)
 
         # load config files
-        self.funcs = Config.servo.funcs
+        self.conf = ConfFile(debug=self.__debug).conf
+
+        self.funcs = self.conf.servo.funcs
         self.__log.debug("funcs=%s", self.funcs)
 
-        self.conf = Config.jsonrpc.client.bluetooth
-        self.keys = self.conf.get("keys")
-        self.mr_keys = self.conf.get("mr_keys")
+        self.cmd_prefix = self.funcs.get("_prefix")
+        self.__log.debug("cmd_prefix=%a", self.cmd_prefix)
+
+        self.btconf = self.conf.jsonrpc.client.bluetooth
+        self.keys = self.btconf.get("keys")
+        self.mr_keys = self.btconf.get("mr_keys")
         self.__log.debug("keys=%s, mr_keys=%s", self.keys, self.mr_keys)
 
         # keymap
-        self.keymap: dict[str, str] = self.mk_keymap(
-            self.funcs, self.keys, self.funcs.get("_prefix")
-        )
+        self.keymap: dict[str, str] = self.mk_keymap(self.keys)
         self.__log.debug("keymap=%s", self.keymap)
 
-    def mk_keymap(self, funcs, keys, cmd_prefix) -> dict[str, str]:
+    def mk_keymap(self, keys) -> dict[str, str]:
         """Make Key binds."""
-        self.__log.debug("funcs=%s", funcs)
         self.__log.debug("keys=%s", keys)
-        self.__log.debug("cmd_prefix=%s", cmd_prefix)
 
         _keymap = {}
         for k in keys:
-            _fname = keys.get(k)
-            if not _fname:
-                self.__log.error("%s: no such key definition", k)
-                continue
-            _cmdline = funcs.get(_fname)
+            _cmdline = keys.get(k)
+            self.__log.debug("_cmdline=%a", _cmdline)
 
-            if not _cmdline:
-                self.__log.error("%s: no such function definition", _fname)
-                continue
+            _cmdline = self.cslib.expand_func(f"{self.cmd_prefix} {_cmdline}")
+            self.__log.debug("_cmdline=%a", _cmdline)
 
-            _keymap[k] = cmd_prefix + " " + _cmdline
+            _keymap[k] = _cmdline
 
         return _keymap
 

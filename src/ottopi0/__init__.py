@@ -1,11 +1,10 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
-import os
 from importlib.metadata import version as get_version
 
-from dynaconf import Dynaconf
-
+from .cmdstr_lib import CmdStrLib
+from .conf_file import ConfFile
 from .utils.clickutils import click_common_opts
 from .utils.mylogger import errmsg, get_logger
 
@@ -14,12 +13,6 @@ __version__ = "_._._"
 if __package__:
     __version__ = get_version(__package__)
     PKGNAME = __package__
-
-# Config
-SETTINGS_FILE1 = "ottopi0.toml"
-SETTINGS_FILE2 = os.path.expanduser("~/ottopi0.toml")
-# 後ろのほうが設定を上書きする
-Config = Dynaconf(settings_files=[SETTINGS_FILE1, SETTINGS_FILE2])
 
 # env variables
 ENVNAME_DEBUG = f"{__package__}_DEBUG"
@@ -30,7 +23,8 @@ __all__ = [
     "ENVNAME_DEBUG",
     "PKGNAME",
     "click_common_opts",
-    "Config",
+    "ConfFile",
     "errmsg",
     "get_logger",
+    "CmdStrLib",
 ]
