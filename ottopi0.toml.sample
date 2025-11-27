@@ -54,7 +54,7 @@ dev_keyword = "8BitDo,Keyboard"
 mr_prefix = "ms:0.3 st:10 mr:"  # TBD
 
 [jsonrpc.client.bluetooth.keys]
-KEY_S = "home"
+KEY_S = "fn:home"
 
 KEY_C = "fn:fw"
 KEY_D = "fn:bw"
