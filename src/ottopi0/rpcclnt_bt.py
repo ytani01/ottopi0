@@ -25,16 +25,12 @@ class RpcClntBt:
         # initialize vars
         self.prev_onkeys: dict[str, int] = {}
         self.rpc_id = 0
-        self.is_active = False
+        self.is_active = True
 
         # init BlueTooth
         self.bt_input = PiBtInput(debug=False)
         self.input_dev = self.bt_input.search_input_devs(self.btdev_keyword)
         self.__log.debug("input_dev=%s", self.input_dev)
-        if not self.input_dev:
-            self.__log.error("No input device")
-        else:
-            self.is_active = True
 
         # load config files
         self.funcs = Config.funcs
