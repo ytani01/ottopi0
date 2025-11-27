@@ -70,12 +70,9 @@ class RpcClntCli:
                 break
 
             cmdline = self.parse_cmdline(instr)
-            #self.__log.debug("cmdline=%a", cmdline)
+            self.__log.debug("cmdline=%a", cmdline)
 
-            for c in cmdline.split(" "):
-                self.__log.debug("c=%a", c)
-                self.rpc_call(c)
-                time.sleep(.1)
+            self.rpc_call(cmdline)
 
     def end(self):
         """End."""
