@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 # Import the module itself to prevent circular import issues when patching
-from ottopi0.func_servo import Servo
+from ottopi0.rpcsvr.func_servo import Servo
 
 
 @pytest.fixture
@@ -14,10 +14,10 @@ def mock_pi0servo_classes(mocker):
     """Fixture to mock pi0servo classes StrCmdToJson and JsonRpcWorker."""
     # Patch the names in the module where they are looked up (ottopi0.func_servo)
     mock_str_cmd_to_json = mocker.patch(
-        "ottopi0.func_servo.StrCmdToJson", spec=True
+        "ottopi0.rpcsvr.func_servo.StrCmdToJson", spec=True
     )
     mock_json_rpc_worker = mocker.patch(
-        "ottopi0.func_servo.JsonRpcWorker", spec=True
+        "ottopi0.rpcsvr.func_servo.JsonRpcWorker", spec=True
     )
     return mock_str_cmd_to_json, mock_json_rpc_worker
 
@@ -26,7 +26,7 @@ def mock_pi0servo_classes(mocker):
 def mock_logger(mocker):
     """Fixture to mock the get_logger function."""
     return mocker.patch(
-        "ottopi0.func_servo.get_logger", return_value=MagicMock()
+        "ottopi0.rpcsvr.func_servo.get_logger", return_value=MagicMock()
     )
 
 

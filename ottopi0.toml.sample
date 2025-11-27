@@ -1,10 +1,9 @@
-[default]
-
 [servo]
+# ピン番号: 逆回転の場合は '-' を**後ろに**つける
 pins = "22,27-"
 #pins = "20-,26,19-,16"
 
-[funcs]
+[servo.funcs]
 _prefix = "ms:.4 st:30"
 
 home = "ca mv:-30,0,0,20 mv:0,0,0,0 mv:20,0,0,-30 mv:0,0,0,0"
@@ -26,16 +25,22 @@ servo2_down = "mr:0,0,-5,0"
 servo3_up   = "mr:0,0,0,5"
 servo3_down = "mr:0,0,0,-5"
 
-[rpc]
+[jsonrpc]
+
+[jsonrpc.server]
+# url = {proto}://{host}:{port}{apipath]
 proto = "http"
 host = "0.0.0.0"
 port = 8000
 apipath = "/api"
 
-[rpcclnt_bt]
-mr_prefix = "ms:0.3 st:10 mr:"
+[jsonrpc.client]
 
-[rpcclnt_bt.keys]
+[jsonrpc.client.bluetooth]
+dev_keyword = "8BitDo,Keyboard"
+mr_prefix = "ms:0.3 st:10 mr:"  # TBD
+
+[jsonrpc.client.bluetooth.keys]
 KEY_S = "home"
 KEY_R = "forward"
 KEY_L = "backword"
@@ -44,7 +49,7 @@ KEY_M = "turn_right"
 KEY_O = "happy"
 KEY_N = "surprise"
 
-[rpcclnt_bt.mr_keys]
+[jsonrpc.client.bluetooth.mr_keys]  # TBD
 KEY_C = [ 5, 0, 0, 0]
 KEY_D = [-5, 0, 0, 0]
 KEY_E = [0,  5, 0, 0]

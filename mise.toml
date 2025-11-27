@@ -60,7 +60,7 @@ echo "# pyright"
 uv run pyright src samples
 
 echo "# mypy"
-uv run mypy src samples tests
+uv run mypy --check-untyped-defs src samples tests
 
 uv run ottopi0 -V
 '''

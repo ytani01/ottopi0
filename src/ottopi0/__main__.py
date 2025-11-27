@@ -5,16 +5,24 @@
 
 import click
 
-from . import ENVNAME_DEBUG, Config, __version__
-from .utils.clickutils import click_common_opts
-from .utils.mylogger import errmsg, get_logger
+from . import (
+    ENVNAME_DEBUG,
+    PKGNAME,
+    Config,
+    __version__,
+    click_common_opts,
+    errmsg,
+    get_logger,
+)
 
 DEF_SERVO_PINS = Config.servo.pins
 
-DEF_RPC_PROTO = Config.rpc.proto
-DEF_RPC_HOST = Config.rpc.host
-DEF_RPC_PORT = Config.rpc.port
-DEF_RPC_APIPATH = Config.rpc.apipath
+DEF_BTDEV_KEYWORD = Config.jsonrpc.client.bluetooth.dev_keyword
+
+DEF_RPC_PROTO = Config.jsonrpc.server.proto
+DEF_RPC_HOST = Config.jsonrpc.server.host
+DEF_RPC_PORT = Config.jsonrpc.server.port
+DEF_RPC_APIPATH = Config.jsonrpc.server.apipath
 
 
 @click.group()
@@ -98,10 +106,10 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
     __log.debug("host=%s, port=%s, reload=%s", host, port, reload)
 
     os.environ[ENVNAME_DEBUG] = "1" if debug else "0"
-    os.environ[f"{__package__}_SERVO_PINS"] = f"{servo_pins}"
+    os.environ[f"{PKGNAME}_SERVO_PINS"] = f"{servo_pins}"
 
     # start API
-    _api = f"{__package__}.rpcsvr:api"
+    _api = f"{PKGNAME}.rpcsvr.rpcsvr:api"
 
     try:
         uvicorn.run(
@@ -121,6 +129,14 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
 
 @cli.command()
 @click.argument("btdev_keyword", type=str, nargs=-1)
+@click.option(
+    "--btdev",
+    "-b",
+    type=str,
+    default=DEF_BTDEV_KEYWORD,
+    show_default=True,
+    help="BlueTooth device keyword",
+)
 @click.option(
     "--host",
     "-i",
@@ -146,23 +162,24 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
     help="API path",
 )
 @click_common_opts(__version__)
-def rpcclntbt(ctx, btdev_keyword, host, port, apipath, debug):
+def rpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
     """JSON-RPC Client for BlueTooth controller."""
-    from .rpcclnt_bt import RpcClntBt
+    from .rpcclnt_bt.rpcclnt_bt import RpcClntBt
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
     __log.debug(
-        "btdev_keyword=%s,host=%a,port=%s,apipath=%a",
-        btdev_keyword,
+        "btdev=%s,host=%a,port=%s,apipath=%a",
+        btdev,
         host,
         port,
         apipath,
     )
 
-    if len(btdev_keyword) == 0:
-        __log.error("no btdev_keyword:%s", btdev_keyword)
+    if not btdev:
+        __log.error("no btdev:%s", btdev_keyword)
         return
+    btdev_keyword = btdev.split(",")
 
     url = f"http://{host}:{port}{apipath}"
     __log.debug("url=%s", url)

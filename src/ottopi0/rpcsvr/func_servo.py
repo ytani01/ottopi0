@@ -3,7 +3,7 @@
 #
 from pi0servo import JsonRpcWorker, StrCmdToJson
 
-from . import get_logger
+from .. import get_logger
 
 
 class Servo:

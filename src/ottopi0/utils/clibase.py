@@ -116,7 +116,10 @@ class CliBase:
         data = parsed_data.get("data")
         result = data  # result = something(data)
 
-        result_data = {"data": result, "status": self.RESULT_STATUS["OK"]}
+        result_data = {
+            "data": result,
+            "status": self.RESULT_STATUS["OK"],
+        }
         if isinstance(data, str) and data.lower() in self.CMD_EXIT:
             result_data["status"] = self.RESULT_STATUS["END"]
         self.__log.debug("result_data=%s", result_data)
@@ -229,13 +232,15 @@ class CliWithHistory(CliBase):
                 readline.set_history_length(self.HIST_LEN)
                 self.__log.debug("hist_len=%s", readline.get_history_length())
                 self.__log.debug(
-                    "cur_hist_len=%s", readline.get_current_history_length()
+                    "cur_hist_len=%s",
+                    readline.get_current_history_length(),
                 )
             except FileNotFoundError:
                 self.__log.debug("no history file: %s", self.history_file)
             except OSError:
                 self.__log.warning(
-                    "invalid history file .. remove: %s", self.history_file
+                    "invalid history file .. remove: %s",
+                    self.history_file,
                 )
                 # ヒストリーファイルが壊れていると思われるので削除する。
                 os.remove(self.history_file)

@@ -6,8 +6,7 @@ import time
 import requests
 from pibtinput import PiBtInput
 
-from . import Config
-from .utils.mylogger import errmsg, get_logger
+from .. import Config, errmsg, get_logger
 
 
 class RpcClntBt:
@@ -33,10 +32,10 @@ class RpcClntBt:
         self.__log.debug("input_dev=%s", self.input_dev)
 
         # load config files
-        self.funcs = Config.funcs
+        self.funcs = Config.servo.funcs
         self.__log.debug("funcs=%s", self.funcs)
 
-        self.conf = Config.rpcclnt_bt
+        self.conf = Config.jsonrpc.client.bluetooth
         self.keys = self.conf.get("keys")
         self.mr_keys = self.conf.get("mr_keys")
         self.__log.debug("keys=%s, mr_keys=%s", self.keys, self.mr_keys)
@@ -88,12 +87,17 @@ class RpcClntBt:
                 self.__log.error("input_dev=%s", self.input_dev)
             except IndexError as e:
                 # BlueTooth is lost ?
-                self.__log.error(errmsg(e))
-                time.sleep(1)
-                self.input_dev = self.bt_input.search_input_devs(
-                    self.btdev_keyword
-                )
-                self.__log.error("input_dev=%s", self.input_dev)
+                if not self.input_dev:
+                    self.__log.error(
+                        "device not found:%a", self.btdev_keyword
+                    )
+                    time.sleep(1)
+                    self.input_dev = self.bt_input.search_input_devs(
+                        self.btdev_keyword
+                    )
+                else:
+                    self.__log.error(errmsg(e))
+                    self.__log.error("input_dev=%s", self.input_dev)
 
             except Exception as e:
                 self.__log.error(errmsg(e))
@@ -130,7 +134,10 @@ class RpcClntBt:
     def cb_ev(self, key_name, key_state, onkeys):
         """Event Callback."""
         self.__log.debug(
-            "key_name=%a,key_state=%s,onkeys=%s", key_name, key_state, onkeys
+            "key_name=%a,key_state=%s,onkeys=%s",
+            key_name,
+            key_state,
+            onkeys,
         )
 
         if onkeys == self.prev_onkeys:

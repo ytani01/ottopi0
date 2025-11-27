@@ -8,10 +8,9 @@ import pigpio
 from fastapi import FastAPI, Request
 from jsonrpc import JSONRPCResponseManager, dispatcher
 
-from . import ENVNAME_DEBUG
+from .. import ENVNAME_DEBUG, PKGNAME, errmsg, get_logger
 from .func_calc import Calc
 from .func_servo import Servo
-from .utils.mylogger import errmsg, get_logger
 
 
 @asynccontextmanager
@@ -35,7 +34,8 @@ async def lifespan(api: FastAPI):
     pi = pigpio.pi()
 
     ### servo
-    pins_str = os.environ[f"{__package__}_SERVO_PINS"]
+    __log.debug("PKGNAME=%s", PKGNAME)
+    pins_str = os.environ[f"{PKGNAME}_SERVO_PINS"]
 
     servo_pins = []
     angle_factors = []
