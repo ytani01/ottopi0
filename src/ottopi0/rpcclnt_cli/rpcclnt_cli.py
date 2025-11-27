@@ -3,8 +3,8 @@
 #
 import os
 import readline
+
 import requests
-import time
 
 from .. import Config, errmsg, get_logger
 
@@ -41,8 +41,7 @@ class RpcClntCli:
             self.__log.warning("no history file: %s", self.history_file)
         except OSError:
             self.__log.warning(
-                "invalid history file .. remove: %s",
-                self.history_file
+                "invalid history file .. remove: %s", self.history_file
             )
             os.remove(self.history_file)
         except Exception as e:
@@ -91,7 +90,7 @@ class RpcClntCli:
 
         e.g.
         "mv:10,20 fn:forward mv:30,40"
-        --> "mv:10,20  mv:11,11 mv:22,22  mv:30:40"       
+        --> "mv:10,20  mv:11,11 mv:22,22  mv:30:40"
         """
         self.__log.debug("cmdline=%a", cmdline)
 
@@ -112,7 +111,7 @@ class RpcClntCli:
                 cmd_list.append(cmd)
         self.__log.debug("cmd_list=%s", cmd_list)
 
-        cmdline = self.cmd_prefix + ' ' + " ".join(cmd_list)
+        cmdline = self.cmd_prefix + " " + " ".join(cmd_list)
         return cmdline
 
     def rpc_call(self, cmd_str: str):

@@ -63,6 +63,10 @@ module = [
     'dynaconf',
     'pi0servo',
     'pibtinput',
+    'ottopi0.rpcsvr.rpcsvr',
+    'ottopi0.rpcsvr.func_calc',
+    'ottopi0.rpcsvr.func_servo',
+    'ottopi0.rpcclnt_bt.rpcclnt_bt',
 ]
 ignore_missing_imports = true
 check_untyped_defs = true
