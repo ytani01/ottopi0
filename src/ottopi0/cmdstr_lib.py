@@ -8,6 +8,8 @@ from .utils.mylogger import get_logger
 class CmdStrLib:
     """Command string."""
 
+    PREFIX_FUNC = "f:"
+
     def __init__(self, debug=False):
         """Constractor."""
         self.__debug = debug
@@ -21,11 +23,11 @@ class CmdStrLib:
     def expand_func(self, cmdline, depth=0, depth_max=5):
         """Expand command function.
 
-        "fn:func_name" をコマンド列に展開する。
+        "f:func_name" をコマンド列に展開する。
 
         e.g.
-        fn:xxx = "mv:11,11 mv:22,22"
-        "mv:10,20 fn:xxx mv:30,40"
+        f:xxx = "mv:11,11 mv:22,22"
+        "mv:10,20 f:xxx mv:30,40"
         --> "mv:10,20  mv:11,11 mv:22,22  mv:30:40"
         """
         self.__log.debug(
@@ -41,7 +43,7 @@ class CmdStrLib:
 
         cmd_list = []
         for cmd in cmdline.split(" "):
-            if cmd.startswith("fn:"):
+            if cmd.startswith(self.PREFIX_FUNC):
                 # expand function
                 funcname = cmd.split(":")[1]
                 self.__log.debug("funcname=%a", funcname)

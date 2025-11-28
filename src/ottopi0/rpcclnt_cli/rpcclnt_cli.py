@@ -73,7 +73,7 @@ class RpcClntCli:
                 break
 
             # remove comment string
-            instr = instr[:instr.find("#")]
+            instr = instr.partition("#")[0]
             self.__log.debug("remove comment: instr=%a", instr)
 
             # expand function (recursive)
