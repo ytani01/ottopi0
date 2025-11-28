@@ -31,13 +31,14 @@ class CmdStrLib:
         --> "mv:10,20  mv:11,11 mv:22,22  mv:30:40"
         """
         self.__log.debug(
-            "cmdline=%a,depth=%s,depth_max=%s",
-            cmdline, depth, depth_max
+            "cmdline=%a,depth=%s,depth_max=%s", cmdline, depth, depth_max
         )
 
         if depth > depth_max:
             self.__log.warning(
-                "depth(%s) > depth_max(%s): stop recursive call.", depth, depth_max
+                "depth(%s) > depth_max(%s): stop recursive call.",
+                depth,
+                depth_max,
             )
             return ""
 

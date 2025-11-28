@@ -44,7 +44,7 @@ class App:
 
             print(key_name)
 
-            parsed_json = {}
+            parsed_json = ""
 
             if key_name == "KEY_C":
                 parsed_json = self.parser.cmdstr_to_jsonliststr(

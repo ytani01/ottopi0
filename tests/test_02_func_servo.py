@@ -1,6 +1,7 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -71,7 +72,7 @@ class TestServo:
 
         servo._start()
 
-        servo.servo.start.assert_called_once()
+        cast(MagicMock, servo.servo.start).assert_called_once()
 
     def test_end(self, mock_pi0servo_classes, mock_logger):
         """
@@ -83,7 +84,7 @@ class TestServo:
 
         servo._end()
 
-        servo.servo.end.assert_called_once()
+        cast(MagicMock, servo.servo.end).assert_called_once()
 
     def test_call(self, mock_pi0servo_classes, mock_logger):
         """
@@ -108,16 +109,20 @@ class TestServo:
         expected_return_value = "rpc_worker_return_value"
 
         # Mock the return values of the instance methods
-        servo.parser.cmdstr_to_jsonliststr.return_value = (
-            expected_json_list_str
-        )
-        servo.servo.call.return_value = expected_return_value
+        cast(
+            MagicMock, servo.parser.cmdstr_to_jsonliststr
+        ).return_value = expected_json_list_str
+        cast(MagicMock, servo.servo.call).return_value = expected_return_value
 
         actual_return_value = servo.call(cmd_str)
 
         # Assert that the parser was called correctly
-        servo.parser.cmdstr_to_jsonliststr.assert_called_once_with(cmd_str)
+        cast(
+            MagicMock, servo.parser.cmdstr_to_jsonliststr
+        ).assert_called_once_with(cmd_str)
         # Assert that the rpc worker was called with the parser's output
-        servo.servo.call.assert_called_once_with(expected_json_list_str)
+        cast(MagicMock, servo.servo.call).assert_called_once_with(
+            expected_json_list_str
+        )
         # Assert that the method returns the value from the rpc worker
         assert actual_return_value == expected_return_value
