@@ -6,15 +6,19 @@ pins = "20-,26,19-,16"
 [servo.funcs]
 _prefix = "st:30 ms:.4"
 
-xxx = "ms:1 mv:x,x,x,x mv:n,n,n,n fn:xxx"  # recursive sample
+xxx = "ms:1 mv:10,10,10,10 mv:-10,-10,-10,-10 mv:c,c,c,c fn:xxx"  # recursive sample
 
 home = "ca ms:.4 st:30 mv:-30,0,0,20 mv:0,0,0,0 mv:20,0,0,-30 mv:0,0,0,0"
 
-fw-r = "mv:-30,0,0,20  mv:-30,20,-20,20  mv:0,20,-20,0  mv:20,0,0,-30  mv:20,-20,20,-30  mv:0,-20,20,0"
-fw = "fn:fw-r"
+forward-r = "mv:-30,0,0,20  mv:-30,20,-20,20  mv:0,20,-20,0"
+forward-l = "mv:20,0,0,-30  mv:20,-20,20,-30  mv:0,-20,20,0"
+forward-rl = "fn:forward-r fn:forward-l"
+forward = "fn:forward-rl"
 
-bw-l = "mv:20,0,0,-30  mv:20,20,-20,-30  mv:0,20,-20,0  mv:-30,0,0,20  mv:-30,-20,20,20  mv:0,-20,20,0"
-bw = "fn:bw-l"
+backward-l = "mv:20,0,0,-30  mv:20,20,-20,-30  mv:0,20,-20,0"
+backward-r = "mv:-30,0,0,20  mv:-30,-20,20,20  mv:0,-20,20,0"
+backward-lr = "fn:backward-l  fn:backward-r"
+backward = "fn:backward-lr"
 
 turn-l = "mv:-30,0,0,20  mv:-30,-20,-20,20  mv:0,-20,-20,0  mv:20,-20,-20,-30  mv:20,0,0,-30  mv:0,0,0,0"
 turn-r = "mv:20,0,0,-30  mv:20,-20,-20,-30  mv:0,-20,-20,0  mv:-30,-20,-20,20  mv:-30,0,0,20  mv:0,0,0,0"
@@ -80,8 +84,8 @@ mr_prefix = "ms:0.3 st:10 mr:"  # TBD
 #
 KEY_S = "fn:home"
 
-KEY_C = "ms:.2 fn:fw"
-KEY_D = "ms:.3 fn:bw"
+KEY_C = "ms:.2 fn:foward"
+KEY_D = "ms:.3 fn:backward"
 KEY_E = "ms:.3 fn:turn-l"
 KEY_F = "ms:.3 fn:turn-r"
 
