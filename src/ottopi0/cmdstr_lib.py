@@ -9,6 +9,7 @@ class CmdStrLib:
     """Command string."""
 
     PREFIX_FUNC = "f:"
+    EXPAND_FUNC_DEPTH_MAX = 10
 
     def __init__(self, debug=False):
         """Constractor."""
@@ -20,7 +21,7 @@ class CmdStrLib:
         self.funcs = self.conf.servo.funcs
         # self.__log.debug("funcs=%s", self.funcs)
 
-    def expand_func(self, cmdline, depth=0, depth_max=5):
+    def expand_func(self, cmdline, depth=0, depth_max=EXPAND_FUNC_DEPTH_MAX):
         """Expand command function.
 
         "f:func_name" をコマンド列に展開する。
@@ -44,19 +45,28 @@ class CmdStrLib:
 
         cmd_list = []
         for cmd in cmdline.split(" "):
-            if cmd.startswith(self.PREFIX_FUNC):
-                # expand function
-                funcname = cmd.split(":")[1]
-                self.__log.debug("funcname=%a", funcname)
+            if not cmd:
+                continue
 
-                cmd2 = self.funcs.get(funcname)
-                if cmd2:
-                    cmd2 = self.expand_func(cmd2, depth + 1)  # TBD recursive
-                    if cmd2:
-                        cmd_list += cmd2.split(" ")
-            else:
+            if not cmd.startswith(self.PREFIX_FUNC):
+                #
                 # normal command string
+                #
                 cmd_list.append(cmd)
+
+            #
+            # expand function
+            #
+            funcname = cmd.split(":")[1]
+            # self.__log.debug("funcname=%a", funcname)
+
+            cmd2 = self.funcs.get(funcname)
+            if cmd2:
+                self.__log.debug("%a -> %a", funcname, cmd2)
+                cmd2 = self.expand_func(cmd2, depth + 1)  # TBD recursive
+                if cmd2:
+                    cmd_list += cmd2.split()
+
         self.__log.debug("cmd_list=%s", cmd_list)
 
         cmdline = " ".join(cmd_list)

@@ -114,8 +114,6 @@ class RpcClntCli:
             return
 
         result = response.json()
-        self.__log.debug("result=%s", result)
-
         if "result" in result:
             self.__log.debug("result: %s", result["result"])
         elif "error" in result:
