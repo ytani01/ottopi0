@@ -72,6 +72,11 @@ class RpcClntCli:
                 print("\nEOF")
                 break
 
+            # remove comment string
+            instr = instr[:instr.find("#")]
+            self.__log.debug("remove comment: instr=%a", instr)
+
+            # expand function (recursive)
             cmdline = self.cslib.expand_func(f"{self.cmd_prefix} {instr}")
             self.__log.debug("cmdline=%a", cmdline)
 

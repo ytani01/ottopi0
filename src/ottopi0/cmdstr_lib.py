@@ -18,20 +18,24 @@ class CmdStrLib:
         self.funcs = self.conf.servo.funcs
         # self.__log.debug("funcs=%s", self.funcs)
 
-    def expand_func(self, cmdline, depth=0, depth_max=3):
+    def expand_func(self, cmdline, depth=0, depth_max=5):
         """Expand command function.
 
         "fn:func_name" をコマンド列に展開する。
 
         e.g.
-        "mv:10,20 fn:forward mv:30,40"
+        fn:xxx = "mv:11,11 mv:22,22"
+        "mv:10,20 fn:xxx mv:30,40"
         --> "mv:10,20  mv:11,11 mv:22,22  mv:30:40"
         """
-        self.__log.debug("cmdline=%a, depth=%s", cmdline, depth)
+        self.__log.debug(
+            "cmdline=%a,depth=%s,depth_max=%s",
+            cmdline, depth, depth_max
+        )
 
         if depth > depth_max:
             self.__log.warning(
-                "depth(%s) > depth_max(%s): do nothing.", depth, depth_max
+                "depth(%s) > depth_max(%s): stop recursive call.", depth, depth_max
             )
             return ""
 
