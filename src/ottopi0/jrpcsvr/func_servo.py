@@ -37,9 +37,9 @@ class Servo:
         """Call."""
         self.__log.debug("cmd_str=%s", cmd_str)
 
-        jsonrpcstr = self.parser.cmdstr_to_jsonliststr(cmd_str)
-        self.__log.debug("jsonrpcstr=%s", jsonrpcstr)
+        jrpcstr = self.parser.cmdstr_to_jsonliststr(cmd_str)
+        self.__log.debug("jrpcstr=%s", jrpcstr)
 
-        ret = self.servo.call(jsonrpcstr)
-        self.__log.debug("servo.call(%s)", jsonrpcstr)
+        ret = self.servo.call(jrpcstr)
+        self.__log.debug("servo.call(%s)", jrpcstr)
         return ret

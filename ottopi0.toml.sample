@@ -69,25 +69,25 @@ servo2_down = "mr:0,0,-5,0"
 servo3_up   = "mr:0,0,0,5"
 servo3_down = "mr:0,0,0,-5"
 
-[jsonrpc]
+[jrpc]
 
-[jsonrpc.server]
+[jrpc.server]
 # url = {proto}://{host}:{port}{apipath]
 proto = "http"
 host = "0.0.0.0"
 port = 8000
 apipath = "/api"
 
-[jsonrpc.client]
+[jrpc.client]
 
-[jsonrpc.client.cli]
+[jrpc.client.cli]
 history_file = "~/ottopi0_cli.hist"
 
-[jsonrpc.client.bluetooth]
+[jrpc.client.bluetooth]
 dev_keyword = "8BitDo,Keyboard"
 mr_prefix = "ms:0.3 st:10 mr:"  # TBD
 
-[jsonrpc.client.bluetooth.keys]
+[jrpc.client.bluetooth.keys]
 #
 # 8BitDo micro
 #  ---K--L----------R--M---
@@ -118,7 +118,7 @@ KEY_M = "ms:.2 f:slide-r"
 KEY_N = "ms:0.08 f:dance1 ms:0.2 f:dance2 f:dance3: ms:.1 f:dance4 sl:.1 f:dance4"
 KEY_O = "f:sumo"
 
-[jsonrpc.client.bluetooth.mr_keys]  # TBD
+[jrpc.client.bluetooth.mr_keys]  # TBD
 # KEY_C = [ 5, 0, 0, 0]
 # KEY_D = [-5, 0, 0, 0]
 # KEY_E = [0,  5, 0, 0]

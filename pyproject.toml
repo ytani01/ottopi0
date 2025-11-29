@@ -25,6 +25,7 @@ dependencies = [
     "uvicorn>=0.38.0",
     "pibtinput",
     "pi0servo",
+    "vl53l0x-pigpio",
 ]
 
 [build-system]
@@ -83,3 +84,4 @@ pythonpath = "tests"
 [tool.uv.sources]
 pi0servo = { path = "../pi0servo" }
 pibtinput = { path = "../pibtinput" }
+vl53l0x-pigpio = { path = "../vl53l0x_pigpio" }

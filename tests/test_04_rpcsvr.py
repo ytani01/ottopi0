@@ -9,13 +9,13 @@ from fastapi.testclient import TestClient
 
 # Important: The module under test must be imported AFTER setting up mocks
 # if mocks need to affect top-level code in that module.
-# In this case, we patch dependencies before importing rpcsvr.
+# In this case, we patch dependencies before importing jrpcsvr.
 
 
 @pytest.fixture(scope="function")
 def mock_env_and_deps():
     """
-    A comprehensive fixture to mock all external dependencies for rpcsvr.py
+    A comprehensive fixture to mock all external dependencies for jrpcsvr.py
     before it is imported. This runs only once per module.
     """
     # Mock environment variables
@@ -23,13 +23,15 @@ def mock_env_and_deps():
     os.environ["ottopi0_SERVO_PINS"] = "20-,26"
 
     # Mock libraries
-    patcher_pigpio = patch("ottopi0.rpcsvr.rpcsvr.pigpio", spec=True)
+    patcher_pigpio = patch("ottopi0.jrpcsvr.jrpcsvr.pigpio", spec=True)
     patcher_logger = patch(
-        "ottopi0.rpcsvr.rpcsvr.get_logger", return_value=MagicMock()
+        "ottopi0.jrpcsvr.jrpcsvr.get_logger", return_value=MagicMock()
     )
-    patcher_servo = patch("ottopi0.rpcsvr.rpcsvr.Servo", spec=True)
-    patcher_calc = patch("ottopi0.rpcsvr.rpcsvr.Calc", spec=True)
-    patcher_dispatcher = patch("ottopi0.rpcsvr.rpcsvr.dispatcher", spec=True)
+    patcher_servo = patch("ottopi0.jrpcsvr.jrpcsvr.Servo", spec=True)
+    patcher_calc = patch("ottopi0.jrpcsvr.jrpcsvr.Calc", spec=True)
+    patcher_dispatcher = patch(
+        "ottopi0.jrpcsvr.jrpcsvr.dispatcher", spec=True
+    )
 
     # Start all patchers
     mock_pigpio = patcher_pigpio.start()
@@ -66,14 +68,14 @@ def client(mock_env_and_deps):
     The lifespan manager is triggered here.
     """
     # Import the module now that dependencies are mocked
-    from ottopi0.rpcsvr.rpcsvr import api
+    from ottopi0.jrpcsvr.jrpcsvr import api
 
     with TestClient(api) as test_client:
         yield test_client
 
 
-class TestRpcsvr:
-    """Test class for rpcsvr.py."""
+class TestJrpcsvr:
+    """Test class for jrpcsvr.py."""
 
     def test_lifespan_startup(self, client, mock_env_and_deps):
         """
@@ -111,7 +113,7 @@ class TestRpcsvr:
         Tests the shutdown part of the lifespan manager.
         We create a client instance within this test to control the shutdown.
         """
-        from ottopi0.rpcsvr.rpcsvr import api
+        from ottopi0.jrpcsvr.jrpcsvr import api
 
         # The 'with' block triggers startup and shutdown
         with TestClient(api):
@@ -124,7 +126,7 @@ class TestRpcsvr:
         mock_servo_instance._end.assert_called_once()
         mock_pigpio_instance.stop.assert_called_once()
 
-    @patch("ottopi0.rpcsvr.rpcsvr.JSONRPCResponseManager.handle")
+    @patch("ottopi0.jrpcsvr.jrpcsvr.JSONRPCResponseManager.handle")
     def test_handle_req_success(self, mock_handle, client, mock_env_and_deps):
         """
         Tests the /api endpoint with a successful JSON-RPC response.
@@ -146,7 +148,7 @@ class TestRpcsvr:
             mock_env_and_deps["dispatcher"],
         )
 
-    @patch("ottopi0.rpcsvr.rpcsvr.JSONRPCResponseManager.handle")
+    @patch("ottopi0.jrpcsvr.jrpcsvr.JSONRPCResponseManager.handle")
     def test_handle_req_no_response(self, mock_handle, client):
         """
         Tests the /api endpoint when the response manager returns nothing.

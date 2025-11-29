@@ -44,15 +44,17 @@ class CmdStrLib:
             return ""
 
         cmd_list = []
-        for cmd in cmdline.split(" "):
+        for cmd in cmdline.split():
             if not cmd:
                 continue
 
+            print(f"cmd={cmd}")
             if not cmd.startswith(self.PREFIX_FUNC):
                 #
                 # normal command string
                 #
                 cmd_list.append(cmd)
+                continue
 
             #
             # expand function

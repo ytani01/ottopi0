@@ -11,8 +11,8 @@ from ..conf_file import ConfFile
 from ..utils.mylogger import errmsg, get_logger
 
 
-class RpcClntBt:
-    """RPC Client: BlueTooth."""
+class JrpcClntBt:
+    """JSON-RPC Client: BlueTooth."""
 
     def __init__(self, btdev_keyword, url, debug=False):
         """Constractor."""
@@ -27,7 +27,7 @@ class RpcClntBt:
 
         # initialize vars
         self.prev_onkeys: dict[str, int] = {}
-        self.rpc_id = 0
+        self.jrpc_id = 0
         self.is_active = True
 
         # init BlueTooth
@@ -44,7 +44,7 @@ class RpcClntBt:
         self.cmd_prefix = self.funcs.get("_prefix")
         self.__log.debug("cmd_prefix=%a", self.cmd_prefix)
 
-        self.btconf = self.conf.jsonrpc.client.bluetooth
+        self.btconf = self.conf.jrpc.client.bluetooth
         self.keys = self.btconf.get("keys")
         self.mr_keys = self.btconf.get("mr_keys")
         self.__log.debug("keys=%s, mr_keys=%s", self.keys, self.mr_keys)
@@ -103,15 +103,15 @@ class RpcClntBt:
             except Exception as e:
                 self.__log.error(errmsg(e))
 
-    def rpc_call(self, cmd_str: str):
+    def jrpc_call(self, cmd_str: str):
         """JSON-RPC call."""
         self.__log.debug("cmd_str=%s", cmd_str)
 
-        self.rpc_id += 1
+        self.jrpc_id += 1
 
         payload = {
             "jsonrpc": 2.0,
-            "id": self.rpc_id,
+            "id": self.jrpc_id,
             "method": "servo.call",
             "params": [cmd_str],
         }
@@ -148,7 +148,7 @@ class RpcClntBt:
 
         if key_state == PiBtInput.KEY["up"]:
             # キーを離したらコマンドをキャンセルして停止
-            # self.rpc_call("ca")
+            # self.jrpc_call("ca")
             return True
 
         if key_state == PiBtInput.KEY["hold"]:
@@ -162,7 +162,7 @@ class RpcClntBt:
             self.__log.debug("_cmd_str=%a", _cmd_str)
 
             if _cmd_str:
-                self.rpc_call(_cmd_str)
+                self.jrpc_call(_cmd_str)
 
             return True
 
@@ -183,7 +183,7 @@ class RpcClntBt:
         cmd_str += ",".join(map(str, angle_diffs))
         self.__log.debug("cmd_str=%a", cmd_str)
 
-        self.rpc_call(cmd_str)
+        self.jrpc_call(cmd_str)
         return True
 
     def end(self):

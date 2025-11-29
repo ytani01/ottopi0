@@ -19,12 +19,12 @@ from .conf_file import ConfFile
 Conf = ConfFile(debug=True).conf
 
 DEF_SERVO_PINS = Conf.servo.pins
-DEF_HISTORY_FILE = Conf.jsonrpc.client.cli.history_file
-DEF_BTDEV_KEYWORD = Conf.jsonrpc.client.bluetooth.dev_keyword
-DEF_RPC_PROTO = Conf.jsonrpc.server.proto
-DEF_RPC_HOST = Conf.jsonrpc.server.host
-DEF_RPC_PORT = Conf.jsonrpc.server.port
-DEF_RPC_APIPATH = Conf.jsonrpc.server.apipath
+DEF_HISTORY_FILE = Conf.jrpc.client.cli.history_file
+DEF_BTDEV_KEYWORD = Conf.jrpc.client.bluetooth.dev_keyword
+DEF_JRPC_PROTO = Conf.jrpc.server.proto
+DEF_JRPC_HOST = Conf.jrpc.server.host
+DEF_JRPC_PORT = Conf.jrpc.server.port
+DEF_JRPC_APIPATH = Conf.jrpc.server.apipath
 
 
 @click.group()
@@ -56,7 +56,7 @@ def cli(ctx, debug):
     "--host",
     "-i",
     type=str,
-    default=DEF_RPC_HOST,
+    default=DEF_JRPC_HOST,
     show_default=True,
     help="hostname or ipaddr",
 )
@@ -64,7 +64,7 @@ def cli(ctx, debug):
     "--port",
     "-p",
     type=int,
-    default=DEF_RPC_PORT,
+    default=DEF_JRPC_PORT,
     show_default=True,
     help="port number",
 )
@@ -77,7 +77,7 @@ def cli(ctx, debug):
     help="reload flag",
 )
 @click_common_opts(__version__)
-def rpcsvr(ctx, servo_pins, host, port, reload, debug):
+def jrpcsvr(ctx, servo_pins, host, port, reload, debug):
     """JSON-RPC 2.0 server.
 
     # sample client
@@ -111,7 +111,7 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
     os.environ[f"{PKGNAME}_SERVO_PINS"] = f"{servo_pins}"
 
     # start API
-    _api = f"{PKGNAME}.rpcsvr.rpcsvr:api"
+    _api = f"{PKGNAME}.jrpcsvr.jrpcsvr:api"
 
     try:
         uvicorn.run(
@@ -143,7 +143,7 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
     "--host",
     "-i",
     type=str,
-    default=DEF_RPC_HOST,
+    default=DEF_JRPC_HOST,
     show_default=True,
     help="hostname or ipaddr",
 )
@@ -151,7 +151,7 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
     "--port",
     "-p",
     type=int,
-    default=DEF_RPC_PORT,
+    default=DEF_JRPC_PORT,
     show_default=True,
     help="port number",
 )
@@ -159,14 +159,14 @@ def rpcsvr(ctx, servo_pins, host, port, reload, debug):
     "--apipath",
     "-a",
     type=str,
-    default=DEF_RPC_APIPATH,
+    default=DEF_JRPC_APIPATH,
     show_default=True,
     help="API path",
 )
 @click_common_opts(__version__)
-def rpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
+def jrpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
     """JSON-RPC Client for BlueTooth controller."""
-    from .rpcclnt_bt.rpcclnt_bt import RpcClntBt
+    from .jrpcclnt_bt.jrpcclnt_bt import JrpcClntBt
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
@@ -188,7 +188,7 @@ def rpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
 
     app = None
     try:
-        app = RpcClntBt(btdev_keyword, url, debug=debug)
+        app = JrpcClntBt(btdev_keyword, url, debug=debug)
         app.main()
     except Exception as _e:
         __log.error(errmsg(_e))
@@ -211,7 +211,7 @@ def rpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
     "--host",
     "-i",
     type=str,
-    default=DEF_RPC_HOST,
+    default=DEF_JRPC_HOST,
     show_default=True,
     help="hostname or ipaddr",
 )
@@ -219,7 +219,7 @@ def rpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
     "--port",
     "-p",
     type=int,
-    default=DEF_RPC_PORT,
+    default=DEF_JRPC_PORT,
     show_default=True,
     help="port number",
 )
@@ -227,14 +227,14 @@ def rpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
     "--apipath",
     "-a",
     type=str,
-    default=DEF_RPC_APIPATH,
+    default=DEF_JRPC_APIPATH,
     show_default=True,
     help="API path",
 )
 @click_common_opts(__version__)
-def rpcclntcli(ctx, historyfile, host, port, apipath, debug):
+def jrpcclntcli(ctx, historyfile, host, port, apipath, debug):
     """JSON-RPC Client for BlueTooth controller."""
-    from .rpcclnt_cli.rpcclnt_cli import RpcClntCli
+    from .jrpcclnt_cli.jrpcclnt_cli import JrpcClntCli
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
@@ -251,7 +251,61 @@ def rpcclntcli(ctx, historyfile, host, port, apipath, debug):
 
     app = None
     try:
-        app = RpcClntCli(historyfile, url, debug=debug)
+        app = JrpcClntCli(historyfile, url, debug=debug)
+        app.main()
+    except Exception as _e:
+        __log.error(errmsg(_e))
+    finally:
+        if app:
+            app.end()
+        click.echo("Done.")
+
+
+@cli.command()
+@click.option(
+    "--host",
+    "-i",
+    type=str,
+    default=DEF_JRPC_HOST,
+    show_default=True,
+    help="hostname or ipaddr",
+)
+@click.option(
+    "--port",
+    "-p",
+    type=int,
+    default=DEF_JRPC_PORT,
+    show_default=True,
+    help="port number",
+)
+@click.option(
+    "--apipath",
+    "-a",
+    type=str,
+    default=DEF_JRPC_APIPATH,
+    show_default=True,
+    help="API path",
+)
+@click_common_opts(__version__)
+def jrpcclntdistance(ctx, host, port, apipath, debug):
+    """JSON-RPC Client for VL53L0X distance sensor."""
+    from .jrpcclnt_distance.jrpcclnt_distance import JrpcClntDistance
+
+    __log = get_logger(__name__, debug)
+    __log.debug("command name: %s", ctx.command.name)
+    __log.debug(
+        "host=%a,port=%s,apipath=%a",
+        host,
+        port,
+        apipath,
+    )
+
+    url = f"http://{host}:{port}{apipath}"
+    __log.debug("url=%s", url)
+
+    app = None
+    try:
+        app = JrpcClntDistance(url, debug=debug)
         app.main()
     except Exception as _e:
         __log.error(errmsg(_e))
