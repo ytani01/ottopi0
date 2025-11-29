@@ -8,6 +8,7 @@ from pibtinput import PiBtInput
 
 from ..cmdstr_lib import CmdStrLib
 from ..conf_file import ConfFile
+from ..jrpcclnt import JrpcClient
 from ..utils.mylogger import errmsg, get_logger
 
 
@@ -24,6 +25,7 @@ class JrpcClntBt:
         self.url = url
 
         self.cslib = CmdStrLib(debug=self.__debug)
+        self.jrpc_clnt = JrpcClient(self.url, debug=self.__debug)
 
         # initialize vars
         self.prev_onkeys: dict[str, int] = {}
@@ -103,35 +105,6 @@ class JrpcClntBt:
             except Exception as e:
                 self.__log.error(errmsg(e))
 
-    def jrpc_call(self, cmd_str: str):
-        """JSON-RPC call."""
-        self.__log.debug("cmd_str=%s", cmd_str)
-
-        self.jrpc_id += 1
-
-        payload = {
-            "jsonrpc": 2.0,
-            "id": self.jrpc_id,
-            "method": "servo.call",
-            "params": [cmd_str],
-        }
-        self.__log.debug("payload=%s", payload)
-
-        try:
-            response = requests.post(self.url, json=payload)
-        except requests.exceptions.ConnectionError as e:
-            self.__log.error(errmsg(e))
-            return
-
-        self.__log.debug("response=%s", response)
-
-        result = response.json()
-
-        if "result" in result:
-            self.__log.debug("result: %s", result["result"])
-        elif "error" in result:
-            self.__log.debug("error: %s", result["error"])
-
     def cb_ev(self, key_name, key_state, onkeys):
         """Event Callback."""
         self.__log.debug(
@@ -141,8 +114,10 @@ class JrpcClntBt:
             onkeys,
         )
 
+        """
         if onkeys == self.prev_onkeys:
             return True
+        """
 
         self.prev_onkeys = onkeys.copy()
 
@@ -154,37 +129,22 @@ class JrpcClntBt:
         if key_state == PiBtInput.KEY["hold"]:
             return True
 
+        #
+        # "down"
+        #
         self.__log.debug("key_name=%a", key_name)
 
-        if key_name in self.keymap.keys():
-            # normal key
-            _cmd_str = self.keymap.get(key_name)
-            self.__log.debug("_cmd_str=%a", _cmd_str)
+        if key_name not in self.keymap.keys():
+            return
 
-            if _cmd_str:
-                self.jrpc_call(_cmd_str)
+        #
+        # normal key
+        #
+        _cmd_str = self.keymap.get(key_name)
+        self.__log.debug("_cmd_str=%a", _cmd_str)
 
-            return True
-
-        # "mr" ?
-        angle_diffs = [0, 0, 0, 0]
-        for key in onkeys:
-            if key in self.mr_keys:
-                ad = self.mr_keys.get(key)
-                angle_diffs = [a + b for a, b in zip(angle_diffs, ad)]
-        self.__log.debug("angle_diffs=%s", angle_diffs)
-
-        if angle_diffs == [0, 0, 0, 0]:
-            # not "mr"
-            return True
-
-        # "mr" !
-        cmd_str = self.conf.get("mr_prefix")
-        cmd_str += ",".join(map(str, angle_diffs))
-        self.__log.debug("cmd_str=%a", cmd_str)
-
-        self.jrpc_call(cmd_str)
-        return True
+        if _cmd_str:
+            self.jrpc_clnt.jrpc_call(_cmd_str)
 
     def end(self):
         """End."""

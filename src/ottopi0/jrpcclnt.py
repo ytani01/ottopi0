@@ -34,30 +34,33 @@ class JrpcClient:
         """JSON-RPC call."""
         self.__log.debug("cmd_str=%s", cmd_str)
 
-        cmd_str = self.cslib.expand_func(f"{self.cmd_prefix} {cmd_str}")
+        if not cmd_str:
+            return
+
+        cmd_str = self.cslib.expand_func(cmd_str)
         self.__log.debug("cmd_str=%a", cmd_str)
 
-        if cmd_str == self.cmd_prefix:
-            return
+        cmd_str_list = cmd_str.split(";")
 
-        self.rpc_id += 1
+        for cmd_str in cmd_str_list:
+            self.rpc_id += 1
 
-        payload = {
-            "jsonrpc": 2.0,
-            "id": self.rpc_id,
-            "method": "servo.call",
-            "params": [cmd_str],
-        }
-        self.__log.debug("payload=%s", payload)
+            payload = {
+                "jsonrpc": 2.0,
+                "id": self.rpc_id,
+                "method": "servo.call",
+                "params": [f"{self.cmd_prefix} {cmd_str}"],
+            }
+            self.__log.debug("payload=%s", payload)
 
-        try:
-            response = requests.post(self.url, json=payload)
-        except requests.exceptions.ConnectionError as e:
-            self.__log.error(errmsg(e))
-            return
+            try:
+                response = requests.post(self.url, json=payload)
+            except requests.exceptions.ConnectionError as e:
+                self.__log.error(errmsg(e))
+                return
 
-        result = response.json()
-        if "result" in result:
-            self.__log.debug("result: %s", result["result"])
-        elif "error" in result:
-            self.__log.debug("error: %s", result["error"])
+            result = response.json()
+            if "result" in result:
+                self.__log.debug("result: %s", result["result"])
+            elif "error" in result:
+                self.__log.debug("error: %s", result["error"])
