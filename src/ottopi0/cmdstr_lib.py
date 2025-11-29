@@ -48,7 +48,7 @@ class CmdStrLib:
             if not cmd:
                 continue
 
-            #print(f"cmd={cmd}")
+            # print(f"cmd={cmd}")
             if not cmd.startswith(self.PREFIX_FUNC):
                 #
                 # normal command string
