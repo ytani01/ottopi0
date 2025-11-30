@@ -68,6 +68,7 @@ class JrpcClntCli:
             self.__log.debug("remove comment: instr=%a", instr)
 
             result = self.jrpcclnt.jrpc_call(instr)
+            self.__log.debug("result=%s", result)
 
     def end(self):
         """End."""

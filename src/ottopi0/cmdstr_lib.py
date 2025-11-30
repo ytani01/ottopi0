@@ -68,8 +68,12 @@ class CmdStrLib:
                 cmd2 = self.expand_func(cmd2, depth + 1)  # TBD recursive
                 if cmd2:
                     cmd_list += cmd2.split()
+            else:
+                self.__log.error(
+                    '"%s%s": not found', self.PREFIX_FUNC, funcname
+                )
 
         self.__log.debug("cmd_list=%s", cmd_list)
 
-        cmdline = " ".join(cmd_list)
+        cmdline = " ".join(cmd_list).strip()
         return cmdline

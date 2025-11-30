@@ -104,6 +104,9 @@ class JrpcClntBt:
 
             except Exception as e:
                 self.__log.error(errmsg(e))
+                import traceback
+
+                print(traceback.format_exc())
 
     def cb_ev(self, key_name, key_state, onkeys):
         """Event Callback."""
@@ -113,7 +116,6 @@ class JrpcClntBt:
             key_state,
             onkeys,
         )
-
         """
         if onkeys == self.prev_onkeys:
             return True

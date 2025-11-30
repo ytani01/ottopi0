@@ -14,7 +14,7 @@ from ..utils.mylogger import get_logger
 class JrpcClntDistance:
     """JSON-RPC Client: distance sensor."""
 
-    CMD_STOP = "f:home"
+    CMD_STOP = "f:home f:turn-r"
 
     def __init__(self, url: str, debug=False):
         """Constractor."""

@@ -16,7 +16,7 @@ from . import (
 from .conf_file import ConfFile
 
 # config file
-Conf = ConfFile(debug=True).conf
+Conf = ConfFile().conf
 
 DEF_SERVO_PINS = Conf.servo.pins
 DEF_HISTORY_FILE = Conf.jrpc.client.cli.history_file

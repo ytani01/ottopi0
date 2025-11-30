@@ -35,7 +35,7 @@ class JrpcClient:
         self.__log.debug("cmd_str=%s", cmd_str)
 
         if not cmd_str:
-            return
+            return None
 
         cmd_str = self.cslib.expand_func(cmd_str)
         self.__log.debug("cmd_str=%a", cmd_str)
@@ -45,15 +45,22 @@ class JrpcClient:
         result = None
 
         for cmd_str in cmd_str_list:
+            cmd_str = cmd_str.strip()
+
+            if not cmd_str:
+                continue
+
             self.__log.info("cmd_str=%a", cmd_str)
 
             self.rpc_id += 1
+
+            cmd_str = f"{self.cmd_prefix} {cmd_str}".strip()
 
             payload = {
                 "jsonrpc": 2.0,
                 "id": self.rpc_id,
                 "method": "servo.call",
-                "params": [f"{self.cmd_prefix} {cmd_str}"],
+                "params": [cmd_str],
             }
             self.__log.debug("payload=%s", payload)
 

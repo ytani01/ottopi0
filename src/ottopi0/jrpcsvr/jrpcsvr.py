@@ -1,6 +1,7 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
+import json
 import os
 from contextlib import asynccontextmanager
 
@@ -80,11 +81,14 @@ async def handle_req(request: Request):
     # ポストされたリクエスト(JSON)を取得
     _req_body: bytes = await request.body()
     _req_str: str = _req_body.decode("utf-8")
-    __log.debug("req_str=%s", _req_str)
+    # __log.info("req_str=%s", _req_str)
+
+    _req_json = json.loads(_req_str)
+    __log.info("%s%s", _req_json.get("method"), _req_json.get("params"))
 
     _res = JSONRPCResponseManager.handle(_req_str, dispatcher)
     if _res:
-        __log.debug("res.data=%s: %s", _res.data, type(_res.data).__name__)
+        __log.info("res.data=%s: %s", _res.data, type(_res.data).__name__)
         # __log.debug("res.json=%s: %s", _res.json, type(_res.json).__name__)
         if isinstance(_res.data, dict):
             __log.debug("result=%s", _res.data.get("result"))
