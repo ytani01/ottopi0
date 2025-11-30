@@ -42,7 +42,11 @@ class JrpcClient:
 
         cmd_str_list = cmd_str.split(";")
 
+        result = None
+
         for cmd_str in cmd_str_list:
+            self.__log.info("cmd_str=%a", cmd_str)
+
             self.rpc_id += 1
 
             payload = {
@@ -57,10 +61,15 @@ class JrpcClient:
                 response = requests.post(self.url, json=payload)
             except requests.exceptions.ConnectionError as e:
                 self.__log.error(errmsg(e))
-                return
+                return None
 
             result = response.json()
             if "result" in result:
-                self.__log.debug("result: %s", result["result"])
+                self.__log.info("result: %s", result["result"])
             elif "error" in result:
-                self.__log.debug("error: %s", result["error"])
+                self.__log.info("error: %s", result["error"])
+
+        if result:
+            return result
+        else:
+            return None
