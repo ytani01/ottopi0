@@ -22,10 +22,10 @@ dependencies = [
     "dynaconf>=3.2.12",
     "fastapi[standard]>=0.120.2",
     "json-rpc>=1.15.0",
+    "pi0servo",
+    "pibtinput",
     "uvicorn>=0.38.0",
     "vl53l0x-pigpio",
-    "pibtinput",
-    "pi0servo",
 ]
 
 [build-system]
@@ -82,6 +82,6 @@ check_untyped_defs = true
 pythonpath = "tests"
 
 [tool.uv.sources]
-vl53l0x-pigpio = { path = "../vl53l0x_pigpio" }
-pibtinput = { path = "../pibtinput" }
 pi0servo = { path = "../pi0servo" }
+pibtinput = { path = "../pibtinput" }
+vl53l0x-pigpio = { path = "../vl53l0x_pigpio" }

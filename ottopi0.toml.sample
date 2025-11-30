@@ -49,11 +49,12 @@ step-r = "f:toes-r f:toes-r f:heel-r f:heel-r"
 step1 = "f:toes-l f:toes-l f:heel-l f:heel-l  f:toes-r f:toes-r f:heel-r f:heel-r"
 
 dance1 = "ms:0.08 f:step-l ; ms:0.08 f:step-r"
-dance2 = "ms:0.2 f:happy ; ms:0.2 f:happy"
-dance3 = "ms:0.2 f:slide-r ; ms:0.2 f:slide-l"
-dance4 = "ms:0.2 f:forward ; ms:0.2 f:backward"
+dance2 = "ms:0.2 f:happy f:happy"
+dance3 = "ms:0.2 sl:.1 f:surprise sl:.1 f:surprise sl:.1"
+dance4 = "ms:0.2 f:slide-r ; ms:0.2 f:slide-l"
+dance5 = "ms:0.2 f:forward ; ms:0.2 f:backward"
 
-dance-seq1 = "f:dance1 ; f:dance2 ; f:dance3: ; f:dance4 ; sl:.1 ; f:dance4 ; sl:.2"
+dance-seq1 = "f:dance1 ; f:dance2 ; f:dance3: f:dance4: ; f:dance5 ; sl:.1 ; f:dance5 ; sl:.2"
 dance-seq2 = "f:hi ; sl:.5 ; f:dance-seq1 ; ; sl:.5 ; f:bye ; ms:.2 f:turn-r ; ms:.2 f:turn-r"
 
 sumo-r = "ms:.4 mv:-30,0,0,20 mv:80,0,0,30 sl:.5 ms:.1 mv:-30,0,0,20 ms:.5 mv:0,0,0,0"
