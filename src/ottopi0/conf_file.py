@@ -32,26 +32,3 @@ class ConfFile:
     @property
     def conf(self):
         return self._config
-
-
-# class ConfFile(Dynaconf):
-#     """Config class"""
-
-#     SETTINGS_FILES = [
-#         "ottopi0.toml",
-#         "~/ottopi0.toml",
-#     ]
-
-#     def __init__(self, debug=False):
-#         """Constractor."""
-#         self.__log = get_logger(self.__class__.__name__, debug)
-#         self.__log.debug("")
-
-#         self.settings_files = []
-#         for f in self.SETTINGS_FILES:
-#             self.settings_files.append(
-#                 os.path.expanduser(os.path.expandvars(f))
-#             )
-#         self.__log.debug("settings_files=%s", self.settings_files)
-
-#         super().__init__(settings_files=self.settings_files)
