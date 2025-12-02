@@ -12,7 +12,7 @@ class JrpcClient:
     """JSON-RPC Client."""
 
     CMD_SEPARATOR = ";"
-    
+
     def __init__(self, url: str, debug=False) -> None:
         """Constractor."""
         self.__debug = debug
