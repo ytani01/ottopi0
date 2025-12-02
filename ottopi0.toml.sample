@@ -59,7 +59,7 @@ dance-seq2 = "f:hi ; sl:.5 ; f:dance-seq1 ; ; sl:.5 ; f:bye ; ms:.2 f:turn-r ; m
 
 sumo-r = "ms:.4 mv:-30,0,0,20 mv:80,0,0,30 sl:.5 ms:.1 mv:-30,0,0,20 ms:.5 mv:0,0,0,0"
 sumo-l = "ms:.4 mv:20,0,0,-30 mv:30,0,0,80 sl:.5 ms:.1 mv:20,0,0,-30 ms:.5 mv:0,0,0,0"
-sumo = "f:sumo-r ; sl:0.8 ; f:sumo-l"
+sumo = "f:sumo-r ; sl:0.8 ; f:sumo-l ; sl:0.8"
 #sumo = "ms:.4  mv:-30,0,0,20 mv:60,0,0,30 sl:.5 ms:.2 mv:20,0,0,0 mv:0,0,0,0  sl:1 ms:.4  mv:20,0,0,-30 mv:30,0,0,60  sl:.5 ms:.2  mv0,0,0,20 mv:0,0,0,0"
 
 # TBD
@@ -103,7 +103,7 @@ mr_prefix = "ms:0.3 st:10 mr:"  # TBD
 #
 KEY_S = "f:home"
 
-KEY_C = "ms:.2 f:forward"
+KEY_C = "ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward"
 KEY_D = "ms:.3 f:backward"
 KEY_E = "ms:.3 f:turn-l"
 KEY_F = "ms:.3 f:turn-r"
