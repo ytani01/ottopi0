@@ -8,7 +8,6 @@ from contextlib import asynccontextmanager
 import pigpio
 from fastapi import FastAPI, Request
 from jsonrpc import JSONRPCResponseManager, dispatcher
-
 from pi0servo import CommonLib
 
 from .. import ENVNAME_DEBUG, PKGNAME, errmsg, get_logger
@@ -33,8 +32,7 @@ async def lifespan(api: FastAPI):
     # "calc.method" という名前になる
     dispatcher.add_class(Calc)
 
-
-    #sv_common = CommonLib(debug=__debug)
+    # sv_common = CommonLib(debug=__debug)
     sv_common = CommonLib()
 
     ### pigpio

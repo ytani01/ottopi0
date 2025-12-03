@@ -32,7 +32,8 @@ class JrpcClntDistance:
         self.distance_far = self.auto.distance.get("far")
         self.__log.debug(
             "distance_near=%s, distance_far=%s",
-            self.distance_near, self.distance_far
+            self.distance_near,
+            self.distance_far,
         )
 
         self.cmd_auto_stop = self.funcs.get("auto-stop")
@@ -66,7 +67,7 @@ class JrpcClntDistance:
                 self.jrpc_clnt.jrpc_call("ww")
                 time.sleep(2)
 
-            time.sleep(.05)
+            time.sleep(0.05)
 
     def end(self):
         """End."""
