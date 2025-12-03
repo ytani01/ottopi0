@@ -55,6 +55,9 @@ class JrpcClntDistance:
         self.__log.debug("")
 
         while self.is_active:
+            print("AAA")
+            self.jrpc_clnt.jrpc_call("ms:.2 f:forward")
+
             try:
                 distance = self.tof.get_range()
                 self.__log.debug("distance=%s", distance)
