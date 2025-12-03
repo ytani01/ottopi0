@@ -1,3 +1,11 @@
+##### Auto pilot
+[auto]
+
+[auto.distance]
+near = 300  # mm
+far = 2000  # mm
+
+##### Servo
 [servo]
 # ピン番号: 逆回転の場合は '-' を**後ろに**つける
 #pins = "22,27-"  # rpi4b
@@ -8,12 +16,14 @@ pins = "20-,26,19-,16"  # rpi0w
 #_prefix = "st:30 ms:.4"
 _prefix = ""
 
+auto-stop = "ca f:home f:surprise f:backward f:backward f:turn-r"
+
 xxx = "ms:1 mv:10,10,10,10 mv:-10,-10,-10,-10 mv:c,c,c,c f:xxx"  # recursive sample
 
 home = "ca ms:.4 st:30 mv:-30,0,0,20 mv:0,0,0,0 mv:20,0,0,-30 mv:0,0,0,0"
 
-forward-r = "mv:-30,c,c,20  mv:.,20,-20,.  mv:0,.,.,0"
-forward-l = "mv:20,0,0,-30  mv:20,-20,20,-30  mv:0,-20,20,0"
+forward-r = "mv:-30,0,0,20  mv:.,20,-20,.  mv:0,.,.,0"
+forward-l = "mv:20,0,0,-30  mv:.,-20,20,.  mv:0,.,.,0"
 forward-rl = "f:forward-r ; f:forward-l"
 forward = "f:forward-rl"
 

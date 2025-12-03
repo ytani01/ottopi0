@@ -9,6 +9,8 @@ import pigpio
 from fastapi import FastAPI, Request
 from jsonrpc import JSONRPCResponseManager, dispatcher
 
+from pi0servo import CommonLib
+
 from .. import ENVNAME_DEBUG, PKGNAME, errmsg, get_logger
 from .func_calc import Calc
 from .func_servo import Servo
@@ -17,19 +19,23 @@ from .func_servo import Servo
 @asynccontextmanager
 async def lifespan(api: FastAPI):
     """Lifespan manager for the application."""
-    debug = os.getenv(ENVNAME_DEBUG) == "1"
+    __debug = os.getenv(ENVNAME_DEBUG) == "1"
 
-    __log = get_logger(__name__, debug)
-    __log.debug("ENVNAME_DEBUG=%a, value=%s", ENVNAME_DEBUG, debug)
+    __log = get_logger(__name__, __debug)
+    __log.debug("ENVNAME_DEBUG=%a, value=%s", ENVNAME_DEBUG, __debug)
 
     # ``{api}.state.{変数名}`` の内容は、
     # ハンドラーでは、``reqeust.app.state.{変数名}`` で参照できる
-    api.state.debug = debug
+    api.state.debug = __debug
     __log.debug("api.state=%s", api.state.__dict__)
 
     # class単位で登録
     # "calc.method" という名前になる
     dispatcher.add_class(Calc)
+
+
+    #sv_common = CommonLib(debug=__debug)
+    sv_common = CommonLib()
 
     ### pigpio
     pi = pigpio.pi()
@@ -38,19 +44,10 @@ async def lifespan(api: FastAPI):
     __log.debug("PKGNAME=%s", PKGNAME)
     pins_str = os.environ[f"{PKGNAME}_SERVO_PINS"]
 
-    servo_pins = []
-    angle_factors = []
-    for p in pins_str.split(","):
-        if p[-1] == "-":
-            servo_pins.append(int(p[:-1]))
-            angle_factors.append(-1)
-        else:
-            servo_pins.append(int(p))
-            angle_factors.append(1)
-
+    servo_pins, angle_factors = sv_common.parse_pins_str(pins_str)
     __log.debug("servo_pins=%s,angle_factors=%s", servo_pins, angle_factors)
 
-    servo = Servo(pi, servo_pins, angle_factors, debug=debug)
+    servo = Servo(pi, servo_pins, angle_factors, debug=__debug)
     servo._start()
 
     dispatcher.add_object(servo)

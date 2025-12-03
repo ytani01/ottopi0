@@ -7,14 +7,13 @@ import pigpio
 from vl53l0x_pigpio import VL53L0X
 
 from ..cmdstr_lib import CmdStrLib
+from ..conf_file import ConfFile
 from ..jrpcclnt import JrpcClient
 from ..utils.mylogger import get_logger
 
 
 class JrpcClntDistance:
     """JSON-RPC Client: distance sensor."""
-
-    CMD_STOP = "f:home f:turn-r"
 
     def __init__(self, url: str, debug=False):
         """Constractor."""
@@ -23,6 +22,21 @@ class JrpcClntDistance:
         self.__log.debug("url=%s", url)
 
         self.url = url
+
+        # config file
+        self.conf = ConfFile().conf
+        self.auto = self.conf.auto
+        self.funcs = self.conf.servo.funcs
+
+        self.distance_near = self.auto.distance.get("near")
+        self.distance_far = self.auto.distance.get("far")
+        self.__log.debug(
+            "distance_near=%s, distance_far=%s",
+            self.distance_near, self.distance_far
+        )
+
+        self.cmd_auto_stop = self.funcs.get("auto-stop")
+        self.__log.debug("cmd_auto_stop=%a", self.cmd_auto_stop)
 
         # common objects
         self.pi = pigpio.pi()
@@ -48,8 +62,11 @@ class JrpcClntDistance:
                 break
 
             if distance < 300:
-                self.jrpc_clnt.jrpc_call(self.CMD_STOP)
-                time.sleep(10)
+                self.jrpc_clnt.jrpc_call(self.cmd_auto_stop)
+                self.jrpc_clnt.jrpc_call("ww")
+                time.sleep(2)
+
+            time.sleep(.05)
 
     def end(self):
         """End."""
