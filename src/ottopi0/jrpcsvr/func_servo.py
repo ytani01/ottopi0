@@ -20,7 +20,8 @@ class Servo:
         self.angle_factors = angle_factors
 
         self.parser = StrCmdToJson(self.angle_factors, debug=self.__debug)
-        self.servo = JsonRpcWorker(self.pi, self.pins, debug=self.__debug)
+        #self.servo = JsonRpcWorker(self.pi, self.pins, debug=self.__debug)
+        self.servo = JsonRpcWorker(self.pi, self.pins, debug=False)
 
     def _start(self):
         """Start."""

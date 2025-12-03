@@ -54,9 +54,12 @@ class JrpcClntDistance:
         """Main."""
         self.__log.debug("")
 
+        count = 0
         while self.is_active:
-            print("AAA")
-            self.jrpc_clnt.jrpc_call("ms:.2 f:forward")
+            count += 1
+            if count > 10:
+                self.jrpc_clnt.jrpc_call("ms:.2 f:forward")
+                count = 0
 
             try:
                 distance = self.tof.get_range()
@@ -65,10 +68,10 @@ class JrpcClntDistance:
                 print("\nEOF")
                 break
 
-            if distance < 300:
+            if distance < self.distance_near:
                 self.jrpc_clnt.jrpc_call(self.cmd_auto_stop)
                 self.jrpc_clnt.jrpc_call("ww")
-                time.sleep(2)
+                time.sleep(0.01)
 
             time.sleep(0.05)
 
