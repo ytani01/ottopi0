@@ -50,7 +50,7 @@ async def lifespan(api: FastAPI):
     servo._start()
 
     dispatcher.add_object(servo)
-    
+
     __log.debug("dispatcher: %s", [func for func in dispatcher])
     __log.info("..\n* Ready")
 
