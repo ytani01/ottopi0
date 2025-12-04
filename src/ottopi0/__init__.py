@@ -3,8 +3,9 @@
 #
 from importlib.metadata import version as get_version
 
-from .cmdstr_lib import CmdStrLib
-from .conf_file import ConfFile
+from .common.cmdstr_lib import CmdStrLib
+from .common.conf_file import ConfFile
+from .jrpcclnt.jrpcclnt import JrpcClient
 from .utils.clickutils import click_common_opts
 from .utils.mylogger import errmsg, get_logger
 
@@ -23,8 +24,9 @@ __all__ = [
     "ENVNAME_DEBUG",
     "PKGNAME",
     "click_common_opts",
-    "ConfFile",
     "errmsg",
     "get_logger",
     "CmdStrLib",
+    "ConfFile",
+    "JrpcClient",
 ]

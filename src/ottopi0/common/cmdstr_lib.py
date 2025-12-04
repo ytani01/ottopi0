@@ -1,8 +1,8 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
+from ..utils.mylogger import get_logger
 from .conf_file import ConfFile
-from .utils.mylogger import get_logger
 
 
 class CmdStrLib:

@@ -46,17 +46,18 @@ class TestServo:
         """
         StrCmdToJson, JsonRpcWorker = mock_pi0servo_classes
         mock_pi = MagicMock()
-        debug_mode = True
+        debug_mode1 = True
+        debug_mode2 = False
 
         servo = Servo(
-            mock_pi, self.PINS, self.ANGLE_FACTORS, debug=debug_mode
+            mock_pi, self.PINS, self.ANGLE_FACTORS, debug=debug_mode1
         )
 
         StrCmdToJson.assert_called_once_with(
-            self.ANGLE_FACTORS, debug=debug_mode
+            self.ANGLE_FACTORS, debug=debug_mode1
         )
         JsonRpcWorker.assert_called_once_with(
-            mock_pi, self.PINS, debug=debug_mode
+            mock_pi, self.PINS, debug=debug_mode2
         )
         assert servo.pi == mock_pi
         assert servo.pins == self.PINS
