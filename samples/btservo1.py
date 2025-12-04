@@ -24,9 +24,7 @@ class App:
         self.servo = pi0servo.JsonRpcWorker(
             self.pi, self.pins, debug=self.__debug
         )
-        self.parser = pi0servo.StrCmdToJson(
-            [1] * len(self.pins), debug=self.__debug
-        )
+        self.parser = pi0servo.StrCmdToJson(debug=self.__debug)
 
     def cb_ev(self, key_name, key_state, onkeys):
         """Event Callback."""

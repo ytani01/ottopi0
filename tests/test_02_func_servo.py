@@ -36,8 +36,7 @@ class TestServo:
     Test class for the Servo class in func_servo.py.
     """
 
-    PINS = [20, 26, 19, 16]
-    ANGLE_FACTORS = [-1, 1, -1, 1]
+    PINS = [-20, 26, -19, 16]
 
     def test_init(self, mock_pi0servo_classes, mock_logger):
         """
@@ -49,19 +48,14 @@ class TestServo:
         debug_mode1 = True
         debug_mode2 = False
 
-        servo = Servo(
-            mock_pi, self.PINS, self.ANGLE_FACTORS, debug=debug_mode1
-        )
+        servo = Servo(mock_pi, self.PINS, debug=debug_mode1)
 
-        StrCmdToJson.assert_called_once_with(
-            self.ANGLE_FACTORS, debug=debug_mode1
-        )
+        StrCmdToJson.assert_called_once_with(debug=debug_mode1)
         JsonRpcWorker.assert_called_once_with(
             mock_pi, self.PINS, debug=debug_mode2
         )
         assert servo.pi == mock_pi
         assert servo.pins == self.PINS
-        assert servo.angle_factors == self.ANGLE_FACTORS
 
     def test_start(self, mock_pi0servo_classes, mock_logger):
         """
@@ -69,7 +63,7 @@ class TestServo:
         Verifies that the servo worker's start method is called.
         """
         mock_pi = MagicMock()
-        servo = Servo(mock_pi, self.PINS, self.ANGLE_FACTORS)
+        servo = Servo(mock_pi, self.PINS)
 
         servo._start()
 
@@ -81,7 +75,7 @@ class TestServo:
         Verifies that the servo worker's end method is called.
         """
         mock_pi = MagicMock()
-        servo = Servo(mock_pi, self.PINS, self.ANGLE_FACTORS)
+        servo = Servo(mock_pi, self.PINS)
 
         servo._end()
 
@@ -93,7 +87,7 @@ class TestServo:
         JSON format from the docs/str_cmd_to_json.md file.
         """
         mock_pi = MagicMock()
-        servo = Servo(mock_pi, self.PINS, self.ANGLE_FACTORS)
+        servo = Servo(mock_pi, self.PINS)
 
         # A realistic command string with multiple commands
         cmd_str = "ms:0.5 mv:10,20,30,40"

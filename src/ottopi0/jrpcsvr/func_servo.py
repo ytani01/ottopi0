@@ -9,18 +9,16 @@ from .. import get_logger
 class Servo:
     """Servo."""
 
-    def __init__(self, pi, pins, angle_factors, debug=False) -> None:
+    def __init__(self, pi, pins, debug=False) -> None:
         """Constractor."""
         self.__debug = debug
         self.__log = get_logger(self.__class__.__name__, self.__debug)
-        self.__log.debug("pins=%s, angle_factors=%s", pins, angle_factors)
+        self.__log.debug("pins=%s", pins)
 
         self.pi = pi
         self.pins = pins
-        self.angle_factors = angle_factors
 
-        self.parser = StrCmdToJson(self.angle_factors, debug=self.__debug)
-        # self.servo = JsonRpcWorker(self.pi, self.pins, debug=self.__debug)
+        self.parser = StrCmdToJson(debug=self.__debug)
         self.servo = JsonRpcWorker(self.pi, self.pins, debug=False)
 
     def _start(self):
