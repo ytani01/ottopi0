@@ -3,9 +3,9 @@
 #
 import requests
 
-from .cmdstr_lib import CmdStrLib
-from .conf_file import ConfFile
-from .utils.mylogger import errmsg, get_logger
+from ..common.cmdstr_lib import CmdStrLib
+from ..common.conf_file import ConfFile
+from ..utils.mylogger import errmsg, get_logger
 
 
 class JrpcClient:

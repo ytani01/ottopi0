@@ -6,10 +6,10 @@ import time
 import pigpio
 from vl53l0x_pigpio import VL53L0X
 
-from ..cmdstr_lib import CmdStrLib
-from ..conf_file import ConfFile
-from ..jrpcclnt import JrpcClient
+from ..common.cmdstr_lib import CmdStrLib
+from ..common.conf_file import ConfFile
 from ..utils.mylogger import get_logger
+from .jrpcclnt import JrpcClient
 
 
 class JrpcClntDistance:

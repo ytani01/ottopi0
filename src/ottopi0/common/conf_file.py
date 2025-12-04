@@ -5,7 +5,7 @@ import os
 
 from dynaconf import Dynaconf
 
-from .utils.mylogger import get_logger
+from ..utils.mylogger import get_logger
 
 
 class ConfFile:

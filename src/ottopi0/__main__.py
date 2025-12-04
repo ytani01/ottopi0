@@ -8,12 +8,12 @@ import click
 from . import (
     ENVNAME_DEBUG,
     PKGNAME,
+    ConfFile,
     __version__,
     click_common_opts,
     errmsg,
     get_logger,
 )
-from .conf_file import ConfFile
 
 # config file
 Conf = ConfFile().conf
@@ -166,7 +166,7 @@ def jrpcsvr(ctx, servo_pins, host, port, reload, debug):
 @click_common_opts(__version__)
 def jrpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
     """JSON-RPC Client for BlueTooth controller."""
-    from .jrpcclnt_bt.jrpcclnt_bt import JrpcClntBt
+    from .jrpcclnt.jrpcclnt_bt import JrpcClntBt
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
@@ -234,7 +234,7 @@ def jrpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
 @click_common_opts(__version__)
 def jrpcclntcli(ctx, historyfile, host, port, apipath, debug):
     """JSON-RPC Client for BlueTooth controller."""
-    from .jrpcclnt_cli.jrpcclnt_cli import JrpcClntCli
+    from .jrpcclnt.jrpcclnt_cli import JrpcClntCli
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
@@ -289,7 +289,7 @@ def jrpcclntcli(ctx, historyfile, host, port, apipath, debug):
 @click_common_opts(__version__)
 def jrpcclntdistance(ctx, host, port, apipath, debug):
     """JSON-RPC Client for VL53L0X distance sensor."""
-    from .jrpcclnt_distance.jrpcclnt_distance import JrpcClntDistance
+    from .jrpcclnt.jrpcclnt_distance import JrpcClntDistance
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)

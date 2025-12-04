@@ -8,8 +8,8 @@ from pibtinput import PiBtInput
 
 from ..cmdstr_lib import CmdStrLib
 from ..conf_file import ConfFile
-from ..jrpcclnt import JrpcClient
 from ..utils.mylogger import errmsg, get_logger
+from .jrpcclnt import JrpcClient
 
 
 class JrpcClntBt:
