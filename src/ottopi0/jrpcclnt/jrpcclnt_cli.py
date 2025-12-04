@@ -4,7 +4,8 @@
 import os
 import readline
 
-from .. import JrpcClient, errmsg, get_logger
+from ..utils.mylogger import errmsg, get_logger
+from .jrpcclnt import JrpcClient
 
 
 class JrpcClntCli:

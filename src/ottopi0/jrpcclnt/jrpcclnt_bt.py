@@ -6,8 +6,8 @@ import time
 import requests
 from pibtinput import PiBtInput
 
-from ..cmdstr_lib import CmdStrLib
-from ..conf_file import ConfFile
+from ..common.cmdstr_lib import CmdStrLib
+from ..common.conf_file import ConfFile
 from ..utils.mylogger import errmsg, get_logger
 from .jrpcclnt import JrpcClient
 

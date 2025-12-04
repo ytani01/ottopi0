@@ -11,7 +11,7 @@ from ..utils.mylogger import errmsg, get_logger
 class JrpcClient:
     """JSON-RPC Client."""
 
-    CMD_SEPARATOR = ";"
+    TRANSACTION_SEPARATOR = ";"  # トランザクション(cancelできる単位)の区切り
 
     def __init__(self, url: str, debug=False) -> None:
         """Constractor."""
@@ -42,7 +42,7 @@ class JrpcClient:
         cmd_str = self.cslib.expand_func(cmd_str)
         self.__log.debug("cmd_str=%a", cmd_str)
 
-        cmd_str_list = cmd_str.split(self.CMD_SEPARATOR)
+        cmd_str_list = cmd_str.split(self.TRANSACTION_SEPARATOR)
 
         result = None
 
