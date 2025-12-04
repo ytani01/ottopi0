@@ -43,7 +43,7 @@ async def lifespan(api: FastAPI):
     pins_str = os.environ[f"{PKGNAME}_SERVO_PINS"]
 
     servo_pins = sv_common.pins_str2list(pins_str)
-    __log.debug("servo_pins=%s=%s", servo_pins)
+    __log.debug("servo_pins=%s", servo_pins)
 
     servo = Servo(pi, servo_pins, debug=__debug)
     servo._start()
