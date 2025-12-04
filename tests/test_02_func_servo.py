@@ -52,7 +52,7 @@ class TestServo:
 
         StrCmdToJson.assert_called_once_with(debug=debug_mode1)
         JsonRpcWorker.assert_called_once_with(
-            mock_pi, self.PINS, debug=debug_mode2
+            mock_pi, self.PINS, flag_verbose=True, debug=debug_mode2
         )
         assert servo.pi == mock_pi
         assert servo.pins == self.PINS

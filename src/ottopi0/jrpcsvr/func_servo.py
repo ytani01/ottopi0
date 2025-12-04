@@ -19,7 +19,9 @@ class Servo:
         self.pins = pins
 
         self.parser = StrCmdToJson(debug=self.__debug)
-        self.servo = JsonRpcWorker(self.pi, self.pins, debug=False)
+        self.servo = JsonRpcWorker(
+            self.pi, self.pins, flag_verbose=True, debug=False
+        )
 
     def _start(self):
         """Start."""
@@ -40,5 +42,5 @@ class Servo:
         self.__log.debug("jrpcstr=%s", jrpcstr)
 
         ret = self.servo.call(jrpcstr)
-        self.__log.debug("servo.call(%s)", jrpcstr)
+        self.__log.debug("ret=%s", ret)
         return ret

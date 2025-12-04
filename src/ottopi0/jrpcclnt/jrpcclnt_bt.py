@@ -75,11 +75,15 @@ class JrpcClntBt:
         """Main."""
         self.__log.debug("")
 
+        print("Start..")
+
         while self.is_active:
             try:
                 self.bt_input.read_loop(self.input_dev[0], self.cb_ev)
+
             except requests.exceptions.ConnectionError as e:
                 self.__log.error(errmsg(e))
+
             except OSError as e:
                 # BlueTooth is lost ?
                 self.__log.error(errmsg(e))
@@ -87,20 +91,25 @@ class JrpcClntBt:
                 self.input_dev = self.bt_input.search_input_devs(
                     self.btdev_keyword
                 )
-                self.__log.error("input_dev=%s", self.input_dev)
+                self.__log.debug("input_dev=%s", self.input_dev)
+                if self.input_dev:
+                    print("Ready")
+
             except IndexError as e:
                 # BlueTooth is lost ?
                 if not self.input_dev:
                     self.__log.error(
                         "device not found:%a", self.btdev_keyword
                     )
-                    time.sleep(1)
+                    time.sleep(2)
                     self.input_dev = self.bt_input.search_input_devs(
                         self.btdev_keyword
                     )
+                    self.__log.debug("input_dev=%s", self.input_dev)
+                    if self.input_dev:
+                        print("Ready")
                 else:
                     self.__log.error(errmsg(e))
-                    self.__log.error("input_dev=%s", self.input_dev)
 
             except Exception as e:
                 self.__log.error(errmsg(e))
