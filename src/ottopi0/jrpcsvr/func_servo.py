@@ -1,6 +1,8 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
+import json
+
 from pi0servo import JsonRpcWorker, StrCmdToJson
 
 from .. import get_logger
@@ -38,9 +40,9 @@ class Servo:
         """Call."""
         self.__log.debug("cmd_str=%s", cmd_str)
 
-        jrpcstr = self.parser.cmdstr_to_jsonliststr(cmd_str)
-        self.__log.debug("jrpcstr=%s", jrpcstr)
+        jrpcreq = self.parser.cmdstr_to_jsonlist(cmd_str)
+        self.__log.debug("jrpcreq=%s", jrpcreq)
 
-        ret = self.servo.call(jrpcstr)
-        self.__log.debug("ret=%s", ret)
+        ret = self.servo.call(jrpcreq)
+        self.__log.info("ret = %s", json.dumps(ret, indent=2))
         return ret
