@@ -85,7 +85,7 @@ servo3_down = "mr:0,0,0,-5"
 [jrpc]
 
 [jrpc.server]
-# url = {proto}://{host}:{port}{apipath]
+# url = {proto}://{host}:{port}{apipath}
 proto = "http"
 host = "0.0.0.0"
 port = 8000
