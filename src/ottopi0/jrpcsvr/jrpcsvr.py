@@ -18,6 +18,7 @@ from .func_servo import Servo
 @asynccontextmanager
 async def lifespan(api: FastAPI):
     """Lifespan manager for the application."""
+
     __debug = os.getenv(ENVNAME_DEBUG) == "1"
 
     __log = get_logger(__name__, __debug)
@@ -42,18 +43,23 @@ async def lifespan(api: FastAPI):
     __log.debug("PKGNAME=%s", PKGNAME)
     pins_str = os.environ[f"{PKGNAME}_SERVO_PINS"]
 
-    servo_pins, angle_factors = sv_common.parse_pins_str(pins_str)
-    __log.debug("servo_pins=%s,angle_factors=%s", servo_pins, angle_factors)
+    servo_pins = sv_common.pins_str2list(pins_str)
+    __log.debug("servo_pins=%s", servo_pins)
 
-    servo = Servo(pi, servo_pins, angle_factors, debug=__debug)
+    servo = Servo(pi, servo_pins, debug=__debug)
     servo._start()
 
     dispatcher.add_object(servo)
-    __log.debug("dispatcher: %s", [func for func in dispatcher])
 
-    ###
+    __log.debug("dispatcher: %s", [func for func in dispatcher])
+    __log.info("..\n* Ready")
 
     yield
+
+    #
+    # 終了処理
+    #
+    __log.info("..\n* Shutdown..")
 
     servo._end()
 
@@ -77,16 +83,18 @@ async def handle_req(request: Request):
     _req_body: bytes = await request.body()
     _req_str: str = _req_body.decode("utf-8")
     # __log.info("req_str=%s", _req_str)
+    _req_dict = json.loads(_req_str)
+    __log.info(
+        "..\n> recv: %s%s", _req_dict.get("method"), _req_dict.get("params")
+    )
 
     _req_json = json.loads(_req_str)
-    __log.info("%s%s", _req_json.get("method"), _req_json.get("params"))
+    __log.debug("%s%s", _req_json.get("method"), _req_json.get("params"))
 
     _res = JSONRPCResponseManager.handle(_req_str, dispatcher)
     if _res:
-        __log.info("res.data=%s: %s", _res.data, type(_res.data).__name__)
-        # __log.debug("res.json=%s: %s", _res.json, type(_res.json).__name__)
-        if isinstance(_res.data, dict):
-            __log.debug("result=%s", _res.data.get("result"))
+        __log.debug("res.data=%s: %s", _res.data, type(_res.data).__name__)
+
         return _res.data  # returnは、dict型でよい
     else:
         return {}

@@ -8,12 +8,12 @@ import click
 from . import (
     ENVNAME_DEBUG,
     PKGNAME,
+    ConfFile,
     __version__,
     click_common_opts,
     errmsg,
     get_logger,
 )
-from .conf_file import ConfFile
 
 # config file
 Conf = ConfFile().conf
@@ -25,6 +25,13 @@ DEF_JRPC_PROTO = Conf.jrpc.server.proto
 DEF_JRPC_HOST = Conf.jrpc.server.host
 DEF_JRPC_PORT = Conf.jrpc.server.port
 DEF_JRPC_APIPATH = Conf.jrpc.server.apipath
+
+DEF_WEBUI_PORT = Conf.jrpc.client.webui.port
+DEF_WEBUI_JRPC_HOST = Conf.jrpc.client.webui.jrpcsvr.host or DEF_JRPC_HOST
+DEF_WEBUI_JRPC_PORT = Conf.jrpc.client.webui.jrpcsvr.port or DEF_JRPC_PORT
+DEF_WEBUI_JRPC_APIPATH = (
+    Conf.jrpc.client.webui.jrpcsvr.apipath or DEF_JRPC_APIPATH
+)
 
 
 @click.group()
@@ -166,7 +173,7 @@ def jrpcsvr(ctx, servo_pins, host, port, reload, debug):
 @click_common_opts(__version__)
 def jrpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
     """JSON-RPC Client for BlueTooth controller."""
-    from .jrpcclnt_bt.jrpcclnt_bt import JrpcClntBt
+    from .jrpcclnt.jrpcclnt_bt import JrpcClntBt
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
@@ -234,7 +241,7 @@ def jrpcclntbt(ctx, btdev, btdev_keyword, host, port, apipath, debug):
 @click_common_opts(__version__)
 def jrpcclntcli(ctx, historyfile, host, port, apipath, debug):
     """JSON-RPC Client for BlueTooth controller."""
-    from .jrpcclnt_cli.jrpcclnt_cli import JrpcClntCli
+    from .jrpcclnt.jrpcclnt_cli import JrpcClntCli
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
@@ -289,7 +296,7 @@ def jrpcclntcli(ctx, historyfile, host, port, apipath, debug):
 @click_common_opts(__version__)
 def jrpcclntdistance(ctx, host, port, apipath, debug):
     """JSON-RPC Client for VL53L0X distance sensor."""
-    from .jrpcclnt_distance.jrpcclnt_distance import JrpcClntDistance
+    from .jrpcclnt.jrpcclnt_distance import JrpcClntDistance
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
@@ -312,4 +319,126 @@ def jrpcclntdistance(ctx, host, port, apipath, debug):
     finally:
         if app:
             app.end()
+        click.echo("Done.")
+
+
+@cli.command(name="jrpcclnt_webui")
+@click.option(
+    "--host",
+    "-i",
+    type=str,
+    default=DEF_WEBUI_JRPC_HOST,
+    show_default=True,
+    help="hostname or ipaddr (of jrpcsvr)",
+)
+@click.option(
+    "--port",
+    "-p",
+    type=int,
+    default=DEF_WEBUI_JRPC_PORT,
+    show_default=True,
+    help="port number (of jrpcsvr)",
+)
+@click.option(
+    "--apipath",
+    "-a",
+    type=str,
+    default=DEF_WEBUI_JRPC_APIPATH,
+    show_default=True,
+    help="API path (of jrpcsvr)",
+)
+@click.option(
+    "--webui-port",
+    "-w",
+    type=int,
+    default=DEF_WEBUI_PORT,
+    show_default=True,
+    help="port number for WebUI",
+)
+@click_common_opts(__version__)
+def jrpcclnt_webui(ctx, host, port, apipath, webui_port, debug):
+    """WebUI Client for Robot Control."""
+    from .jrpcclnt.jrpcclnt_webui import JrpcClntWebUI
+
+    __log = get_logger(__name__, debug)
+    __log.debug("command name: %s", ctx.command.name)
+    __log.debug(
+        "host=%a, port=%s, apipath=%a, webui_port=%s",
+        host,
+        port,
+        apipath,
+        webui_port,
+    )
+
+    url = f"http://{host}:{port}{apipath}"
+    __log.debug("url=%s", url)
+
+    app = None
+    try:
+        app = JrpcClntWebUI(url, webui_port=webui_port, debug=debug)
+        app.run()
+    except Exception as _e:
+        __log.error(errmsg(_e))
+    finally:
+        click.echo("Done.")
+
+
+@cli.command(name="jrpcclnt_webui_nice")
+@click.option(
+    "--host",
+    "-i",
+    type=str,
+    default=DEF_WEBUI_JRPC_HOST,
+    show_default=True,
+    help="hostname or ipaddr (of jrpcsvr)",
+)
+@click.option(
+    "--port",
+    "-p",
+    type=int,
+    default=DEF_WEBUI_JRPC_PORT,
+    show_default=True,
+    help="port number (of jrpcsvr)",
+)
+@click.option(
+    "--apipath",
+    "-a",
+    type=str,
+    default=DEF_WEBUI_JRPC_APIPATH,
+    show_default=True,
+    help="API path (of jrpcsvr)",
+)
+@click.option(
+    "--webui-port",
+    "-w",
+    type=int,
+    default=DEF_WEBUI_PORT,
+    show_default=True,
+    help="port number for WebUI",
+)
+@click_common_opts(__version__)
+def jrpcclnt_webui_nice(ctx, host, port, apipath, webui_port, debug):
+    """WebUI Client (NiceGUI) for Robot Control."""
+    from .jrpcclnt.jrpcclnt_webui_nice import JrpcClntWebUiNice
+
+    __log = get_logger(__name__, debug)
+    __log.debug("command name: %s", ctx.command.name)
+    __log.debug(
+        "host=%a, port=%s, apipath=%a, webui_port=%s",
+        host,
+        port,
+        apipath,
+        webui_port,
+    )
+
+    url = f"http://{host}:{port}{apipath}"
+    __log.debug("url=%s", url)
+
+    app = None
+    try:
+        app = JrpcClntWebUiNice(url, webui_port=webui_port, debug=debug)
+        app.run()
+    except Exception as _e:
+        __log.error(errmsg(_e))
+    finally:
         click.echo("Done.")

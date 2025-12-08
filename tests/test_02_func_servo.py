@@ -36,8 +36,7 @@ class TestServo:
     Test class for the Servo class in func_servo.py.
     """
 
-    PINS = [20, 26, 19, 16]
-    ANGLE_FACTORS = [-1, 1, -1, 1]
+    PINS = [-20, 26, -19, 16]
 
     def test_init(self, mock_pi0servo_classes, mock_logger):
         """
@@ -46,21 +45,17 @@ class TestServo:
         """
         StrCmdToJson, JsonRpcWorker = mock_pi0servo_classes
         mock_pi = MagicMock()
-        debug_mode = True
+        debug_mode1 = True
+        debug_mode2 = False
 
-        servo = Servo(
-            mock_pi, self.PINS, self.ANGLE_FACTORS, debug=debug_mode
-        )
+        servo = Servo(mock_pi, self.PINS, debug=debug_mode1)
 
-        StrCmdToJson.assert_called_once_with(
-            self.ANGLE_FACTORS, debug=debug_mode
-        )
+        StrCmdToJson.assert_called_once_with(debug=debug_mode1)
         JsonRpcWorker.assert_called_once_with(
-            mock_pi, self.PINS, debug=debug_mode
+            mock_pi, self.PINS, flag_verbose=True, debug=debug_mode2
         )
         assert servo.pi == mock_pi
         assert servo.pins == self.PINS
-        assert servo.angle_factors == self.ANGLE_FACTORS
 
     def test_start(self, mock_pi0servo_classes, mock_logger):
         """
@@ -68,7 +63,7 @@ class TestServo:
         Verifies that the servo worker's start method is called.
         """
         mock_pi = MagicMock()
-        servo = Servo(mock_pi, self.PINS, self.ANGLE_FACTORS)
+        servo = Servo(mock_pi, self.PINS)
 
         servo._start()
 
@@ -80,7 +75,7 @@ class TestServo:
         Verifies that the servo worker's end method is called.
         """
         mock_pi = MagicMock()
-        servo = Servo(mock_pi, self.PINS, self.ANGLE_FACTORS)
+        servo = Servo(mock_pi, self.PINS)
 
         servo._end()
 
@@ -92,37 +87,38 @@ class TestServo:
         JSON format from the docs/str_cmd_to_json.md file.
         """
         mock_pi = MagicMock()
-        servo = Servo(mock_pi, self.PINS, self.ANGLE_FACTORS)
+        servo = Servo(mock_pi, self.PINS)
 
         # A realistic command string with multiple commands
         cmd_str = "ms:0.5 mv:10,20,30,40"
 
-        # The expected output from cmdstr_to_jsonliststr based on the documentation.
-        # It's a string representation of a list of JSON objects.
-        expected_json_list_str = (
-            "["
-            '{"method": "move_sec", "params": {"sec": 0.5}},'
-            '{"method": "move_all_angles_sync", "params": {"angles": [10,20,30,40]}}'
-            "]"
-        )
+        expected_json_list = [
+            {"method": "move_sec", "params": {"sec": 0.5}},
+            {
+                "method": "move_all_angles_sync",
+                "params": {"angles": [10, 20, 30, 40]},
+            },
+        ]
 
         expected_return_value = "jrpc_worker_return_value"
 
         # Mock the return values of the instance methods
         cast(
-            MagicMock, servo.parser.cmdstr_to_jsonliststr
-        ).return_value = expected_json_list_str
+            MagicMock, servo.parser.cmdstr_to_jsonlist
+        ).return_value = expected_json_list
         cast(MagicMock, servo.servo.call).return_value = expected_return_value
 
         actual_return_value = servo.call(cmd_str)
 
         # Assert that the parser was called correctly
         cast(
-            MagicMock, servo.parser.cmdstr_to_jsonliststr
+            MagicMock, servo.parser.cmdstr_to_jsonlist
         ).assert_called_once_with(cmd_str)
+
         # Assert that the jrpc worker was called with the parser's output
         cast(MagicMock, servo.servo.call).assert_called_once_with(
-            expected_json_list_str
+            expected_json_list
         )
+
         # Assert that the method returns the value from the jrpc worker
         assert actual_return_value == expected_return_value

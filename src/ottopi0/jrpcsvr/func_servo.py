@@ -1,6 +1,8 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
+import json
+
 from pi0servo import JsonRpcWorker, StrCmdToJson
 
 from .. import get_logger
@@ -9,19 +11,19 @@ from .. import get_logger
 class Servo:
     """Servo."""
 
-    def __init__(self, pi, pins, angle_factors, debug=False) -> None:
+    def __init__(self, pi, pins, debug=False) -> None:
         """Constractor."""
         self.__debug = debug
         self.__log = get_logger(self.__class__.__name__, self.__debug)
-        self.__log.debug("pins=%s, angle_factors=%s", pins, angle_factors)
+        self.__log.debug("pins=%s", pins)
 
         self.pi = pi
         self.pins = pins
-        self.angle_factors = angle_factors
 
-        self.parser = StrCmdToJson(self.angle_factors, debug=self.__debug)
-        #self.servo = JsonRpcWorker(self.pi, self.pins, debug=self.__debug)
-        self.servo = JsonRpcWorker(self.pi, self.pins, debug=False)
+        self.parser = StrCmdToJson(debug=self.__debug)
+        self.servo = JsonRpcWorker(
+            self.pi, self.pins, flag_verbose=True, debug=False
+        )
 
     def _start(self):
         """Start."""
@@ -38,9 +40,13 @@ class Servo:
         """Call."""
         self.__log.debug("cmd_str=%s", cmd_str)
 
-        jrpcstr = self.parser.cmdstr_to_jsonliststr(cmd_str)
-        self.__log.debug("jrpcstr=%s", jrpcstr)
+        jrpcreq = self.parser.cmdstr_to_jsonlist(cmd_str)
+        self.__log.debug("jrpcreq=%s", jrpcreq)
 
-        ret = self.servo.call(jrpcstr)
-        self.__log.debug("servo.call(%s)", jrpcstr)
+        ret = self.servo.call(jrpcreq)
+        ret_str = "\n"
+        for r in ret:
+            ret_str += f"  {json.dumps(r, ensure_ascii=False)}\n"
+
+        self.__log.info("ret = [%s]", ret_str)
         return ret

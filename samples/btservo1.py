@@ -24,9 +24,7 @@ class App:
         self.servo = pi0servo.JsonRpcWorker(
             self.pi, self.pins, debug=self.__debug
         )
-        self.parser = pi0servo.StrCmdToJson(
-            [1] * len(self.pins), debug=self.__debug
-        )
+        self.parser = pi0servo.StrCmdToJson(debug=self.__debug)
 
     def cb_ev(self, key_name, key_state, onkeys):
         """Event Callback."""
@@ -38,40 +36,33 @@ class App:
             self.prev_onkeys = onkeys.copy()
 
             if key_state == pibtinput.PiBtInput.KEY["up"]:
-                parsed_json = self.parser.cmdstr_to_jsonliststr("ca")
+                parsed_json = self.parser.cmdstr_to_jsonlist("ca")
                 self.servo.call(parsed_json)
                 return True
 
             print(key_name)
 
-            parsed_json = ""
+            parsed_json = []
+
+            cmdstr = ""
 
             if key_name == "KEY_C":
-                parsed_json = self.parser.cmdstr_to_jsonliststr(
-                    "ms:.05 mr:5,0"
-                )
-                self.servo.call(parsed_json)
+                cmdstr = "ms:.05 mr:5,0"
+
             if key_name == "KEY_D":
-                parsed_json = self.parser.cmdstr_to_jsonliststr(
-                    "ms:.05 mr:-5,0"
-                )
-                self.servo.call(parsed_json)
+                cmdstr = "ms:.05 mr:-5,0"
 
             if key_name == "KEY_E":
-                parsed_json = self.parser.cmdstr_to_jsonliststr(
-                    "ms:.05 mr:0,5"
-                )
-                self.servo.call(parsed_json)
+                cmdstr = "ms:.05 mr:0,5"
+
             if key_name == "KEY_F":
-                parsed_json = self.parser.cmdstr_to_jsonliststr(
-                    "ms:.05 mr:0,-5"
-                )
-                self.servo.call(parsed_json)
+                cmdstr = "ms:.05 mr:0,-5"
 
             if key_name == "KEY_K":
-                parsed_json = self.parser.cmdstr_to_jsonliststr(
-                    "ms:.5 mv:0,0 mv:45,30 mv:0,0 mv:-45,-30 mv:0,0"
-                )
+                cmdstr = "ms:.5 mv:0,0 mv:45,30 mv:0,0 mv:-45,-30 mv:0,0"
+
+            if cmdstr:
+                parsed_json = self.parser.cmdstr_to_jsonlist(cmdstr)
                 self.servo.call(parsed_json)
 
             if key_name == "KEY_S":

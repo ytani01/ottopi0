@@ -93,12 +93,10 @@ class TestJrpcsvr:
         mock_pigpio.pi.assert_called_once()
         mock_dispatcher.add_class.assert_called_once_with(MockCalc)
 
-        expected_pins = [20, 26]
-        expected_factors = [-1, 1]
+        expected_pins = [-20, 26]
         MockServo.assert_called_once_with(
             mock_pigpio.pi.return_value,
             expected_pins,
-            expected_factors,
             debug=True,
         )
 
