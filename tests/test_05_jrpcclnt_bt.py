@@ -1,6 +1,7 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
+from typing import cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -112,7 +113,9 @@ class TestJrpcClntBt:
 
         # Assert
         # Should call jrpc_call with mapped command
-        clnt.jrpc_clnt.jrpc_call.assert_called_with("prefix: cmd_a")
+        cast(MagicMock, clnt.jrpc_clnt.jrpc_call).assert_called_with(
+            "prefix: cmd_a"
+        )
 
     def test_cb_ev_chord(self, mock_deps):
         """
@@ -140,10 +143,12 @@ class TestJrpcClntBt:
         )  # Triggered by B down, while A is already down
 
         # Assert
-        clnt.jrpc_clnt.jrpc_call.assert_called_with("prefix: cmd_ab")
+        cast(MagicMock, clnt.jrpc_clnt.jrpc_call).assert_called_with(
+            "prefix: cmd_ab"
+        )
 
         # Case 2: C and D pressed (Config has D-C)
-        clnt.jrpc_clnt.jrpc_call.reset_mock()
+        cast(MagicMock, clnt.jrpc_clnt.jrpc_call).reset_mock()
         onkeys = {"KEY_C": 1, "KEY_D": 1}
         clnt.cb_ev("KEY_D", 1, onkeys)
 
@@ -151,7 +156,9 @@ class TestJrpcClntBt:
         # "KEY_D-KEY_C" in config -> normalized to "KEY_C-KEY_D" in keymap
         # onkeys "C", "D" -> sorted "C", "D" -> joined "KEY_C-KEY_D"
         # keymap["KEY_C-KEY_D"] -> "prefix: cmd_cd"
-        clnt.jrpc_clnt.jrpc_call.assert_called_with("prefix: cmd_cd")
+        cast(MagicMock, clnt.jrpc_clnt.jrpc_call).assert_called_with(
+            "prefix: cmd_cd"
+        )
 
     def test_cb_ev_no_match(self, mock_deps):
         """
@@ -167,7 +174,7 @@ class TestJrpcClntBt:
         clnt.cb_ev("KEY_Z", 1, onkeys)
 
         # Assert
-        clnt.jrpc_clnt.jrpc_call.assert_not_called()
+        cast(MagicMock, clnt.jrpc_clnt.jrpc_call).assert_not_called()
 
         # Press A+B (only A mapped, chord not mapped)
         # Current logic: _current_combo = "KEY_A-KEY_B".
@@ -177,8 +184,8 @@ class TestJrpcClntBt:
         # _cmd_str = keymap.get("KEY_A-KEY_B") -> None
         # jrpc_call not called.
 
-        clnt.jrpc_clnt.jrpc_call.reset_mock()
+        cast(MagicMock, clnt.jrpc_clnt.jrpc_call).reset_mock()
         onkeys = {"KEY_A": 1, "KEY_B": 1}
         clnt.cb_ev("KEY_B", 1, onkeys)
 
-        clnt.jrpc_clnt.jrpc_call.assert_not_called()
+        cast(MagicMock, clnt.jrpc_clnt.jrpc_call).assert_not_called()
