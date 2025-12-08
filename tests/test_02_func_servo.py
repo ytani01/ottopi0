@@ -93,14 +93,11 @@ class TestServo:
         cmd_str = "ms:0.5 mv:10,20,30,40"
 
         expected_json_list = [
-            {
-                "method": "move_sec",
-                "params": {"sec": 0.5}
-            },
+            {"method": "move_sec", "params": {"sec": 0.5}},
             {
                 "method": "move_all_angles_sync",
-                "params": {"angles": [10, 20, 30, 40]}
-            }
+                "params": {"angles": [10, 20, 30, 40]},
+            },
         ]
 
         expected_return_value = "jrpc_worker_return_value"
@@ -119,9 +116,9 @@ class TestServo:
         ).assert_called_once_with(cmd_str)
 
         # Assert that the jrpc worker was called with the parser's output
-        cast(
-            MagicMock, servo.servo.call
-        ).assert_called_once_with(expected_json_list)
+        cast(MagicMock, servo.servo.call).assert_called_once_with(
+            expected_json_list
+        )
 
         # Assert that the method returns the value from the jrpc worker
         assert actual_return_value == expected_return_value
