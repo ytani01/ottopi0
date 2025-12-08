@@ -44,5 +44,9 @@ class Servo:
         self.__log.debug("jrpcreq=%s", jrpcreq)
 
         ret = self.servo.call(jrpcreq)
-        self.__log.info("ret = %s", json.dumps(ret, indent=2))
+        ret_str = "\n"
+        for r in ret:
+            ret_str += f"  {json.dumps(r, ensure_ascii=False)}\n"
+
+        self.__log.info("ret = [%s]", ret_str)
         return ret

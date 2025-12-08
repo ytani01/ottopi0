@@ -92,32 +92,36 @@ class TestServo:
         # A realistic command string with multiple commands
         cmd_str = "ms:0.5 mv:10,20,30,40"
 
-        # The expected output from cmdstr_to_jsonliststr based on the documentation.
-        # It's a string representation of a list of JSON objects.
-        expected_json_list_str = (
-            "["
-            '{"method": "move_sec", "params": {"sec": 0.5}},'
-            '{"method": "move_all_angles_sync", "params": {"angles": [10,20,30,40]}}'
-            "]"
-        )
+        expected_json_list = [
+            {
+                "method": "move_sec",
+                "params": {"sec": 0.5}
+            },
+            {
+                "method": "move_all_angles_sync",
+                "params": {"angles": [10, 20, 30, 40]}
+            }
+        ]
 
         expected_return_value = "jrpc_worker_return_value"
 
         # Mock the return values of the instance methods
         cast(
-            MagicMock, servo.parser.cmdstr_to_jsonliststr
-        ).return_value = expected_json_list_str
+            MagicMock, servo.parser.cmdstr_to_jsonlist
+        ).return_value = expected_json_list
         cast(MagicMock, servo.servo.call).return_value = expected_return_value
 
         actual_return_value = servo.call(cmd_str)
 
         # Assert that the parser was called correctly
         cast(
-            MagicMock, servo.parser.cmdstr_to_jsonliststr
+            MagicMock, servo.parser.cmdstr_to_jsonlist
         ).assert_called_once_with(cmd_str)
+
         # Assert that the jrpc worker was called with the parser's output
-        cast(MagicMock, servo.servo.call).assert_called_once_with(
-            expected_json_list_str
-        )
+        cast(
+            MagicMock, servo.servo.call
+        ).assert_called_once_with(expected_json_list)
+
         # Assert that the method returns the value from the jrpc worker
         assert actual_return_value == expected_return_value
