@@ -68,6 +68,16 @@ class JrpcClntWebUiNice:
         except Exception as e:
             self.log_message(f"Error: {e}")
 
+    def send_custom_cmd(self, cmd: str):
+        """Send custom command entered by user."""
+        if not cmd or not cmd.strip():
+            self.log_message("Please enter a command.")
+            return
+
+        # Expand the custom command using CmdStrLib
+        expanded_cmd = self.cslib.expand_func(cmd.strip())
+        self.send_cmd(expanded_cmd)
+
     def log_message(self, msg: str):
         """Add message to log."""
         ts = datetime.now().strftime("%H:%M:%S")
@@ -121,6 +131,20 @@ class JrpcClntWebUiNice:
                     ).props("icon=arrow_downward round size=xl")
                     ui.label("")  # Empty
 
+            # Custom Command Panel
+            with ui.card().classes("w-full max-w-lg"):
+                ui.label("Custom Command").classes("text-lg font-bold mb-2")
+                with ui.row().classes("w-full gap-2"):
+                    custom_input = ui.input(
+                        placeholder="Enter custom command..."
+                    ).classes("flex-grow")
+                    ui.button(
+                        "Send",
+                        on_click=lambda: self.send_custom_cmd(
+                            custom_input.value
+                        ),
+                    ).props("color=primary")
+
             # Log Panel
             with ui.card().classes("w-full max-w-lg h-48 overflow-auto"):
                 ui.label("Logs").classes(
@@ -130,12 +154,13 @@ class JrpcClntWebUiNice:
 
     def run(self):
         """Start the application."""
+
         # NiceGUI requires UI building to happen within the page context
         # when called from CLI/module context
-        @ui.page('/')
+        @ui.page("/")
         def index():
             self.build_ui()
-        
+
         self.logger.info(f"Starting NiceGUI on port {self.webui_port}")
         ui.run(
             host="0.0.0.0",
