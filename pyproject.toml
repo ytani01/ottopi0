@@ -22,6 +22,7 @@ dependencies = [
     "dynaconf>=3.2.12",
     "fastapi[standard]>=0.120.2",
     "json-rpc>=1.15.0",
+    "nicegui>=2.0.0",
     "pi0servo",
     "pibtinput",
     "uvicorn>=0.38.0",
