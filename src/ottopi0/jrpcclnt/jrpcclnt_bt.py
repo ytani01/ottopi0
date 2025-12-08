@@ -64,6 +64,12 @@ class JrpcClntBt:
             _cmdline = keys.get(k)
             self.__log.debug("_cmdline=%a", _cmdline)
 
+            # Support chord (multiple keys)
+            if "+" in k:
+                # normalize key name: "KEY_B+KEY_A" -> "KEY_A+KEY_B"
+                k = "+".join(sorted(k.split("+")))
+                self.__log.debug("normalized key=%a", k)
+
             _cmdline = self.cslib.expand_func(f"{self.cmd_prefix} {_cmdline}")
             self.__log.debug("_cmdline=%a", _cmdline)
 
@@ -143,15 +149,26 @@ class JrpcClntBt:
         #
         # "down"
         #
+        #
+        # "down"
+        #
         self.__log.debug("key_name=%a", key_name)
 
-        if key_name not in self.keymap.keys():
-            return
+        #
+        # check chord (multiple keys)
+        #
+        _current_keys = sorted(onkeys.keys())
+        _current_combo = "+".join(_current_keys)
+        self.__log.debug("_current_combo=%a", _current_combo)
 
-        #
-        # normal key
-        #
-        _cmd_str = self.keymap.get(key_name)
+        _cmd_str = self.keymap.get(_current_combo)
+
+        if not _cmd_str:
+            # check single key (legacy)
+            if key_name not in self.keymap.keys():
+                return
+            _cmd_str = self.keymap.get(key_name)
+
         self.__log.debug("_cmd_str=%a", _cmd_str)
 
         if _cmd_str:
