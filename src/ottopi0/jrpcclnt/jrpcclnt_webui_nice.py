@@ -40,9 +40,9 @@ class JrpcClntWebUiNice:
         self.cmd_stop = self._mk_cmd(self.btn_conf.get("stop"))
 
         self.jrpc_client = JrpcClient(self.jrpc_url, debug=self.debug)
-        
+
         # Log container
-        self.log_container = None
+        self.log_container: Optional[ui.column] = None
 
     def _mk_cmd(self, cmd_str: str) -> str:
         """Add prefix and expand command string."""
@@ -87,35 +87,60 @@ class JrpcClntWebUiNice:
             # Config Panel
             with ui.card().classes("w-full max-w-lg"):
                 ui.label("Configuration").classes("text-lg font-bold mb-2")
-                ui.input("Target URL", value=self.jrpc_url).bind_value(self, "jrpc_url").classes("w-full")
+                ui.input("Target URL", value=self.jrpc_url).bind_value(
+                    self, "jrpc_url"
+                ).classes("w-full")
 
             # Control Panel
             with ui.card().classes("w-full max-w-lg items-center"):
                 ui.label("Control").classes("text-lg font-bold mb-4")
-                
+
                 with ui.grid(columns=3).classes("gap-4"):
                     # Row 1
-                    ui.label("") # Empty
-                    ui.button(on_click=lambda: self.send_cmd(self.cmd_forward)).props("icon=arrow_upward round size=xl")
-                    ui.label("") # Empty
+                    ui.label("")  # Empty
+                    ui.button(
+                        on_click=lambda: self.send_cmd(self.cmd_forward)
+                    ).props("icon=arrow_upward round size=xl")
+                    ui.label("")  # Empty
 
                     # Row 2
-                    ui.button(on_click=lambda: self.send_cmd(self.cmd_left)).props("icon=arrow_back round size=xl")
-                    ui.button(on_click=lambda: self.send_cmd(self.cmd_stop)).props("icon=stop round color=red size=xl")
-                    ui.button(on_click=lambda: self.send_cmd(self.cmd_right)).props("icon=arrow_forward round size=xl")
+                    ui.button(
+                        on_click=lambda: self.send_cmd(self.cmd_left)
+                    ).props("icon=arrow_back round size=xl")
+                    ui.button(
+                        on_click=lambda: self.send_cmd(self.cmd_stop)
+                    ).props("icon=stop round color=red size=xl")
+                    ui.button(
+                        on_click=lambda: self.send_cmd(self.cmd_right)
+                    ).props("icon=arrow_forward round size=xl")
 
                     # Row 3
-                    ui.label("") # Empty
-                    ui.button(on_click=lambda: self.send_cmd(self.cmd_backward)).props("icon=arrow_downward round size=xl")
-                    ui.label("") # Empty
+                    ui.label("")  # Empty
+                    ui.button(
+                        on_click=lambda: self.send_cmd(self.cmd_backward)
+                    ).props("icon=arrow_downward round size=xl")
+                    ui.label("")  # Empty
 
             # Log Panel
             with ui.card().classes("w-full max-w-lg h-48 overflow-auto"):
-                ui.label("Logs").classes("text-lg font-bold mb-2 sticky top-0 bg-white z-10")
+                ui.label("Logs").classes(
+                    "text-lg font-bold mb-2 sticky top-0 bg-white z-10"
+                )
                 self.log_container = ui.column().classes("w-full")
 
     def run(self):
         """Start the application."""
-        self.build_ui()
+        # NiceGUI requires UI building to happen within the page context
+        # when called from CLI/module context
+        @ui.page('/')
+        def index():
+            self.build_ui()
+        
         self.logger.info(f"Starting NiceGUI on port {self.webui_port}")
-        ui.run(host="0.0.0.0", port=self.webui_port, title="Ottopi0 Controller")
+        ui.run(
+            host="0.0.0.0",
+            port=self.webui_port,
+            title="Ottopi0 Controller",
+            reload=False,
+            show=False,
+        )
