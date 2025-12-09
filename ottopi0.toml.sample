@@ -20,7 +20,7 @@ auto-stop = "ca sl:.1 f:surprise ms:.3 f:backward f:turn-r f:turn-r"
 
 xxx = "ms:1 mv:10,10,10,10 mv:-10,-10,-10,-10 mv:c,c,c,c f:xxx"  # recursive sample
 
-home = "ca st:30 mv:-30,0,0,20 mv:0,0,0,0 mv:20,0,0,-30 mv:0,0,0,0"
+home = "st:30 mv:-30,0,0,20 mv:0,0,0,0 mv:20,0,0,-30 mv:0,0,0,0"
 
 forward-r = "mv:-30,0,0,20  mv:.,20,-20,.  mv:0,.,.,0"
 forward-l = "mv:20,0,0,-30  mv:.,-20,20,.  mv:0,.,.,0"
@@ -111,12 +111,12 @@ mr_prefix = "ms:0.3 st:10 mr:"  # TBD
 # |          *  S          |
 #  ------------------------
 #
-KEY_S = "ms:.3 f:home"
+KEY_S = "ca ms:.3 f:home"
 
-KEY_C = "ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward"
-KEY_D = "ca ms:.3 f:backward"
-KEY_E = "ca ms:.3 f:turn-l ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward"
-KEY_F = "ca ms:.3 f:turn-r ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward"
+KEY_C = "ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:home"
+KEY_D = "ca ms:.3 f:backward ; f:home"
+KEY_E = "ca ms:.3 f:turn-l ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:home"
+KEY_F = "ca ms:.3 f:turn-r ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:home"
 
 KEY_G = "ms:.2 f:happy"
 KEY_J = "f:surprise"
