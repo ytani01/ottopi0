@@ -142,7 +142,7 @@ apipath = "/api/cmd"
 [jrpc.client.webui.jrpcsvr]
 # url = {proto}://{host}:{port}{apipath}
 proto = "http"
-host = "rpi4b-2.ytani.net"
+host = "localhost"
 port = 8000
 apipath = "/api"
 
