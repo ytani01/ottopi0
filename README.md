@@ -22,13 +22,24 @@
 ![](docs/SoftwareArchitecture5-20251203.png)
 
 
-## == 
+## == コマンドについて
+
+### === ``mv``コマンドと動作
+
+![](docs/command-move.png)
+
+## == 内部構造
 
 ![Software Architecture](docs/SoftwareArchitecture-20251207a.png)
 
 ![Servo Control Flow](docs/ServoControlFlow-20251207a.png)
 
-![Demo Movie](docs/20251215a-ottopi0-b.mp4)
+## == 動画
+
+### === 2025/12/06 途中経過
+
+[![](docs/movie-thumbnail.png)](https://youtu.be/xyQxWBR0ToA?si=hiaeGzaGVpkgNSoV)
+
 
 ## == 参考
 
