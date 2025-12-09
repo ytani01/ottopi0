@@ -34,11 +34,11 @@
 
 ![Servo Control Flow](docs/ServoControlFlow-20251207a.png)
 
-## == 途中経過
+## == 動画
 
-### === 2025/12/06
+### === 2025/12/06 途中経過
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/xyQxWBR0ToA?si=kfQSmGZ5lBnNNNnq" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+[![](docs/movie-thumbnail.png)](https://youtu.be/xyQxWBR0ToA?si=hiaeGzaGVpkgNSoV)
 
 
 ## == 参考
