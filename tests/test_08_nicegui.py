@@ -5,31 +5,25 @@ from unittest import mock
 
 import pytest
 
-from ottopi0.jrpcclnt.jrpcclnt_webui_nice import JrpcClntWebUiNice
+from ottopi0.clnt.nicegui import NiceGUI
 
 
 class TestJrpcClntWebUiNice:
     @pytest.fixture
     def mock_jrpc_client(self):
-        with mock.patch(
-            "ottopi0.jrpcclnt.jrpcclnt_webui_nice.JrpcClient"
-        ) as MockClient:
+        with mock.patch("ottopi0.clnt.nicegui.Client") as MockClient:
             yield MockClient
 
     @pytest.fixture
     def mock_ui(self):
-        with mock.patch("ottopi0.jrpcclnt.jrpcclnt_webui_nice.ui") as MockUI:
+        with mock.patch("ottopi0.clnt.nicegui.ui") as MockUI:
             yield MockUI
 
     def test_init(self, mock_jrpc_client, mock_ui):
         """Test initialization and command loading."""
         with (
-            mock.patch(
-                "ottopi0.jrpcclnt.jrpcclnt_webui_nice.ConfFile"
-            ) as MockConfFile,
-            mock.patch(
-                "ottopi0.jrpcclnt.jrpcclnt_webui_nice.CmdStrLib"
-            ) as MockCmdStrLib,
+            mock.patch("ottopi0.clnt.nicegui.ConfFile") as MockConfFile,
+            mock.patch("ottopi0.clnt.nicegui.CmdStrLib") as MockCmdStrLib,
         ):
             # Setup Mock Config
             mock_conf = MockConfFile.return_value.conf
@@ -50,7 +44,7 @@ class TestJrpcClntWebUiNice:
             )
 
             # Initialize
-            app = JrpcClntWebUiNice("http://host:1234/api", 5001)
+            app = NiceGUI("http://host:1234/api", 5001)
 
             # Check if JrpcClient initialized
             mock_jrpc_client.assert_called_with(
@@ -67,10 +61,10 @@ class TestJrpcClntWebUiNice:
         """Test sending a command."""
         # Need to init app first
         with (
-            mock.patch("ottopi0.jrpcclnt.jrpcclnt_webui_nice.ConfFile"),
-            mock.patch("ottopi0.jrpcclnt.jrpcclnt_webui_nice.CmdStrLib"),
+            mock.patch("ottopi0.clnt.nicegui.ConfFile"),
+            mock.patch("ottopi0.clnt.nicegui.CmdStrLib"),
         ):
-            app = JrpcClntWebUiNice("http://host:1234/api", 5001)
+            app = NiceGUI("http://host:1234/api", 5001)
 
             # 1. Send valid command
             mock_client_instance = mock_jrpc_client.return_value
@@ -88,10 +82,10 @@ class TestJrpcClntWebUiNice:
     def test_log_message(self, mock_jrpc_client, mock_ui):
         """Test logging to UI."""
         with (
-            mock.patch("ottopi0.jrpcclnt.jrpcclnt_webui_nice.ConfFile"),
-            mock.patch("ottopi0.jrpcclnt.jrpcclnt_webui_nice.CmdStrLib"),
+            mock.patch("ottopi0.clnt.nicegui.ConfFile"),
+            mock.patch("ottopi0.clnt.nicegui.CmdStrLib"),
         ):
-            app = JrpcClntWebUiNice("http://host", 5001)
+            app = NiceGUI("http://host", 5001)
 
             # Mock log container context manager
             app.log_container = mock.MagicMock()
@@ -106,10 +100,10 @@ class TestJrpcClntWebUiNice:
     def test_build_ui(self, mock_jrpc_client, mock_ui):
         """Test UI building calls."""
         with (
-            mock.patch("ottopi0.jrpcclnt.jrpcclnt_webui_nice.ConfFile"),
-            mock.patch("ottopi0.jrpcclnt.jrpcclnt_webui_nice.CmdStrLib"),
+            mock.patch("ottopi0.clnt.nicegui.ConfFile"),
+            mock.patch("ottopi0.clnt.nicegui.CmdStrLib"),
         ):
-            app = JrpcClntWebUiNice("http://host", 5001)
+            app = NiceGUI("http://host", 5001)
             app.build_ui()
 
             # Verify basic UI elements were created

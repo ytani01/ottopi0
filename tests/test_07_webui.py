@@ -6,15 +6,13 @@ from unittest import mock
 import pytest
 from fastapi.testclient import TestClient
 
-from ottopi0.jrpcclnt.jrpcclnt_webui import JrpcClntWebUI
+from ottopi0.clnt.webui import WebUI
 
 
 class TestJrpcClntWebUI:
     @pytest.fixture
     def mock_jrpc_client(self):
-        with mock.patch(
-            "ottopi0.jrpcclnt.jrpcclnt_webui.JrpcClient"
-        ) as MockClass:
+        with mock.patch("ottopi0.clnt.webui.Client") as MockClass:
             mock_instance = MockClass.return_value
             # Mock the method to return a dummy result
             mock_instance.jrpc_call.return_value = {"status": "success"}
@@ -23,7 +21,7 @@ class TestJrpcClntWebUI:
     @pytest.fixture
     def webui_app(self, mock_jrpc_client):
         # Create instance with dummy URL and port
-        webui = JrpcClntWebUI("http://dummy:8080", 5000, debug=True)
+        webui = WebUI("http://dummy:8080", 5000, debug=True)
         # We need to manually inject the mocked client if the constructor creates a new one
         # But since we patched the class, the constructor uses the mock class.
         # However, checking the implementation: self.jrpc_client = JrpcClient(...)
@@ -96,12 +94,8 @@ class TestJrpcClntWebUI:
         # Using a fresh instance to avoid fixture complexity for this specific check
         # Mock ConfFile to return specific button config
         with (
-            mock.patch(
-                "ottopi0.jrpcclnt.jrpcclnt_webui.ConfFile"
-            ) as MockConfFile,
-            mock.patch(
-                "ottopi0.jrpcclnt.jrpcclnt_webui.CmdStrLib"
-            ) as MockCmdStrLib,
+            mock.patch("ottopi0.clnt.webui.ConfFile") as MockConfFile,
+            mock.patch("ottopi0.clnt.webui.CmdStrLib") as MockCmdStrLib,
         ):
             # Setup Mock Config
             mock_conf = MockConfFile.return_value.conf
@@ -124,7 +118,7 @@ class TestJrpcClntWebUI:
             mock_cslib = MockCmdStrLib.return_value
             mock_cslib.expand_func.side_effect = lambda x: f"EXPANDED:{x}"
 
-            webui = JrpcClntWebUI("http://dummy", 5000)
+            webui = WebUI("http://dummy", 5000)
 
             # Check if expand_func was called for our configured value
             # "WEBUI_FORWARD" should be prefixed (if any) and expanded.
@@ -134,10 +128,8 @@ class TestJrpcClntWebUI:
     def test_commands_missing(self, mock_jrpc_client):
         """Verify that commands are empty if not configured (no fallback)."""
         with (
-            mock.patch(
-                "ottopi0.jrpcclnt.jrpcclnt_webui.ConfFile"
-            ) as MockConfFile,
-            mock.patch("ottopi0.jrpcclnt.jrpcclnt_webui.CmdStrLib"),
+            mock.patch("ottopi0.clnt.webui.ConfFile") as MockConfFile,
+            mock.patch("ottopi0.clnt.webui.CmdStrLib"),
         ):
             # Setup Mock Config with empty buttons
             mock_conf = MockConfFile.return_value.conf
@@ -153,7 +145,7 @@ class TestJrpcClntWebUI:
                 else d
             )
 
-            webui = JrpcClntWebUI("http://dummy", 5000)
+            webui = WebUI("http://dummy", 5000)
 
             # Should be empty string, not FALLBACK_FORWARD
             assert webui.cmd_forward == ""

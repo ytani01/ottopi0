@@ -9,20 +9,18 @@ from click.testing import CliRunner
 from ottopi0.__main__ import cli
 
 
-class TestCliWebUiNice:
-    """Integration test for the `ottopi0 jrpcclnt_webui_nice` CLI command."""
+class TestCliNiceGUI:
+    """Integration test for the `ottopi0 nicegui` CLI command."""
 
     @pytest.fixture
     def mock_nice_app(self):
-        with mock.patch(
-            "ottopi0.jrpcclnt.jrpcclnt_webui_nice.JrpcClntWebUiNice"
-        ) as MockApp:
+        with mock.patch("ottopi0.clnt.nicegui.NiceGUI") as MockApp:
             yield MockApp
 
     def test_cli_invocation_default(self, mock_nice_app):
         """Test invoking the command with default arguments."""
         runner = CliRunner()
-        result = runner.invoke(cli, ["jrpcclnt_webui_nice"])
+        result = runner.invoke(cli, ["nicegui"])
 
         assert result.exit_code == 0
         assert "Done." in result.output
@@ -45,7 +43,7 @@ class TestCliWebUiNice:
         result = runner.invoke(
             cli,
             [
-                "jrpcclnt_webui_nice",
+                "nicegui",
                 "--host",
                 "192.168.1.100",
                 "--port",
@@ -74,7 +72,7 @@ class TestCliWebUiNice:
         mock_nice_app.return_value.run.side_effect = Exception("Crash!")
 
         runner = CliRunner()
-        result = runner.invoke(cli, ["jrpcclnt_webui_nice"])
+        result = runner.invoke(cli, ["nicegui"])
 
         assert (
             result.exit_code == 0

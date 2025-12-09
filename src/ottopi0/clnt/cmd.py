@@ -5,10 +5,10 @@ import os
 import readline
 
 from ..utils.mylogger import errmsg, get_logger
-from .jrpcclnt import JrpcClient
+from .clnt import Client
 
 
-class JrpcClntCli:
+class Cmd:
     """JSON-RPC Client: CLI."""
 
     def __init__(self, history_file: str, url: str, debug=False):
@@ -21,7 +21,7 @@ class JrpcClntCli:
         self.url = url
 
         # objects
-        self.jrpcclnt = JrpcClient(self.url, debug=self.__debug)
+        self.jrpcclnt = Client(self.url, debug=self.__debug)
 
         # history file
         self.history_file = os.path.expanduser(

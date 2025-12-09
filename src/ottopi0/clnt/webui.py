@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from ..common.cmdstr_lib import CmdStrLib
 from ..common.conf_file import ConfFile
 from ..utils.mylogger import get_logger
-from .jrpcclnt import JrpcClient
+from .clnt import Client
 
 
 class CommandRequest(BaseModel):
@@ -21,7 +21,7 @@ class CommandRequest(BaseModel):
     jrpc_url: Optional[str] = None
 
 
-class JrpcClntWebUI:
+class WebUI:
     """WebUI for Robot Control."""
 
     def __init__(self, jrpc_url: str, webui_port: int, debug: bool = False):
@@ -57,7 +57,7 @@ class JrpcClntWebUI:
             }, L={self.cmd_left}, R={self.cmd_right}, S={self.cmd_stop}"
         )
 
-        self.jrpc_client = JrpcClient(self.jrpc_url, debug=self.debug)
+        self.jrpc_client = Client(self.jrpc_url, debug=self.debug)
         self.app = FastAPI()
 
         static_dir = os.path.join(os.path.dirname(__file__), "static")
@@ -256,7 +256,7 @@ class JrpcClntWebUI:
                 # But sticking to one state is simpler for "configuration".
                 # Let's update the instance variable so it persists for the session (simple approach).
                 self.jrpc_url = request.jrpc_url
-                self.jrpc_client = JrpcClient(self.jrpc_url, debug=self.debug)
+                self.jrpc_client = Client(self.jrpc_url, debug=self.debug)
                 current_client = self.jrpc_client
 
             result = current_client.jrpc_call(request.cmd)

@@ -9,10 +9,10 @@ from pibtinput import PiBtInput
 from ..common.cmdstr_lib import CmdStrLib
 from ..common.conf_file import ConfFile
 from ..utils.mylogger import errmsg, get_logger
-from .jrpcclnt import JrpcClient
+from .clnt import Client
 
 
-class JrpcClntBt:
+class Bt:
     """JSON-RPC Client: BlueTooth."""
 
     CHR_MULTI_KEYS = "-"
@@ -27,7 +27,7 @@ class JrpcClntBt:
         self.url = url
 
         self.cslib = CmdStrLib(debug=self.__debug)
-        self.jrpc_clnt = JrpcClient(self.url, debug=self.__debug)
+        self.jrpc_clnt = Client(self.url, debug=self.__debug)
 
         # initialize vars
         self.prev_onkeys: dict[str, int] = {}

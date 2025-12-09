@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ottopi0.jrpcclnt.jrpcclnt_cli import JrpcClntCli
+from ottopi0.clnt.cmd import Cmd
 
 
 class TestJrpcClntCli:
@@ -20,11 +20,9 @@ class TestJrpcClntCli:
         Mock dependencies: JrpcClient, readline, os
         """
         with (
-            patch(
-                "ottopi0.jrpcclnt.jrpcclnt_cli.JrpcClient"
-            ) as MockJrpcClient,
-            patch("ottopi0.jrpcclnt.jrpcclnt_cli.readline") as MockReadline,
-            patch("ottopi0.jrpcclnt.jrpcclnt_cli.os") as MockOs,
+            patch("ottopi0.clnt.cmd.Client") as MockJrpcClient,
+            patch("ottopi0.clnt.cmd.readline") as MockReadline,
+            patch("ottopi0.clnt.cmd.os") as MockOs,
         ):
             yield {
                 "JrpcClient": MockJrpcClient,
@@ -36,7 +34,7 @@ class TestJrpcClntCli:
         """
         Test initialization and history file loading.
         """
-        cli_obj = JrpcClntCli("history_file", "http://url")
+        cli_obj = Cmd("history_file", "http://url")
 
         assert cli_obj.url == "http://url"
         mock_deps["readline"].read_history_file.assert_called()
@@ -45,7 +43,7 @@ class TestJrpcClntCli:
         """
         Test main loop processing a command.
         """
-        cli_obj = JrpcClntCli("history_file", "http://url")
+        cli_obj = Cmd("history_file", "http://url")
 
         # Mock input to return a command then EOF (raise EOFError to simulate Ctrl-D eventually, or just let loop break?
         # The code catches EOFError and breaks.
@@ -59,7 +57,7 @@ class TestJrpcClntCli:
         """
         Test comment removal in main loop.
         """
-        cli_obj = JrpcClntCli("history_file", "http://url")
+        cli_obj = Cmd("history_file", "http://url")
 
         with patch(
             "builtins.input", side_effect=["cmd # comment", EOFError()]
@@ -74,7 +72,7 @@ class TestJrpcClntCli:
         """
         Test end method saves history.
         """
-        cli_obj = JrpcClntCli("history_file", "http://url")
+        cli_obj = Cmd("history_file", "http://url")
         cli_obj.end()
 
         mock_deps["readline"].write_history_file.assert_called()
@@ -87,7 +85,7 @@ class TestJrpcClntCli:
             "readline"
         ].read_history_file.side_effect = FileNotFoundError
 
-        cli_obj = JrpcClntCli("history_file", "http://url")
+        cli_obj = Cmd("history_file", "http://url")
         # Should handle exception and log warning (asserting log could be done if we mocked get_logger)
         # Main thing is it doesn't crash
         assert cli_obj.is_active
@@ -98,6 +96,6 @@ class TestJrpcClntCli:
         """
         mock_deps["readline"].read_history_file.side_effect = OSError
 
-        _ = JrpcClntCli("history_file", "http://url")
+        _ = Cmd("history_file", "http://url")
 
         mock_deps["os"].remove.assert_called()

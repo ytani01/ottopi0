@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ottopi0.jrpcclnt.jrpcclnt_bt import JrpcClntBt
+from ottopi0.clnt.bt import Bt
 
 
 class TestJrpcClntBt:
@@ -20,12 +20,10 @@ class TestJrpcClntBt:
         Mock dependencies: PiBtInput, JrpcClient, CmdStrLib, ConfFile
         """
         with (
-            patch("ottopi0.jrpcclnt.jrpcclnt_bt.PiBtInput") as MockPiBtInput,
-            patch(
-                "ottopi0.jrpcclnt.jrpcclnt_bt.JrpcClient"
-            ) as MockJrpcClient,
-            patch("ottopi0.jrpcclnt.jrpcclnt_bt.CmdStrLib") as MockCmdStrLib,
-            patch("ottopi0.jrpcclnt.jrpcclnt_bt.ConfFile") as MockConfFile,
+            patch("ottopi0.clnt.bt.PiBtInput") as MockPiBtInput,
+            patch("ottopi0.clnt.bt.Client") as MockJrpcClient,
+            patch("ottopi0.clnt.bt.CmdStrLib") as MockCmdStrLib,
+            patch("ottopi0.clnt.bt.ConfFile") as MockConfFile,
         ):
             # Setup Mock ConfFile
             mock_conf_instance = MockConfFile.return_value
@@ -64,7 +62,7 @@ class TestJrpcClntBt:
 
         # Act
         # Initialize JrpcClntBt (will call mk_keymap)
-        clnt = JrpcClntBt("dummy_keyword", "http://dummy")
+        clnt = Bt("dummy_keyword", "http://dummy")
 
         # Assert
         # Check if keys are normalized in self.keymap
@@ -87,7 +85,7 @@ class TestJrpcClntBt:
         # Arrange
         keys_config = {"KEY_A": "cmd_a"}
         mock_deps["conf"].jrpc.client.bluetooth.get.return_value = keys_config
-        clnt = JrpcClntBt("dummy_keyword", "http://dummy")
+        clnt = Bt("dummy_keyword", "http://dummy")
 
         # Mock key event
         key_name = "KEY_A"
@@ -133,7 +131,7 @@ class TestJrpcClntBt:
         keys_config["KEY_D-KEY_C"] = "cmd_cd"
 
         mock_deps["conf"].jrpc.client.bluetooth.get.return_value = keys_config
-        clnt = JrpcClntBt("dummy_keyword", "http://dummy")
+        clnt = Bt("dummy_keyword", "http://dummy")
         mock_deps["PiBtInput"].KEY = {"up": 0, "hold": 2, "down": 1}
 
         # Case 1: A and B pressed
@@ -166,7 +164,7 @@ class TestJrpcClntBt:
         """
         keys_config = {"KEY_A": "cmd_a"}
         mock_deps["conf"].jrpc.client.bluetooth.get.return_value = keys_config
-        clnt = JrpcClntBt("dummy_keyword", "http://dummy")
+        clnt = Bt("dummy_keyword", "http://dummy")
         mock_deps["PiBtInput"].KEY = {"up": 0, "hold": 2, "down": 1}
 
         # Press Z (not mapped)

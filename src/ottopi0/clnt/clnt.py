@@ -8,7 +8,7 @@ from ..common.conf_file import ConfFile
 from ..utils.mylogger import errmsg, get_logger
 
 
-class JrpcClient:
+class Client:
     """JSON-RPC Client."""
 
     TRANSACTION_SEPARATOR = ";"  # トランザクション(cancelできる単位)の区切り

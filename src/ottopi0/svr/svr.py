@@ -36,10 +36,14 @@ async def lifespan(api: FastAPI):
     # sv_common = CommonLib(debug=__debug)
     sv_common = CommonLib()
 
-    ### pigpio
+    #
+    # pigpio
+    #
     pi = pigpio.pi()
 
-    ### servo
+    #
+    # servo
+    #
     __log.debug("PKGNAME=%s", PKGNAME)
     pins_str = os.environ[f"{PKGNAME}_SERVO_PINS"]
 

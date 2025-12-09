@@ -23,15 +23,13 @@ def mock_env_and_deps():
     os.environ["ottopi0_SERVO_PINS"] = "20-,26"
 
     # Mock libraries
-    patcher_pigpio = patch("ottopi0.jrpcsvr.jrpcsvr.pigpio", spec=True)
+    patcher_pigpio = patch("ottopi0.svr.svr.pigpio", spec=True)
     patcher_logger = patch(
-        "ottopi0.jrpcsvr.jrpcsvr.get_logger", return_value=MagicMock()
+        "ottopi0.svr.svr.get_logger", return_value=MagicMock()
     )
-    patcher_servo = patch("ottopi0.jrpcsvr.jrpcsvr.Servo", spec=True)
-    patcher_calc = patch("ottopi0.jrpcsvr.jrpcsvr.Calc", spec=True)
-    patcher_dispatcher = patch(
-        "ottopi0.jrpcsvr.jrpcsvr.dispatcher", spec=True
-    )
+    patcher_servo = patch("ottopi0.svr.svr.Servo", spec=True)
+    patcher_calc = patch("ottopi0.svr.svr.Calc", spec=True)
+    patcher_dispatcher = patch("ottopi0.svr.svr.dispatcher", spec=True)
 
     # Start all patchers
     mock_pigpio = patcher_pigpio.start()
@@ -68,7 +66,7 @@ def client(mock_env_and_deps):
     The lifespan manager is triggered here.
     """
     # Import the module now that dependencies are mocked
-    from ottopi0.jrpcsvr.jrpcsvr import api
+    from ottopi0.svr.svr import api
 
     with TestClient(api) as test_client:
         yield test_client
@@ -111,7 +109,7 @@ class TestJrpcsvr:
         Tests the shutdown part of the lifespan manager.
         We create a client instance within this test to control the shutdown.
         """
-        from ottopi0.jrpcsvr.jrpcsvr import api
+        from ottopi0.svr.svr import api
 
         # The 'with' block triggers startup and shutdown
         with TestClient(api):
@@ -124,7 +122,7 @@ class TestJrpcsvr:
         mock_servo_instance._end.assert_called_once()
         mock_pigpio_instance.stop.assert_called_once()
 
-    @patch("ottopi0.jrpcsvr.jrpcsvr.JSONRPCResponseManager.handle")
+    @patch("ottopi0.svr.svr.JSONRPCResponseManager.handle")
     def test_handle_req_success(self, mock_handle, client, mock_env_and_deps):
         """
         Tests the /api endpoint with a successful JSON-RPC response.
@@ -146,7 +144,7 @@ class TestJrpcsvr:
             mock_env_and_deps["dispatcher"],
         )
 
-    @patch("ottopi0.jrpcsvr.jrpcsvr.JSONRPCResponseManager.handle")
+    @patch("ottopi0.svr.svr.JSONRPCResponseManager.handle")
     def test_handle_req_no_response(self, mock_handle, client):
         """
         Tests the /api endpoint when the response manager returns nothing.

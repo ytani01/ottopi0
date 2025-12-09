@@ -9,10 +9,10 @@ from nicegui import ui
 from ..common.cmdstr_lib import CmdStrLib
 from ..common.conf_file import ConfFile
 from ..utils.mylogger import get_logger
-from .jrpcclnt import JrpcClient
+from .clnt import Client
 
 
-class JrpcClntWebUiNice:
+class NiceGUI:
     def __init__(self, jrpc_url: str, webui_port: int, debug: bool = False):
         self.jrpc_url = jrpc_url
         self.webui_port = webui_port
@@ -39,7 +39,7 @@ class JrpcClntWebUiNice:
         self.cmd_right = self._mk_cmd(self.btn_conf.get("right"))
         self.cmd_stop = self._mk_cmd(self.btn_conf.get("stop"))
 
-        self.jrpc_client = JrpcClient(self.jrpc_url, debug=self.debug)
+        self.jrpc_client = Client(self.jrpc_url, debug=self.debug)
 
         # Log container
         self.log_container: Optional[ui.column] = None
@@ -61,7 +61,7 @@ class JrpcClntWebUiNice:
         try:
             # Re-initialize client if URL changed (simple approach)
             if self.jrpc_client.url != self.jrpc_url:
-                self.jrpc_client = JrpcClient(self.jrpc_url, debug=self.debug)
+                self.jrpc_client = Client(self.jrpc_url, debug=self.debug)
 
             res = self.jrpc_client.jrpc_call(cmd)
             self.log_message(f"Result: {res}")

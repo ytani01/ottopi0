@@ -9,8 +9,8 @@ from click.testing import CliRunner
 from ottopi0.__main__ import cli
 
 
-class TestCliJrpcsvr:
-    """Integration test for the `ottopi0 jrpcsvr` CLI command."""
+class TestCliSvr:
+    """Integration test for the `ottopi0 svr` CLI command."""
 
     @pytest.fixture
     def mock_uvicorn(self):
@@ -20,7 +20,7 @@ class TestCliJrpcsvr:
     def test_cli_invocation_default(self, mock_uvicorn):
         """Test invoking the command with default arguments."""
         runner = CliRunner()
-        result = runner.invoke(cli, ["jrpcsvr"])
+        result = runner.invoke(cli, ["svr"])
 
         assert result.exit_code == 0
         assert "END." in result.output
@@ -30,7 +30,7 @@ class TestCliJrpcsvr:
         args, kwargs = mock_uvicorn.call_args
 
         # Check that the API path is correct
-        assert "ottopi0.jrpcsvr.jrpcsvr:api" in args
+        assert "ottopi0.svr.svr:api" in args
 
         # Check default host and port
         assert kwargs.get("host") is not None
@@ -44,7 +44,7 @@ class TestCliJrpcsvr:
         result = runner.invoke(
             cli,
             [
-                "jrpcsvr",
+                "svr",
                 "--servo-pins",
                 "12,13,14,15",
                 "--host",
@@ -68,7 +68,7 @@ class TestCliJrpcsvr:
     def test_cli_invocation_debug(self, mock_uvicorn):
         """Test invoking the command with debug flag."""
         runner = CliRunner()
-        result = runner.invoke(cli, ["jrpcsvr", "--debug"])
+        result = runner.invoke(cli, ["svr", "--debug"])
 
         assert result.exit_code == 0
 
@@ -83,7 +83,7 @@ class TestCliJrpcsvr:
         mock_uvicorn.side_effect = Exception("Server crash!")
 
         runner = CliRunner()
-        result = runner.invoke(cli, ["jrpcsvr"])
+        result = runner.invoke(cli, ["svr"])
 
         assert (
             result.exit_code == 0
@@ -97,7 +97,7 @@ class TestCliJrpcsvr:
         result = runner.invoke(
             cli,
             [
-                "jrpcsvr",
+                "svr",
                 "-s",
                 "10,11,12,13",
                 "-i",

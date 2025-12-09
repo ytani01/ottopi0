@@ -10,17 +10,17 @@ from ottopi0.__main__ import cli
 
 
 class TestCliJrpcClntBt:
-    """Integration test for the `ottopi0 jrpcclntbt` CLI command."""
+    """Integration test for the `ottopi0 bt` CLI command."""
 
     @pytest.fixture
     def mock_bt_app(self):
-        with mock.patch("ottopi0.jrpcclnt.jrpcclnt_bt.JrpcClntBt") as MockApp:
+        with mock.patch("ottopi0.clnt.bt.Bt") as MockApp:
             yield MockApp
 
     def test_cli_invocation_default(self, mock_bt_app):
         """Test invoking the command with default arguments."""
         runner = CliRunner()
-        result = runner.invoke(cli, ["jrpcclntbt"])
+        result = runner.invoke(cli, ["bt"])
 
         assert result.exit_code == 0
         assert "Done." in result.output
@@ -44,7 +44,7 @@ class TestCliJrpcClntBt:
         result = runner.invoke(
             cli,
             [
-                "jrpcclntbt",
+                "bt",
                 "--btdev",
                 "PS4,Controller",
                 "--host",
@@ -73,7 +73,7 @@ class TestCliJrpcClntBt:
         mock_bt_app.return_value.main.side_effect = Exception("Crash!")
 
         runner = CliRunner()
-        result = runner.invoke(cli, ["jrpcclntbt"])
+        result = runner.invoke(cli, ["bt"])
 
         assert (
             result.exit_code == 0
@@ -90,7 +90,7 @@ class TestCliJrpcClntBt:
         result = runner.invoke(
             cli,
             [
-                "jrpcclntbt",
+                "bt",
                 "-b",
                 "Xbox,Wireless",
                 "-i",
@@ -120,7 +120,7 @@ class TestCliJrpcClntBt:
         result = runner.invoke(
             cli,
             [
-                "jrpcclntbt",
+                "bt",
                 "Switch",
                 "Pro",
             ],

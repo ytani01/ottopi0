@@ -9,10 +9,10 @@ from vl53l0x_pigpio import VL53L0X
 from ..common.cmdstr_lib import CmdStrLib
 from ..common.conf_file import ConfFile
 from ..utils.mylogger import get_logger
-from .jrpcclnt import JrpcClient
+from .clnt import Client
 
 
-class JrpcClntDistance:
+class Auto:
     """JSON-RPC Client: distance sensor."""
 
     def __init__(self, url: str, debug=False):
@@ -43,7 +43,7 @@ class JrpcClntDistance:
         self.pi = pigpio.pi()
         self.tof = VL53L0X(self.pi)
         self.cslib = CmdStrLib(self.__debug)
-        self.jrpc_clnt = JrpcClient(self.url, debug=self.__debug)
+        self.jrpc_clnt = Client(self.url, debug=self.__debug)
 
         # instance variables
         self.is_active = True

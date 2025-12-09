@@ -3,9 +3,9 @@
 #
 from importlib.metadata import version as get_version
 
+from .clnt.clnt import Client
 from .common.cmdstr_lib import CmdStrLib
 from .common.conf_file import ConfFile
-from .jrpcclnt.jrpcclnt import JrpcClient
 from .utils.clickutils import click_common_opts
 from .utils.mylogger import errmsg, get_logger
 
@@ -28,5 +28,5 @@ __all__ = [
     "get_logger",
     "CmdStrLib",
     "ConfFile",
-    "JrpcClient",
+    "Client",
 ]

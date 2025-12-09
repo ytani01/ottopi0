@@ -10,19 +10,17 @@ from ottopi0.__main__ import cli
 
 
 class TestCliJrpcClntCli:
-    """Integration test for the `ottopi0 jrpcclntcli` CLI command."""
+    """Integration test for the `ottopi0 cmd` CLI command."""
 
     @pytest.fixture
     def mock_cli_app(self):
-        with mock.patch(
-            "ottopi0.jrpcclnt.jrpcclnt_cli.JrpcClntCli"
-        ) as MockApp:
+        with mock.patch("ottopi0.clnt.cmd.Cmd") as MockApp:
             yield MockApp
 
     def test_cli_invocation_default(self, mock_cli_app):
         """Test invoking the command with default arguments."""
         runner = CliRunner()
-        result = runner.invoke(cli, ["jrpcclntcli"])
+        result = runner.invoke(cli, ["cmd"])
 
         assert result.exit_code == 0
         assert "Done." in result.output
@@ -46,7 +44,7 @@ class TestCliJrpcClntCli:
         result = runner.invoke(
             cli,
             [
-                "jrpcclntcli",
+                "cmd",
                 "--historyfile",
                 "/tmp/test_history.txt",
                 "--host",
@@ -75,7 +73,7 @@ class TestCliJrpcClntCli:
         mock_cli_app.return_value.main.side_effect = Exception("Crash!")
 
         runner = CliRunner()
-        result = runner.invoke(cli, ["jrpcclntcli"])
+        result = runner.invoke(cli, ["cmd"])
 
         assert (
             result.exit_code == 0
@@ -94,7 +92,7 @@ class TestCliJrpcClntCli:
         result = runner.invoke(
             cli,
             [
-                "jrpcclntcli",
+                "cmd",
                 "--hist",
                 "/tmp/hist.txt",
                 "-i",

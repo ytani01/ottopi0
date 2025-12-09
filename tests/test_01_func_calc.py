@@ -3,7 +3,7 @@
 #
 import pytest
 
-from ottopi0.jrpcsvr.func_calc import Calc
+from ottopi0.svr.func_calc import Calc
 
 
 class TestCalc:
