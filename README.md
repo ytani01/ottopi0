@@ -1,11 +1,19 @@
-# OttoPi0 - ``Otto DIY`` like biped robot for Raspberry Pi Zero 2W
+# OttoPi0 - ``Otto DIY`` like biped robot for Raspberry Pi
 
+![](docs/robot-fig1.png)
 
 ## == 特徴
 
+### Hardware
+
 - Raspberry Pi Zero 2W
+- Original PCB
 
+### Software
 
+- Raspberry Pi OS (bookworm)
+- pigpio
+- Python
 
 ## == Install
 

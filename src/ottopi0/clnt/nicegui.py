@@ -1,15 +1,23 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
+import os
+import signal
+import sys
 from datetime import datetime
 from typing import Optional
 
 from nicegui import ui
 
+from .. import ENVNAME_DEBUG, PKGNAME
 from ..common.cmdstr_lib import CmdStrLib
 from ..common.conf_file import ConfFile
 from ..utils.mylogger import get_logger
 from .clnt import Client
+
+# Environment variable names for NiceGUI configuration
+ENVNAME_NICEGUI_URL = f"{PKGNAME}_NICEGUI_URL"
+ENVNAME_NICEGUI_PORT = f"{PKGNAME}_NICEGUI_PORT"
 
 
 class NiceGUI:
@@ -96,8 +104,8 @@ class NiceGUI:
         with ui.column().classes("w-full items-center gap-4 p-4"):
             # Config Panel
             with ui.card().classes("w-full max-w-lg"):
-                ui.label("Configuration").classes("text-lg font-bold mb-2")
-                ui.input("Target URL", value=self.jrpc_url).bind_value(
+                ui.label("Robot Server URL").classes("text-lg font-bold mb-2")
+                ui.input(value=self.jrpc_url).bind_value(
                     self, "jrpc_url"
                 ).classes("w-full")
 
@@ -131,10 +139,11 @@ class NiceGUI:
                     ).props("icon=arrow_downward round size=xl")
                     ui.label("")  # Empty
 
-            # Custom Command Panel
-            with ui.card().classes("w-full max-w-lg"):
-                ui.label("Custom Command").classes("text-lg font-bold mb-2")
-                with ui.row().classes("w-full gap-2"):
+            # Custom Command Panel (Collapsible)
+            with ui.expansion("Custom Command", icon="terminal").classes(
+                "w-full max-w-lg"
+            ):
+                with ui.row().classes("w-full gap-2 p-2"):
                     custom_input = ui.input(
                         placeholder="Enter custom command..."
                     ).classes("flex-grow")
@@ -145,15 +154,22 @@ class NiceGUI:
                         ),
                     ).props("color=primary")
 
-            # Log Panel
-            with ui.card().classes("w-full max-w-lg h-48 overflow-auto"):
-                ui.label("Logs").classes(
-                    "text-lg font-bold mb-2 sticky top-0 bg-white z-10"
-                )
-                self.log_container = ui.column().classes("w-full")
+            # Log Panel (Collapsible)
+            with ui.expansion("Logs", icon="description", value=True).classes(
+                "w-full max-w-lg"
+            ):
+                with ui.scroll_area().classes("h-48 w-full p-2"):
+                    self.log_container = ui.column().classes("w-full")
 
     def run(self):
         """Start the application."""
+
+        # Setup signal handler for graceful shutdown
+        def signal_handler(sig, frame):
+            self.logger.info("Received interrupt signal, shutting down...")
+            sys.exit(0)
+
+        signal.signal(signal.SIGINT, signal_handler)
 
         # NiceGUI requires UI building to happen within the page context
         # when called from CLI/module context
@@ -162,10 +178,51 @@ class NiceGUI:
             self.build_ui()
 
         self.logger.info(f"Starting NiceGUI on port {self.webui_port}")
-        ui.run(
-            host="0.0.0.0",
-            port=self.webui_port,
-            title="Ottopi0 Controller",
-            reload=False,
-            show=False,
-        )
+        
+        # Note: reload=True requires ui.run() to be called from __main__ guard
+        # Since we're called from CLI, we cannot use auto-reload
+        # See: https://nicegui.io/documentation/section_configuration_deployment#auto-reload
+        if self.debug:
+            self.logger.warning(
+                "Auto-reload is not available when running from CLI. "
+                "To use auto-reload, run NiceGUI directly from a Python script."
+            )
+        
+        try:
+            ui.run(
+                host="0.0.0.0",
+                port=self.webui_port,
+                title="Ottopi0 Controller",
+                reload=False,  # Cannot use reload from CLI context
+                show=False,
+            )
+        except KeyboardInterrupt:
+            self.logger.info("Application stopped by user")
+            sys.exit(0)
+
+# Module-level setup for auto-reload support (similar to svr pattern)
+def setup_app():
+    """Setup NiceGUI app from environment variables for auto-reload support."""
+    # Read configuration from environment variables
+    jrpc_url = os.getenv(ENVNAME_NICEGUI_URL, "http://localhost:8000/api")
+    webui_port = int(os.getenv(ENVNAME_NICEGUI_PORT, "5000"))
+    debug = os.getenv(ENVNAME_DEBUG) == "1"
+    
+    logger = get_logger(__name__, debug)
+    logger.debug(f"setup_app: url={jrpc_url}, port={webui_port}, debug={debug}")
+    
+    # Create NiceGUI instance
+    app = NiceGUI(jrpc_url, webui_port, debug)
+    
+    # Setup UI page
+    @ui.page("/")
+    def index():
+        app.build_ui()
+    
+    logger.info(f"NiceGUI app configured on port {webui_port}")
+    return app
+
+
+# For auto-reload: call setup when module is loaded
+if os.getenv(ENVNAME_NICEGUI_URL):
+    setup_app()

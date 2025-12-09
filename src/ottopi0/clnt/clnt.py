@@ -12,14 +12,16 @@ class Client:
     """JSON-RPC Client."""
 
     TRANSACTION_SEPARATOR = ";"  # トランザクション(cancelできる単位)の区切り
+    DEFAULT_TIMEOUT = 5.0  # デフォルトタイムアウト（秒）
 
-    def __init__(self, url: str, debug=False) -> None:
+    def __init__(self, url: str, timeout: float = None, debug=False) -> None:
         """Constractor."""
         self.__debug = debug
         self.__log = get_logger(self.__class__.__name__, self.__debug)
         self.__log.debug("url=%s", url)
 
         self.url = url
+        self.timeout = timeout if timeout is not None else self.DEFAULT_TIMEOUT
 
         # load config
         self.conf = ConfFile(debug=self.__debug).conf
@@ -67,9 +69,17 @@ class Client:
             self.__log.debug("payload=%s", payload)
 
             try:
-                response = requests.post(self.url, json=payload)
+                response = requests.post(
+                    self.url, json=payload, timeout=self.timeout
+                )
+            except requests.exceptions.Timeout as e:
+                self.__log.error("Request timeout: %s", errmsg(e))
+                return None
             except requests.exceptions.ConnectionError as e:
-                self.__log.error(errmsg(e))
+                self.__log.error("Connection error: %s", errmsg(e))
+                return None
+            except requests.exceptions.RequestException as e:
+                self.__log.error("Request error: %s", errmsg(e))
                 return None
 
             result = response.json()
