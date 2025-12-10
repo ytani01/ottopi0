@@ -14,14 +14,18 @@ class Client:
     TRANSACTION_SEPARATOR = ";"  # トランザクション(cancelできる単位)の区切り
     DEFAULT_TIMEOUT = 5.0  # デフォルトタイムアウト（秒）
 
-    def __init__(self, url: str, timeout: float = None, debug=False) -> None:
+    def __init__(
+        self, url: str, timeout: float | None = None, debug=False
+    ) -> None:
         """Constractor."""
         self.__debug = debug
         self.__log = get_logger(self.__class__.__name__, self.__debug)
         self.__log.debug("url=%s", url)
 
         self.url = url
-        self.timeout = timeout if timeout is not None else self.DEFAULT_TIMEOUT
+        self.timeout = (
+            timeout if timeout is not None else self.DEFAULT_TIMEOUT
+        )
 
         # load config
         self.conf = ConfFile(debug=self.__debug).conf

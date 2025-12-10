@@ -178,7 +178,7 @@ class NiceGUI:
             self.build_ui()
 
         self.logger.info(f"Starting NiceGUI on port {self.webui_port}")
-        
+
         # Note: reload=True requires ui.run() to be called from __main__ guard
         # Since we're called from CLI, we cannot use auto-reload
         # See: https://nicegui.io/documentation/section_configuration_deployment#auto-reload
@@ -187,7 +187,7 @@ class NiceGUI:
                 "Auto-reload is not available when running from CLI. "
                 "To use auto-reload, run NiceGUI directly from a Python script."
             )
-        
+
         try:
             ui.run(
                 host="0.0.0.0",
@@ -200,6 +200,7 @@ class NiceGUI:
             self.logger.info("Application stopped by user")
             sys.exit(0)
 
+
 # Module-level setup for auto-reload support (similar to svr pattern)
 def setup_app():
     """Setup NiceGUI app from environment variables for auto-reload support."""
@@ -207,18 +208,20 @@ def setup_app():
     jrpc_url = os.getenv(ENVNAME_NICEGUI_URL, "http://localhost:8000/api")
     webui_port = int(os.getenv(ENVNAME_NICEGUI_PORT, "5000"))
     debug = os.getenv(ENVNAME_DEBUG) == "1"
-    
+
     logger = get_logger(__name__, debug)
-    logger.debug(f"setup_app: url={jrpc_url}, port={webui_port}, debug={debug}")
-    
+    logger.debug(
+        f"setup_app: url={jrpc_url}, port={webui_port}, debug={debug}"
+    )
+
     # Create NiceGUI instance
     app = NiceGUI(jrpc_url, webui_port, debug)
-    
+
     # Setup UI page
     @ui.page("/")
     def index():
         app.build_ui()
-    
+
     logger.info(f"NiceGUI app configured on port {webui_port}")
     return app
 

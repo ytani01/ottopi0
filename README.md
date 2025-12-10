@@ -17,9 +17,44 @@
 
 ## == Install
 
-## == Software Archives
+### === Raspberry Pi OS (bookworm)
 
-![](docs/SoftwareArchitecture5-20251203.png)
+**重要**: 最新版ではなく、「bookwork」にすること！
+
+
+### === 基本ツールのインストール: mise, uv
+
+**mise**: ツールや言語のバージョン管理 ＋ タスクランナー
+
+**uv**: Pythonプロジェクト管理
+
+``` bash
+# mise のインストール
+curl https://mise.run | sh
+
+# mise の初期設定
+## bashの場合
+echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
+## zshの場合
+echo 'eval "$(~/.local/bin/mise activate zsh)"' >> ~/.zshrc
+
+# === ここでシェルを再起動 or ターミナル再起動 or sshし直しなど ===
+
+# uv, python のインストール
+mise use -g uv@latest
+mise use -g python@latest
+```
+
+
+### === ``ottopi0``と関連パッケージのインストールと設定
+
+``` bash
+# gitクローン
+for p in pi0servo pi0disp pibtinput vl53l0x_pigpio ottopi0; do git clone https://github.com/ytani01/$p; mise trust $p/mise.toml; done
+
+cd ottopi0
+mise run build
+```
 
 
 ## == コマンドについて
@@ -30,9 +65,14 @@
 
 ## == 内部構造
 
+### == Software Archives
+
 ![Software Architecture](docs/SoftwareArchitecture-20251207a.png)
 
+### === ``mv``コマンドの内部フロー
+
 ![Servo Control Flow](docs/ServoControlFlow-20251207a.png)
+
 
 ## == 動画
 

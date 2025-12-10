@@ -90,6 +90,9 @@ uv run ottopi0 -V
 '''
 depends = ["test"]
 
+[tools]
+python = "latest"
+
 # [tasks.testpypi]
 # description = "Test PyPI"
 # run = '''
