@@ -67,14 +67,98 @@ mise run build
 - ピン番号の設定
 
 
-### === 2. ロボット制御サーバーの起動
+### === 2. コマンドライン
+
+``uv run ottopi0``コマンドのサブコマンド
+
+
+**ロボット制御サーバー**
 
 ``` bash
-uv run ottopi0 svr
+uv run ottopi0 svr -h
+
+Usage: ottopi0 svr [OPTIONS]
+
+Options:
+  -s, --servo-pins, --pins TEXT  servo pins  [default: 20-,26,19-,16]
+  -i, --host TEXT                hostname or ipaddr  [default: 0.0.0.0]
+  -p, --port INTEGER             port number  [default: 8000]
+  -r, --reload                   reload flag
+  -V, --version                  Show the version and exit.
+  -d, --debug                    debug flag
+  -h, --help                     Show this message and exit.
 ```
 
 
-## == サーボ制御コマンドについて
+**コマンドライン・クライアント**
+
+``` bash
+uv run ottopi0 cmd -h
+
+Usage: ottopi0 cmd [OPTIONS]
+
+  JSON-RPC Client for command line interface.
+
+Options:
+  --historyfile, --hist TEXT  history file  [default: ~/ottopi0_cli.hist]
+  -i, --host TEXT             hostname or ipaddr  [default: 0.0.0.0]
+  -p, --port INTEGER          port number  [default: 8000]
+  -a, --apipath TEXT          API path  [default: /api]
+  -V, --version               Show the version and exit.
+  -d, --debug                 debug flag
+  -h, --help                  Show this message and exit.
+```
+
+
+**BlueToothクライアント**
+
+``` bash
+uv run ottopi0 bt -h
+
+Usage: ottopi0 bt [OPTIONS] [BTDEV_KEYWORD]...
+
+  JSON-RPC Client for BlueTooth controller.
+
+Options:
+  -b, --btdev TEXT    BlueTooth device keyword  [default: 8BitDo,Keyboard]
+  -i, --host TEXT     hostname or ipaddr  [default: 0.0.0.0]
+  -p, --port INTEGER  port number  [default: 8000]
+  -a, --apipath TEXT  API path  [default: /api]
+  -V, --version       Show the version and exit.
+  -d, --debug         debug flag
+  -h, --help          Show this message and exit.
+```
+
+
+**WebUIクライアント**
+
+``` bash
+uv run ottopi0 webui -h
+
+Usage: ottopi0 webui [OPTIONS]
+
+  WebUI Client (NiceGUI) for Robot Control.
+
+Options:
+  -i, --host TEXT           hostname or ipaddr (of jrpcsvr)  [default:
+                            0.0.0.0]
+  -p, --port INTEGER        port number (of jrpcsvr)  [default: 8000]
+  -a, --apipath TEXT        API path (of jrpcsvr)  [default: /api]
+  -w, --webui-port INTEGER  port number for WebUI  [default: 5000]
+  -V, --version             Show the version and exit.
+  -d, --debug               debug flag
+  -h, --help                Show this message and exit.
+```
+
+
+**オートパイロット(自動運転)クライアント**
+
+``` bash
+uv run ottopi0 auto
+```
+
+
+## == サーボ制御コマンド文字列について
 
 ### === ``mv``コマンドと動作
 
