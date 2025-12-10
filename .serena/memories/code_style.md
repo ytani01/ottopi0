@@ -1,0 +1,12 @@
+- **Linter**: `ruff` is used for linting and formatting. The configuration in `pyproject.toml` specifies `docstring-code-line-length = 78`, indicating an adherence to a specific line length for docstrings and an emphasis on formatted code.
+- **Type Checker**: `mypy` is used for static type checking. `ignore_missing_imports = true` is set globally, and `check_untyped_defs = true` is set for specific modules, suggesting that type hints are actively used and checked, though with some flexibility for external dependencies.
+- **Docstrings**: Present and provide usage examples.
+- **Comments**: Used for explanations, including some in Japanese.
+- **Naming Conventions**:
+    -   `camelCase` for function arguments.
+    -   `snake_case` for local variables and module-level functions.
+    -   `PascalCase` for class names.
+- **Imports**: Grouped and ordered (standard library, then others).
+- **Type Hints**: Used for function return types.
+- **Boilerplate**: Includes copyright notice in files.
+- **General**: Code appears clean and follows generally accepted Python practices.

@@ -1,0 +1,6 @@
+- **Backend**: Python, FastAPI, Uvicorn, JSON-RPC.
+- **Frontend**: NiceGUI.
+- **Hardware Integration**: `pigpio`, `pi0servo`, `pibtinput`, `vl53l0x-pigpio`.
+- **CLI**: `click`.
+- **Configuration**: `dynaconf` (uses TOML files).
+- **Project Management**: `mise`, `uv`.

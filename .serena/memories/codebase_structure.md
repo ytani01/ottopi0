@@ -1,0 +1,29 @@
+The project follows a client-server architecture, with the main components organized under `src/ottopi0`.
+
+-   **`src/ottopi0/`**: Main application source code.
+    -   `__main__.py`: Entry point for the CLI.
+    -   `clnt/`: Client-side implementations.
+        -   `auto.py`: Autonomous mode client.
+        -   `bt.py`: Bluetooth client for gamepad.
+        -   `cmd.py`: Command-line interface client.
+        -   `webui.py`: NiceGUI web UI client.
+        -   `clnt.py`: (Likely) Common client functionalities.
+        -   `static/`: Static assets for web UI.
+    -   `common/`: Shared modules between client and server.
+        -   `cmdstr_lib.py`: Command string library for sequence expansion.
+        -   `conf_file.py`: Configuration file handling.
+    -   `svr/`: Server-side implementation.
+        -   `svr.py`: FastAPI server main application.
+        -   `func_calc.py`: Functionality related to calculations.
+        -   `func_servo.py`: Functionality related to servo control (interfacing with `pigpio`).
+    -   `utils/`: Utility functions.
+        -   `clickutils.py`: Utilities for `click` CLI.
+        -   `mylogger.py`: Custom logging utility.
+-   **`tests/`**: Unit and integration tests.
+    -   `conftest.py`: Pytest configuration and fixtures.
+    -   `test_01_func_calc.py`, `test_02_func_servo.py`, `test_04_svr.py`, etc.: Test files for various modules and functionalities.
+-   **`docs/`**: Project documentation and images.
+-   **`body/`**: Robot body design files (e.g., FreeCAD files).
+-   **`ottopi0.toml.sample`**: Sample configuration file.
+-   **`pyproject.toml`**: Project metadata, dependencies, build system, and tool configurations (`ruff`, `mypy`, `pytest`).
+-   **`.python-version`, `mise.toml`, `.git`, `.venv`, etc.**: Project environment and version control related files.

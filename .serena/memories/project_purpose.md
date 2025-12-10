@@ -1,0 +1,5 @@
+The OttoPi0 project is a Python-based control system for a bipedal robot similar to Otto DIY, designed to run on a Raspberry Pi Zero 2W. This project employs a client-server architecture.
+
+- Server: FastAPI web server running on Raspberry Pi, exposing a JSON-RPC 2.0 API to control the robot. It uses the `pigpio` library to interface with hardware, especially servos.
+- Clients: Command-line interface (`cmd`), Bluetooth client (`bt`) for gamepad remote control, NiceGUI web-based UI (`webui`), and an autonomous mode client (`auto`) using a VL53L0X distance sensor.
+- Command System: Uses a flexible command system where complex command sequences (like dance moves) are defined as functions in TOML configuration files. A command string library (`cmdstr_lib`) expands these functions into primitive commands before sending to the server.
