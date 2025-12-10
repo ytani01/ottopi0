@@ -2,6 +2,7 @@
 
 ![](docs/robot-fig1.png)
 
+
 ## == 特徴
 
 ### Hardware
@@ -14,6 +15,7 @@
 - Raspberry Pi OS (bookworm)
 - pigpio
 - Python
+
 
 ## == Install
 
@@ -53,21 +55,38 @@ mise use -g python@latest
 for p in pi0servo pi0disp pibtinput vl53l0x_pigpio ottopi0; do git clone https://github.com/ytani01/$p; mise trust $p/mise.toml; done
 
 cd ottopi0
+cp ottopi0.toml.sample ~
 mise run build
 ```
 
 
-## == コマンドについて
+## == 使用方法
+
+### === 1. ``~/ottopi0.toml``の設定
+
+- ピン番号の設定
+
+
+### === 2. ロボット制御サーバーの起動
+
+``` bash
+uv run ottopi0 svr
+```
+
+
+## == サーボ制御コマンドについて
 
 ### === ``mv``コマンドと動作
 
 ![](docs/command-move.png)
+
 
 ## == 内部構造
 
 ### == Software Archives
 
 ![Software Architecture](docs/SoftwareArchitecture-20251207a.png)
+
 
 ### === ``mv``コマンドの内部フロー
 
