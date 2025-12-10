@@ -132,21 +132,21 @@ KEY_R-KEY_F = "ms:.1 f:step-r"
 KEY_N = "f:dance-seq2"
 KEY_O = "f:sumo"
 
-[jrpc.client.nicegui]
+[jrpc.client.webui]
 # url = {proto}://{host}:{port}{apipath}
 proto = "http"
 host = "0.0.0.0"
 port = 5000
 apipath = "/api/cmd"
 
-[jrpc.client.nicegui.jrpcsvr]
+[jrpc.client.webui.jrpcsvr]
 # url = {proto}://{host}:{port}{apipath}
 proto = "http"
 host = "localhost"
 port = 8000
 apipath = "/api"
 
-[jrpc.client.nicegui.buttons]
+[jrpc.client.webui.buttons]
 forward = "ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward"
 backward = "ca ms:.3 f:backward"
 left = "ca ms:.3 f:turn-l ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward"

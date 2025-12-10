@@ -27,8 +27,6 @@ DEF_JRPC_PORT = Conf.jrpc.server.port
 DEF_JRPC_APIPATH = Conf.jrpc.server.apipath
 
 
-
-
 @click.group()
 @click_common_opts(__version__)
 def cli(ctx, debug):
@@ -317,10 +315,7 @@ def auto(ctx, host, port, apipath, debug):
         click.echo("Done.")
 
 
-
-
-
-@cli.command(name="nicegui")
+@cli.command(name="webui")
 @click.option(
     "--host",
     "-i",
@@ -346,7 +341,7 @@ def auto(ctx, host, port, apipath, debug):
     help="API path (of jrpcsvr)",
 )
 @click.option(
-    "--nicegui-port",
+    "--webui-port",
     "-w",
     type=int,
     default=5000,
@@ -354,18 +349,18 @@ def auto(ctx, host, port, apipath, debug):
     help="port number for WebUI",
 )
 @click_common_opts(__version__)
-def nicegui(ctx, host, port, apipath, nicegui_port, debug):
+def webui(ctx, host, port, apipath, webui_port, debug):
     """WebUI Client (NiceGUI) for Robot Control."""
-    from .clnt.nicegui import NiceGUI
+    from .clnt.webui import WebUI
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
     __log.debug(
-        "host=%a, port=%s, apipath=%a, nicegui_port=%s",
+        "host=%a, port=%s, apipath=%a, webui_port=%s",
         host,
         port,
         apipath,
-        nicegui_port,
+        webui_port,
     )
 
     url = f"http://{host}:{port}{apipath}"
@@ -373,7 +368,7 @@ def nicegui(ctx, host, port, apipath, nicegui_port, debug):
 
     app = None
     try:
-        app = NiceGUI(url, nicegui_port=nicegui_port, debug=debug)
+        app = WebUI(url, webui_port=webui_port, debug=debug)
         app.run()
     except Exception as _e:
         __log.error(errmsg(_e))

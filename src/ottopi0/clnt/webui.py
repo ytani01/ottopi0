@@ -15,15 +15,15 @@ from ..common.conf_file import ConfFile
 from ..utils.mylogger import get_logger
 from .clnt import Client
 
-# Environment variable names for NiceGUI configuration
-ENVNAME_NICEGUI_URL = f"{PKGNAME}_NICEGUI_URL"
-ENVNAME_NICEGUI_PORT = f"{PKGNAME}_NICEGUI_PORT"
+# Environment variable names for WebUI configuration
+ENVNAME_WEBUI_URL = f"{PKGNAME}_WEBUI_URL"
+ENVNAME_WEBUI_PORT = f"{PKGNAME}_WEBUI_PORT"
 
 
-class NiceGUI:
-    def __init__(self, jrpc_url: str, nicegui_port: int, debug: bool = False):
+class WebUI:
+    def __init__(self, jrpc_url: str, webui_port: int, debug: bool = False):
         self.jrpc_url = jrpc_url
-        self.nicegui_port = nicegui_port
+        self.webui_port = webui_port
         self.debug = debug
         self.logger = get_logger(self.__class__.__name__, self.debug)
 
@@ -37,7 +37,7 @@ class NiceGUI:
         self.btn_conf = (
             self.conf.get("jrpc", {})
             .get("client", {})
-            .get("nicegui", {})
+            .get("webui", {})
             .get("buttons", {})
         )
 
@@ -95,11 +95,11 @@ class NiceGUI:
         self.logger.info(msg)
 
     def build_ui(self):
-        """Build the NiceGUI UI."""
+        """Build the WebUI UI."""
         ui.colors(primary="#007bff", secondary="#6c757d", accent="#17a2b8")
 
         with ui.header().classes("items-center justify-between"):
-            ui.label("Robot Remote Controller (NiceGUI)").classes("text-h6")
+            ui.label("Robot Remote Controller (WebUI)").classes("text-h6")
 
         with ui.column().classes("w-full items-center gap-4 p-4"):
             # Config Panel
@@ -171,27 +171,27 @@ class NiceGUI:
 
         signal.signal(signal.SIGINT, signal_handler)
 
-        # NiceGUI requires UI building to happen within the page context
+        # WebUI requires UI building to happen within the page context
         # when called from CLI/module context
         @ui.page("/")
         def index():
             self.build_ui()
 
-        self.logger.info(f"Starting NiceGUI on port {self.nicegui_port}")
+        self.logger.info(f"Starting WebUI on port {self.webui_port}")
 
         # Note: reload=True requires ui.run() to be called from __main__ guard
         # Since we're called from CLI, we cannot use auto-reload
-        # See: https://nicegui.io/documentation/section_configuration_deployment#auto-reload
+        # See: https://webui.io/documentation/section_configuration_deployment#auto-reload
         if self.debug:
             self.logger.warning(
                 "Auto-reload is not available when running from CLI. "
-                "To use auto-reload, run NiceGUI directly from a Python script."
+                "To use auto-reload, run WebUI directly from a Python script."
             )
 
         try:
             ui.run(
                 host="0.0.0.0",
-                port=self.nicegui_port,
+                port=self.webui_port,
                 title="Ottopi0 Controller",
                 reload=False,  # Cannot use reload from CLI context
                 show=False,
@@ -203,29 +203,29 @@ class NiceGUI:
 
 # Module-level setup for auto-reload support (similar to svr pattern)
 def setup_app():
-    """Setup NiceGUI app from environment variables for auto-reload support."""
+    """Setup WebUI app from environment variables for auto-reload support."""
     # Read configuration from environment variables
-    jrpc_url = os.getenv(ENVNAME_NICEGUI_URL, "http://localhost:8000/api")
-    nicegui_port = int(os.getenv(ENVNAME_NICEGUI_PORT, "5000"))
+    jrpc_url = os.getenv(ENVNAME_WEBUI_URL, "http://localhost:8000/api")
+    webui_port = int(os.getenv(ENVNAME_WEBUI_PORT, "5000"))
     debug = os.getenv(ENVNAME_DEBUG) == "1"
 
     logger = get_logger(__name__, debug)
     logger.debug(
-        f"setup_app: url={jrpc_url}, port={nicegui_port}, debug={debug}"
+        f"setup_app: url={jrpc_url}, port={webui_port}, debug={debug}"
     )
 
-    # Create NiceGUI instance
-    app = NiceGUI(jrpc_url, nicegui_port, debug)
+    # Create WebUI instance
+    app = WebUI(jrpc_url, webui_port, debug)
 
     # Setup UI page
     @ui.page("/")
     def index():
         app.build_ui()
 
-    logger.info(f"NiceGUI app configured on port {nicegui_port}")
+    logger.info(f"WebUI app configured on port {webui_port}")
     return app
 
 
 # For auto-reload: call setup when module is loaded
-if os.getenv(ENVNAME_NICEGUI_URL):
+if os.getenv(ENVNAME_WEBUI_URL):
     setup_app()

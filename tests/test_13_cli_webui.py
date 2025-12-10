@@ -9,70 +9,70 @@ from click.testing import CliRunner
 from ottopi0.__main__ import cli
 
 
-class TestCliNiceGUI:
-    """Integration test for the `ottopi0 nicegui` CLI command."""
+class TestCliWebUI:
+    """Integration test for the `ottopi0 webui` CLI command."""
 
     @pytest.fixture
-    def mock_nice_app(self):
-        with mock.patch("ottopi0.clnt.nicegui.NiceGUI") as MockApp:
+    def mock_webui_app(self):
+        with mock.patch("ottopi0.clnt.webui.WebUI") as MockApp:
             yield MockApp
 
-    def test_cli_invocation_default(self, mock_nice_app):
+    def test_cli_invocation_default(self, mock_webui_app):
         """Test invoking the command with default arguments."""
         runner = CliRunner()
-        result = runner.invoke(cli, ["nicegui"])
+        result = runner.invoke(cli, ["webui"])
 
         assert result.exit_code == 0
         assert "Done." in result.output
 
         # Verify app was initialized with default args
-        mock_nice_app.assert_called_once()
-        args, kwargs = mock_nice_app.call_args
+        mock_webui_app.assert_called_once()
+        args, kwargs = mock_webui_app.call_args
 
         # Check URL contains http protocol
         assert "http://" in args[0]
         # Check that webui_port kwarg was passed
-        assert "nicegui_port" in kwargs
+        assert "webui_port" in kwargs
 
         # Verify app.run() was called
-        mock_nice_app.return_value.run.assert_called_once()
+        mock_webui_app.return_value.run.assert_called_once()
 
-    def test_cli_invocation_custom(self, mock_nice_app):
+    def test_cli_invocation_custom(self, mock_webui_app):
         """Test invoking the command with custom arguments."""
         runner = CliRunner()
         result = runner.invoke(
             cli,
             [
-                "nicegui",
+                "webui",
                 "--host",
                 "192.168.1.100",
                 "--port",
                 "8888",
                 "--apipath",
                 "/api/cmd",
-                "--nicegui-port",
+                "--webui-port",
                 "9000",
             ],
         )
 
         assert result.exit_code == 0
 
-        mock_nice_app.assert_called_once()
-        args, kwargs = mock_nice_app.call_args
+        mock_webui_app.assert_called_once()
+        args, kwargs = mock_webui_app.call_args
 
         # Check URL construction
         expected_url = "http://192.168.1.100:8888/api/cmd"
         assert args[0] == expected_url
 
         # Check WebUI port
-        assert kwargs.get("nicegui_port") == 9000
+        assert kwargs.get("webui_port") == 9000
 
-    def test_cli_exception_handling(self, mock_nice_app):
+    def test_cli_exception_handling(self, mock_webui_app):
         """Test how the CLI handles exceptions during app run."""
-        mock_nice_app.return_value.run.side_effect = Exception("Crash!")
+        mock_webui_app.return_value.run.side_effect = Exception("Crash!")
 
         runner = CliRunner()
-        result = runner.invoke(cli, ["nicegui"])
+        result = runner.invoke(cli, ["webui"])
 
         assert (
             result.exit_code == 0
