@@ -9,23 +9,27 @@ from ottopi0.clnt.webui import WebUI
 
 
 class TestWebUI:
+    """ottopi0.clnt.webui.WebUI クラスの単体テスト。"""
+
     @pytest.fixture
     def mock_jrpc_client(self):
+        """ottopi0.clnt.webui.Client をモックするフィクスチャ。"""
         with mock.patch("ottopi0.clnt.webui.Client") as MockClient:
             yield MockClient
 
     @pytest.fixture
     def mock_ui(self):
+        """nicegui.ui をモックするフィクスチャ。"""
         with mock.patch("ottopi0.clnt.webui.ui") as MockUI:
             yield MockUI
 
     def test_init(self, mock_jrpc_client, mock_ui):
-        """Test initialization and command loading."""
+        """初期化とコマンドの読み込みをテスト。"""
         with (
             mock.patch("ottopi0.clnt.webui.ConfFile") as MockConfFile,
             mock.patch("ottopi0.clnt.webui.CmdStrLib") as MockCmdStrLib,
         ):
-            # Setup Mock Config
+            # モック設定のセットアップ
             mock_conf = MockConfFile.return_value.conf
             mock_conf.servo.funcs = {"_prefix": "PREFIX"}
             mock_conf.get.side_effect = (
@@ -38,35 +42,35 @@ class TestWebUI:
                 else d
             )
 
-            # Setup Mock CmdStrLib
+            # モックCmdStrLibのセットアップ
             MockCmdStrLib.return_value.expand_func.side_effect = (
                 lambda x: f"EXPANDED:{x}"
             )
 
-            # Initialize
+            # 初期化
             app = WebUI("http://host:1234/api", 5001)
 
-            # Check if JrpcClient initialized
+            # JrpcClientが初期化されたことを確認
             mock_jrpc_client.assert_called_with(
                 "http://host:1234/api", debug=False
             )
 
-            # Check command expansion
+            # コマンド展開の確認
             # "NICE_FORWARD" -> "PREFIX NICE_FORWARD" -> "EXPANDED:PREFIX NICE_FORWARD"
             assert "EXPANDED:PREFIX NICE_FORWARD" in app.cmd_forward
-            # Missing command should be empty
+            # コマンドが不足している場合は空にする
             assert app.cmd_backward == ""
 
     def test_send_cmd(self, mock_jrpc_client, mock_ui):
-        """Test sending a command."""
-        # Need to init app first
+        """コマンド送信をテスト。"""
+        # まずアプリを初期化する必要がある
         with (
             mock.patch("ottopi0.clnt.webui.ConfFile"),
             mock.patch("ottopi0.clnt.webui.CmdStrLib"),
         ):
             app = WebUI("http://host:1234/api", 5001)
 
-            # 1. Send valid command
+            # 1. 有効なコマンドを送信
             mock_client_instance = mock_jrpc_client.return_value
             mock_client_instance.url = "http://host:1234/api"
 
@@ -74,20 +78,20 @@ class TestWebUI:
 
             mock_client_instance.jrpc_call.assert_called_with("TEST_CMD")
 
-            # 2. Send empty command
+            # 2. 空のコマンドを送信
             mock_client_instance.jrpc_call.reset_mock()
             app.send_cmd("")
             mock_client_instance.jrpc_call.assert_not_called()
 
     def test_log_message(self, mock_jrpc_client, mock_ui):
-        """Test logging to UI."""
+        """UIへのロギングをテスト。"""
         with (
             mock.patch("ottopi0.clnt.webui.ConfFile"),
             mock.patch("ottopi0.clnt.webui.CmdStrLib"),
         ):
             app = WebUI("http://host", 5001)
 
-            # Mock log container context manager
+            # ログコンテナのコンテキストマネージャをモック
             app.log_container = mock.MagicMock()
 
             app.log_message("Hello")
@@ -98,7 +102,7 @@ class TestWebUI:
             assert "Hello" in arg
 
     def test_build_ui(self, mock_jrpc_client, mock_ui):
-        """Test UI building calls."""
+        """UI構築呼び出しをテスト。"""
         with (
             mock.patch("ottopi0.clnt.webui.ConfFile"),
             mock.patch("ottopi0.clnt.webui.CmdStrLib"),
@@ -106,7 +110,7 @@ class TestWebUI:
             app = WebUI("http://host", 5001)
             app.build_ui()
 
-            # Verify basic UI elements were created
+            # 基本的なUI要素が作成されたことを確認
             mock_ui.header.assert_called()
             mock_ui.button.assert_called()
             mock_ui.input.assert_called()

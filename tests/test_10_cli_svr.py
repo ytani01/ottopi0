@@ -10,36 +10,37 @@ from ottopi0.__main__ import cli
 
 
 class TestCliSvr:
-    """Integration test for the `ottopi0 svr` CLI command."""
+    """`ottopi0 svr` CLI コマンドの統合テスト。"""
 
     @pytest.fixture
     def mock_uvicorn(self):
+        """uvicorn.run をモックするフィクスチャ。"""
         with mock.patch("uvicorn.run") as MockUvicorn:
             yield MockUvicorn
 
     def test_cli_invocation_default(self, mock_uvicorn):
-        """Test invoking the command with default arguments."""
+        """デフォルト引数でコマンドを呼び出すテスト。"""
         runner = CliRunner()
         result = runner.invoke(cli, ["svr"])
 
         assert result.exit_code == 0
         assert "END." in result.output
 
-        # Verify uvicorn.run was called with default args
+        # uvicorn.runがデフォルト引数で呼び出されたことを検証
         mock_uvicorn.assert_called_once()
         args, kwargs = mock_uvicorn.call_args
 
-        # Check that the API path is correct
+        # APIパスが正しいことを確認
         assert "ottopi0.svr.svr:api" in args
 
-        # Check default host and port
+        # デフォルトのホストとポートを確認
         assert kwargs.get("host") is not None
         assert kwargs.get("port") is not None
         assert kwargs.get("reload") is False
         assert kwargs.get("log_level") == "warning"
 
     def test_cli_invocation_custom(self, mock_uvicorn):
-        """Test invoking the command with custom arguments."""
+        """カスタム引数でコマンドを呼び出すテスト。"""
         runner = CliRunner()
         result = runner.invoke(
             cli,
@@ -60,13 +61,13 @@ class TestCliSvr:
         mock_uvicorn.assert_called_once()
         args, kwargs = mock_uvicorn.call_args
 
-        # Check custom host and port
+        # カスタムホストとポートを確認
         assert kwargs.get("host") == "0.0.0.0"
         assert kwargs.get("port") == 9999
         assert kwargs.get("reload") is True
 
     def test_cli_invocation_debug(self, mock_uvicorn):
-        """Test invoking the command with debug flag."""
+        """デバッグフラグ付きでコマンドを呼び出すテスト。"""
         runner = CliRunner()
         result = runner.invoke(cli, ["svr", "--debug"])
 
@@ -75,11 +76,11 @@ class TestCliSvr:
         mock_uvicorn.assert_called_once()
         args, kwargs = mock_uvicorn.call_args
 
-        # Check that log_level is set to debug
+        # log_levelがdebugに設定されていることを確認
         assert kwargs.get("log_level") == "debug"
 
     def test_cli_exception_handling(self, mock_uvicorn):
-        """Test how the CLI handles exceptions during server run."""
+        """CLIがサーバー実行中の例外をどのように処理するかをテスト。"""
         mock_uvicorn.side_effect = Exception("Server crash!")
 
         runner = CliRunner()
@@ -87,12 +88,12 @@ class TestCliSvr:
 
         assert (
             result.exit_code == 0
-        )  # Command itself doesn't crash, it catches exception
-        # Check that "END." is printed in finally block
+        )  # コマンド自体はクラッシュせず、例外をキャッチする
+        # finallyブロックで"END."が出力されたことを確認
         assert "END." in result.output
 
     def test_cli_short_options(self, mock_uvicorn):
-        """Test invoking the command with short option flags."""
+        """ショートオプションフラグでコマンドを呼び出すテスト。"""
         runner = CliRunner()
         result = runner.invoke(
             cli,
@@ -113,7 +114,7 @@ class TestCliSvr:
         mock_uvicorn.assert_called_once()
         args, kwargs = mock_uvicorn.call_args
 
-        # Check custom host and port
+        # カスタムホストとポートを確認
         assert kwargs.get("host") == "192.168.1.1"
         assert kwargs.get("port") == 7777
         assert kwargs.get("reload") is True

@@ -10,33 +10,29 @@ from ottopi0.clnt.bt import Bt
 
 
 class TestJrpcClntBt:
-    """
-    Test class for JrpcClntBt in jrpcclnt_bt.py
-    """
+    """jrpcclnt_bt.py内のJrpcClntBtのテストクラス。"""
 
     @pytest.fixture
     def mock_deps(self):
-        """
-        Mock dependencies: PiBtInput, JrpcClient, CmdStrLib, ConfFile
-        """
+        """依存関係をモック: PiBtInput, JrpcClient, CmdStrLib, ConfFile。"""
         with (
             patch("ottopi0.clnt.bt.PiBtInput") as MockPiBtInput,
             patch("ottopi0.clnt.bt.Client") as MockJrpcClient,
             patch("ottopi0.clnt.bt.CmdStrLib") as MockCmdStrLib,
             patch("ottopi0.clnt.bt.ConfFile") as MockConfFile,
         ):
-            # Setup Mock ConfFile
+            # モックConfFileのセットアップ
             mock_conf_instance = MockConfFile.return_value
             mock_conf = MagicMock()
             mock_conf_instance.conf = mock_conf
 
-            # Default config structure
+            # デフォルト設定構造
             mock_conf.servo.funcs = {"_prefix": "prefix:"}
-            mock_conf.jrpc.client.bluetooth.get.return_value = {}  # Default empty keys
+            mock_conf.jrpc.client.bluetooth.get.return_value = {}  # デフォルトは空のキー
 
-            # Setup Mock CmdStrLib
+            # モックCmdStrLibのセットアップ
             mock_cslib_instance = MockCmdStrLib.return_value
-            # return the input string as expanded for simplicity, or modify as needed
+            # 簡略化のために入力文字列を展開されたものとして返す、または必要に応じて変更
             mock_cslib_instance.expand_func.side_effect = lambda x: x
 
             yield {
@@ -49,138 +45,133 @@ class TestJrpcClntBt:
             }
 
     def test_mk_keymap_normalization(self, mock_deps):
-        """
-        Test that mk_keymap normalizes 'KEY_B-KEY_A' to 'KEY_A-KEY_B'.
-        """
-        # Arrange
+        """mk_keymapが 'KEY_B-KEY_A' を 'KEY_A-KEY_B' に正規化することをテスト。"""
+        # 準備
         keys_config = {
             "KEY_A": "cmd_a",
-            "KEY_B-KEY_A": "cmd_ab",  # Unsorted in config
+            "KEY_B-KEY_A": "cmd_ab",  # 設定でソートされていない
             "KEY_X-KEY_Y-KEY_Z": "cmd_xyz",
         }
         mock_deps["conf"].jrpc.client.bluetooth.get.return_value = keys_config
 
         # Act
-        # Initialize JrpcClntBt (will call mk_keymap)
+        # JrpcClntBtを初期化 (mk_keymapが呼ばれる)
         clnt = Bt("dummy_keyword", "http://dummy")
 
-        # Assert
-        # Check if keys are normalized in self.keymap
-        # Prefix is "prefix:"
+        # アサート
+        # キーがself.keymapで正規化されていることを確認
+        # プレフィックスは "prefix:"
         assert "KEY_A" in clnt.keymap
         assert clnt.keymap["KEY_A"] == "prefix: cmd_a"
 
-        # "KEY_B-KEY_A" should be stored as "KEY_A-KEY_B"
+        # "KEY_B-KEY_A" は "KEY_A-KEY_B" として保存されるべき
         assert "KEY_A-KEY_B" in clnt.keymap
         assert "KEY_B-KEY_A" not in clnt.keymap
         assert clnt.keymap["KEY_A-KEY_B"] == "prefix: cmd_ab"
 
-        # 3 keys
+        # 3つのキー
         assert "KEY_X-KEY_Y-KEY_Z" in clnt.keymap
 
     def test_cb_ev_single_key(self, mock_deps):
-        """
-        Test callback with single key press.
-        """
-        # Arrange
+        """単一キー押下でのコールバックをテスト。"""
+        # 準備
         keys_config = {"KEY_A": "cmd_a"}
         mock_deps["conf"].jrpc.client.bluetooth.get.return_value = keys_config
         clnt = Bt("dummy_keyword", "http://dummy")
 
-        # Mock key event
+        # キーイベントをモック
         key_name = "KEY_A"
 
-        # down
-        # (not handled specifically in logic, but checks keys["up"]/["hold"])
+        # ダウン
+        # (ロジックでは特別に処理されないが、keys["up"]/["hold"]をチェック)
         key_state = 1
 
-        # PiBtInput.KEY["up"] is typically 0,
-        # "hold" is 2. Let's assume 1 is down.
-        # We need to ensure we don't hit "up" or "hold" returns.
-        # Need to know values of PiBtInput.KEY.
-        # Since we mocked PiBtInput,
-        # checking the class attribute access in code:
+        # PiBtInput.KEY["up"]は通常0、
+        # "hold"は2。1がダウンと仮定。
+        # "up"または"hold"が返されないことを確認する必要がある。
+        # PiBtInput.KEYの値を知る必要がある。
+        # PiBtInputをモックしたので、
+        # コード内のクラス属性アクセスをチェック:
         # if key_state == PiBtInput.KEY["up"]:
-        # We should set the mocked PiBtInput.KEY dict.
+        # モックされたPiBtInput.KEYディクショナリを設定する必要がある。
         mock_deps["PiBtInput"].KEY = {"up": 0, "hold": 2, "down": 1}
 
         onkeys = {"KEY_A": 123}  # dict of key:keycode
 
-        # Act
+        # 実行
         clnt.cb_ev(key_name, key_state, onkeys)
 
-        # Assert
-        # Should call jrpc_call with mapped command
+        # アサート
+        # マップされたコマンドでjrpc_callが呼ばれるはず
         cast(MagicMock, clnt.jrpc_clnt.jrpc_call).assert_called_with(
             "prefix: cmd_a"
         )
 
     def test_cb_ev_chord(self, mock_deps):
-        """
-        Test callback with simultaneous key press (chord).
-        """
-        # Arrange
+        """同時キー押下 (コード) でのコールバックをテスト。"""
+        # 準備
         keys_config = {
             "KEY_A": "cmd_a",
             "KEY_B": "cmd_b",
-            # Normalized key in config implies code will normalize it too
-            # if written as B-A
+            # 設定内の正規化されたキーは、コードも正規化することを意味する
+            # B-Aと書かれている場合
             "KEY_A-KEY_B": "cmd_ab",
         }
-        # Let's test providing B-A in config too to ensure normalization works there
+        # 設定でもB-Aを提供して、そこで正規化が機能することを確認してみましょう
         keys_config["KEY_D-KEY_C"] = "cmd_cd"
 
         mock_deps["conf"].jrpc.client.bluetooth.get.return_value = keys_config
         clnt = Bt("dummy_keyword", "http://dummy")
         mock_deps["PiBtInput"].KEY = {"up": 0, "hold": 2, "down": 1}
 
-        # Case 1: A and B pressed
-        onkeys = {"KEY_B": 1, "KEY_A": 1}  # Order in dict shouldn't matter
+        # ケース1: AとBが押された
+        onkeys = {
+            "KEY_B": 1,
+            "KEY_A": 1,
+        }  # ディクショナリ内の順序は重要ではないはず
         clnt.cb_ev(
             "KEY_B", 1, onkeys
-        )  # Triggered by B down, while A is already down
+        )  # Aがすでに押されている間に、Bがダウンでトリガーされる
 
-        # Assert
+        # アサート
         cast(MagicMock, clnt.jrpc_clnt.jrpc_call).assert_called_with(
             "prefix: cmd_ab"
         )
 
-        # Case 2: C and D pressed (Config has D-C)
+        # ケース2: CとDが押された (設定にはD-Cがある)
         cast(MagicMock, clnt.jrpc_clnt.jrpc_call).reset_mock()
         onkeys = {"KEY_C": 1, "KEY_D": 1}
         clnt.cb_ev("KEY_D", 1, onkeys)
 
-        # Assert
-        # "KEY_D-KEY_C" in config -> normalized to "KEY_C-KEY_D" in keymap
-        # onkeys "C", "D" -> sorted "C", "D" -> joined "KEY_C-KEY_D"
+        # アサート
+        # 設定内の "KEY_D-KEY_C" -> keymapでは "KEY_C-KEY_D" に正規化
+        # onkeys "C", "D" -> ソート済み "C", "D" -> 結合済み "KEY_C-KEY_D"
         # keymap["KEY_C-KEY_D"] -> "prefix: cmd_cd"
         cast(MagicMock, clnt.jrpc_clnt.jrpc_call).assert_called_with(
             "prefix: cmd_cd"
         )
 
     def test_cb_ev_no_match(self, mock_deps):
-        """
-        Test callback with no matching key/chord.
-        """
+        """一致するキー/コードがないコールバックをテスト。"""
         keys_config = {"KEY_A": "cmd_a"}
         mock_deps["conf"].jrpc.client.bluetooth.get.return_value = keys_config
         clnt = Bt("dummy_keyword", "http://dummy")
         mock_deps["PiBtInput"].KEY = {"up": 0, "hold": 2, "down": 1}
 
-        # Press Z (not mapped)
+        # Zを押す (マップされていない)
         onkeys = {"KEY_Z": 1}
         clnt.cb_ev("KEY_Z", 1, onkeys)
 
-        # Assert
+        # アサート
         cast(MagicMock, clnt.jrpc_clnt.jrpc_call).assert_not_called()
 
-        # Press A+B (only A mapped, chord not mapped)
-        # Current logic: _current_combo = "KEY_A-KEY_B".
-        # If not found, it falls back to single key processing?
-        # The user commented out the single key fallback!
-        # with fallback commented out:
+        # A+Bを押す (Aのみマップされ、コードはマップされていない)
+        # 現在のロジック: _current_combo = "KEY_A-KEY_B"。
+        # 見つからなかった場合、単一キー処理にフォールバックするか？
+        # ユーザーは単一キーのフォールバックをコメントアウトした！
+        # フォールバックがコメントアウトされている場合:
         # _cmd_str = keymap.get("KEY_A-KEY_B") -> None
-        # jrpc_call not called.
+        # jrpc_callは呼び出されない。
 
         cast(MagicMock, clnt.jrpc_clnt.jrpc_call).reset_mock()
         onkeys = {"KEY_A": 1, "KEY_B": 1}

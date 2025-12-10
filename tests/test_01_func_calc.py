@@ -6,60 +6,52 @@ import pytest
 from ottopi0.svr.func_calc import Calc
 
 
+@pytest.fixture
+def calc_instance():
+    """Calcクラスのインスタンスを提供するフィクスチャ。"""
+    return Calc()
+
+
 class TestCalc:
-    """
-    Test class for the Calc class in func_calc.py.
-    """
+    """func_calc.py内のCalcクラスのテストクラス。"""
 
-    def setup_method(self):
+    def test_init(self, calc_instance):
+        """Calcクラスの__init__メソッドをテスト。
+        'foo'属性が正しく初期化されていることを確認する。
         """
-        Set up the test environment before each test method.
-        Initializes an instance of the Calc class.
-        """
-        self.calc = Calc()
-
-    def test_init(self):
-        """
-        Test the __init__ method of the Calc class.
-        Ensures that the 'foo' attribute is correctly initialized.
-        """
-        assert self.calc.foo == "abc"
+        assert calc_instance.foo == "abc"
 
     @pytest.mark.parametrize(
         "a, b, expected",
         [
-            (1, 2, 3),  # Positive integers
-            (-1, -2, -3),  # Negative integers
-            (1.5, 2.5, 4.0),  # Positive floats
-            (-1.5, -2.5, -4.0),  # Negative floats
-            (0, 0, 0),  # Zeroes
-            (100, -50, 50),  # Mixed signs
-            (1e9, 2e9, 3e9),  # Large numbers
+            (1, 2, 3),  # 正の整数
+            (-1, -2, -3),  # 負の整数
+            (1.5, 2.5, 4.0),  # 正の浮動小数点数
+            (-1.5, -2.5, -4.0),  # 負の浮動小数点数
+            (0, 0, 0),  # ゼロ
+            (100, -50, 50),  # 混合符号
+            (1e9, 2e9, 3e9),  # 大きい数値
         ],
     )
-    def test_add(self, a, b, expected):
-        """
-        Test the add method with various inputs.
-        """
-        assert self.calc.add(a, b) == expected
+    def test_add(self, calc_instance, a, b, expected):
+        """さまざまな入力でaddメソッドをテスト。"""
+        assert calc_instance.add(a, b) == expected
 
     @pytest.mark.parametrize(
         "a, b, expected",
         [
-            (3, 2, 1),  # Positive integers
-            (-1, -2, 1),  # Negative integers
-            (4.5, 2.5, 2.0),  # Positive floats
-            (-1.5, -2.5, 1.0),  # Negative floats
-            (0, 0, 0),  # Zeroes
-            (50, -50, 100),  # Mixed signs
-            (3e9, 1e9, 2e9),  # Large numbers
+            (3, 2, 1),  # 正の整数
+            (-1, -2, 1),  # 負の整数
+            (4.5, 2.5, 2.0),  # 正の浮動小数点数
+            (-1.5, -2.5, 1.0),  # 負の浮動小数点数
+            (0, 0, 0),  # ゼロ
+            (50, -50, 100),  # 混合符号
+            (3e9, 1e9, 2e9),  # 大きい数値
         ],
     )
-    def test_sub(self, a, b, expected):
-        """
-        Test the sub method with various inputs.
-        """
-        assert self.calc.sub(a, b) == expected
+    def test_sub(self, calc_instance, a, b, expected):
+        """さまざまな入力でsubメソッドをテスト。"""
+        assert calc_instance.sub(a, b) == expected
 
     @pytest.mark.parametrize(
         "func, a, b, expected",
@@ -72,24 +64,21 @@ class TestCalc:
             ("sub", 4.5, 2.5, 2.0),
         ],
     )
-    def test_calc_valid_func(self, func, a, b, expected):
-        """
-        Test the calc method with valid function strings ('add', 'sub').
-        """
-        assert self.calc.calc(func, a, b) == expected
+    def test_calc_valid_func(self, calc_instance, func, a, b, expected):
+        """有効な関数文字列 ('add', 'sub') でcalcメソッドをテスト。"""
+        assert calc_instance.calc(func, a, b) == expected
 
     @pytest.mark.parametrize(
         "func, a, b",
         [
-            ("multiply", 1, 2),  # Invalid function string
-            ("divide", 10, 2),  # Invalid function string
-            ("", 5, 3),  # Empty function string
-            (None, 1, 1),  # None as function string
+            ("multiply", 1, 2),  # 無効な関数文字列
+            ("divide", 10, 2),  # 無効な関数文字列
+            ("", 5, 3),  # 空の関数文字列
+            (None, 1, 1),  # 関数文字列としてのNone
         ],
     )
-    def test_calc_invalid_func(self, func, a, b):
+    def test_calc_invalid_func(self, calc_instance, func, a, b):
+        """無効な関数文字列でcalcメソッドをテスト。
+        未知の関数に対しては0.0を返すはず。
         """
-        Test the calc method with invalid function strings.
-        It should return 0.0 for any unknown function.
-        """
-        assert self.calc.calc(func, a, b) == 0.0
+        assert calc_instance.calc(func, a, b) == 0.0

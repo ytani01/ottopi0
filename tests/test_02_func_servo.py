@@ -6,14 +6,14 @@ from unittest.mock import MagicMock
 
 import pytest
 
-# Import the module itself to prevent circular import issues when patching
+# パッチ適用時の循環インポートの問題を防ぐため、モジュール自体をインポート
 from ottopi0.svr.func_servo import Servo
 
 
 @pytest.fixture
 def mock_pi0servo_classes(mocker):
-    """Fixture to mock pi0servo classes StrCmdToJson and JsonRpcWorker."""
-    # Patch the names in the module where they are looked up (ottopi0.func_servo)
+    """pi0servoクラスStrCmdToJsonとJsonRpcWorkerをモックするフィクスチャ。"""
+    # 検索されるモジュール (ottopi0.func_servo) 内の名前をパッチする
     mock_str_cmd_to_json = mocker.patch(
         "ottopi0.svr.func_servo.StrCmdToJson", spec=True
     )
@@ -25,23 +25,20 @@ def mock_pi0servo_classes(mocker):
 
 @pytest.fixture
 def mock_logger(mocker):
-    """Fixture to mock the get_logger function."""
+    """get_logger関数をモックするフィクスチャ。"""
     return mocker.patch(
         "ottopi0.svr.func_servo.get_logger", return_value=MagicMock()
     )
 
 
 class TestServo:
-    """
-    Test class for the Servo class in func_servo.py.
-    """
+    """func_servo.py内のServoクラスのテストクラス。"""
 
     PINS = [-20, 26, -19, 16]
 
     def test_init(self, mock_pi0servo_classes, mock_logger):
-        """
-        Test the __init__ method of the Servo class.
-        Verifies that StrCmdToJson and JsonRpcWorker are initialized correctly.
+        """Servoクラスの__init__メソッドをテスト。
+        StrCmdToJsonとJsonRpcWorkerが正しく初期化されていることを検証する。
         """
         StrCmdToJson, JsonRpcWorker = mock_pi0servo_classes
         mock_pi = MagicMock()
@@ -58,9 +55,8 @@ class TestServo:
         assert servo.pins == self.PINS
 
     def test_start(self, mock_pi0servo_classes, mock_logger):
-        """
-        Test the _start method.
-        Verifies that the servo worker's start method is called.
+        """_startメソッドをテスト。
+        サーボワーカーのstartメソッドが呼び出されることを検証する。
         """
         mock_pi = MagicMock()
         servo = Servo(mock_pi, self.PINS)
@@ -70,9 +66,8 @@ class TestServo:
         cast(MagicMock, servo.servo.start).assert_called_once()
 
     def test_end(self, mock_pi0servo_classes, mock_logger):
-        """
-        Test the _end method.
-        Verifies that the servo worker's end method is called.
+        """_endメソッドをテスト。
+        サーボワーカーのendメソッドが呼び出されることを検証する。
         """
         mock_pi = MagicMock()
         servo = Servo(mock_pi, self.PINS)
@@ -82,14 +77,13 @@ class TestServo:
         cast(MagicMock, servo.servo.end).assert_called_once()
 
     def test_call(self, mock_pi0servo_classes, mock_logger):
-        """
-        Test the call method based on the corrected understanding of the
-        JSON format from the docs/str_cmd_to_json.md file.
+        """docs/str_cmd_to_json.mdファイルからのJSONフォーマットの
+        修正された理解に基づいてcallメソッドをテスト。
         """
         mock_pi = MagicMock()
         servo = Servo(mock_pi, self.PINS)
 
-        # A realistic command string with multiple commands
+        # 複数のコマンドを含む現実的なコマンド文字列
         cmd_str = "ms:0.5 mv:10,20,30,40"
 
         expected_json_list = [
@@ -102,7 +96,7 @@ class TestServo:
 
         expected_return_value = "jrpc_worker_return_value"
 
-        # Mock the return values of the instance methods
+        # インスタンスメソッドの戻り値をモック
         cast(
             MagicMock, servo.parser.cmdstr_to_jsonlist
         ).return_value = expected_json_list
@@ -110,15 +104,15 @@ class TestServo:
 
         actual_return_value = servo.call(cmd_str)
 
-        # Assert that the parser was called correctly
+        # パーサーが正しく呼び出されたことをアサート
         cast(
             MagicMock, servo.parser.cmdstr_to_jsonlist
         ).assert_called_once_with(cmd_str)
 
-        # Assert that the jrpc worker was called with the parser's output
+        # jrpcワーカーがパーサーの出力で呼び出されたことをアサート
         cast(MagicMock, servo.servo.call).assert_called_once_with(
             expected_json_list
         )
 
-        # Assert that the method returns the value from the jrpc worker
+        # メソッドがjrpcワーカーからの値を返すことをアサート
         assert actual_return_value == expected_return_value
