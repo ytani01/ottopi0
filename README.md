@@ -26,9 +26,9 @@
 
 ### === 基本ツールのインストール: mise, uv
 
-**mise**: ツールや言語のバージョン管理 ＋ タスクランナー
+◆ **mise**: ツールや言語のバージョン管理 ＋ タスクランナー
 
-**uv**: Pythonプロジェクト管理
+◆ **uv**: Pythonプロジェクト管理
 
 ``` bash
 # mise のインストール
@@ -72,7 +72,7 @@ mise run build
 ``uv run ottopi0``コマンドのサブコマンド
 
 
-**ロボット制御サーバー**
+◆ **ロボット制御サーバー**
 
 ``` bash
 uv run ottopi0 svr -h
@@ -90,7 +90,7 @@ Options:
 ```
 
 
-**コマンドライン・クライアント**
+◆ **コマンドライン・クライアント**
 
 ``` bash
 uv run ottopi0 cmd -h
@@ -110,7 +110,7 @@ Options:
 ```
 
 
-**BlueToothクライアント**
+◆ **BlueToothクライアント**
 
 ``` bash
 uv run ottopi0 bt -h
@@ -130,7 +130,7 @@ Options:
 ```
 
 
-**WebUIクライアント**
+◆ **WebUIクライアント**
 
 ``` bash
 uv run ottopi0 webui -h
@@ -151,10 +151,22 @@ Options:
 ```
 
 
-**オートパイロット(自動運転)クライアント**
+◆ **オートパイロット(自動運転)クライアント**
 
 ``` bash
-uv run ottopi0 auto
+uv run ottopi0 auto -h
+
+Usage: ottopi0 auto [OPTIONS]
+
+  JSON-RPC Client for VL53L0X distance sensor.
+
+Options:
+  -i, --host TEXT     hostname or ipaddr  [default: 0.0.0.0]
+  -p, --port INTEGER  port number  [default: 8000]
+  -a, --apipath TEXT  API path  [default: /api]
+  -V, --version       Show the version and exit.
+  -d, --debug         debug flag
+  -h, --help          Show this message and exit.
 ```
 
 
