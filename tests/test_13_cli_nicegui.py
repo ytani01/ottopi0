@@ -32,7 +32,7 @@ class TestCliNiceGUI:
         # Check URL contains http protocol
         assert "http://" in args[0]
         # Check that webui_port kwarg was passed
-        assert "webui_port" in kwargs
+        assert "nicegui_port" in kwargs
 
         # Verify app.run() was called
         mock_nice_app.return_value.run.assert_called_once()
@@ -50,7 +50,7 @@ class TestCliNiceGUI:
                 "8888",
                 "--apipath",
                 "/api/cmd",
-                "--webui-port",
+                "--nicegui-port",
                 "9000",
             ],
         )
@@ -65,7 +65,7 @@ class TestCliNiceGUI:
         assert args[0] == expected_url
 
         # Check WebUI port
-        assert kwargs.get("webui_port") == 9000
+        assert kwargs.get("nicegui_port") == 9000
 
     def test_cli_exception_handling(self, mock_nice_app):
         """Test how the CLI handles exceptions during app run."""

@@ -26,12 +26,7 @@ DEF_JRPC_HOST = Conf.jrpc.server.host
 DEF_JRPC_PORT = Conf.jrpc.server.port
 DEF_JRPC_APIPATH = Conf.jrpc.server.apipath
 
-DEF_WEBUI_PORT = Conf.jrpc.client.webui.port
-DEF_WEBUI_JRPC_HOST = Conf.jrpc.client.webui.jrpcsvr.host or DEF_JRPC_HOST
-DEF_WEBUI_JRPC_PORT = Conf.jrpc.client.webui.jrpcsvr.port or DEF_JRPC_PORT
-DEF_WEBUI_JRPC_APIPATH = (
-    Conf.jrpc.client.webui.jrpcsvr.apipath or DEF_JRPC_APIPATH
-)
+
 
 
 @click.group()
@@ -322,65 +317,7 @@ def auto(ctx, host, port, apipath, debug):
         click.echo("Done.")
 
 
-@cli.command(name="webui")
-@click.option(
-    "--host",
-    "-i",
-    type=str,
-    default=DEF_WEBUI_JRPC_HOST,
-    show_default=True,
-    help="hostname or ipaddr (of jrpcsvr)",
-)
-@click.option(
-    "--port",
-    "-p",
-    type=int,
-    default=DEF_WEBUI_JRPC_PORT,
-    show_default=True,
-    help="port number (of jrpcsvr)",
-)
-@click.option(
-    "--apipath",
-    "-a",
-    type=str,
-    default=DEF_WEBUI_JRPC_APIPATH,
-    show_default=True,
-    help="API path (of jrpcsvr)",
-)
-@click.option(
-    "--webui-port",
-    "-w",
-    type=int,
-    default=DEF_WEBUI_PORT,
-    show_default=True,
-    help="port number for WebUI",
-)
-@click_common_opts(__version__)
-def webui(ctx, host, port, apipath, webui_port, debug):
-    """WebUI Client for Robot Control."""
-    from .clnt.webui import WebUI
 
-    __log = get_logger(__name__, debug)
-    __log.debug("command name: %s", ctx.command.name)
-    __log.debug(
-        "host=%a, port=%s, apipath=%a, webui_port=%s",
-        host,
-        port,
-        apipath,
-        webui_port,
-    )
-
-    url = f"http://{host}:{port}{apipath}"
-    __log.debug("url=%s", url)
-
-    app = None
-    try:
-        app = WebUI(url, webui_port=webui_port, debug=debug)
-        app.run()
-    except Exception as _e:
-        __log.error(errmsg(_e))
-    finally:
-        click.echo("Done.")
 
 
 @cli.command(name="nicegui")
@@ -388,7 +325,7 @@ def webui(ctx, host, port, apipath, webui_port, debug):
     "--host",
     "-i",
     type=str,
-    default=DEF_WEBUI_JRPC_HOST,
+    default=DEF_JRPC_HOST,
     show_default=True,
     help="hostname or ipaddr (of jrpcsvr)",
 )
@@ -396,7 +333,7 @@ def webui(ctx, host, port, apipath, webui_port, debug):
     "--port",
     "-p",
     type=int,
-    default=DEF_WEBUI_JRPC_PORT,
+    default=DEF_JRPC_PORT,
     show_default=True,
     help="port number (of jrpcsvr)",
 )
@@ -404,31 +341,31 @@ def webui(ctx, host, port, apipath, webui_port, debug):
     "--apipath",
     "-a",
     type=str,
-    default=DEF_WEBUI_JRPC_APIPATH,
+    default=DEF_JRPC_APIPATH,
     show_default=True,
     help="API path (of jrpcsvr)",
 )
 @click.option(
-    "--webui-port",
+    "--nicegui-port",
     "-w",
     type=int,
-    default=DEF_WEBUI_PORT,
+    default=5000,
     show_default=True,
     help="port number for WebUI",
 )
 @click_common_opts(__version__)
-def nicegui(ctx, host, port, apipath, webui_port, debug):
+def nicegui(ctx, host, port, apipath, nicegui_port, debug):
     """WebUI Client (NiceGUI) for Robot Control."""
     from .clnt.nicegui import NiceGUI
 
     __log = get_logger(__name__, debug)
     __log.debug("command name: %s", ctx.command.name)
     __log.debug(
-        "host=%a, port=%s, apipath=%a, webui_port=%s",
+        "host=%a, port=%s, apipath=%a, nicegui_port=%s",
         host,
         port,
         apipath,
-        webui_port,
+        nicegui_port,
     )
 
     url = f"http://{host}:{port}{apipath}"
@@ -436,7 +373,7 @@ def nicegui(ctx, host, port, apipath, webui_port, debug):
 
     app = None
     try:
-        app = NiceGUI(url, webui_port=webui_port, debug=debug)
+        app = NiceGUI(url, nicegui_port=nicegui_port, debug=debug)
         app.run()
     except Exception as _e:
         __log.error(errmsg(_e))

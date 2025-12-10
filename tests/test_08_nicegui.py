@@ -31,7 +31,7 @@ class TestJrpcClntWebUiNice:
             mock_conf.get.side_effect = (
                 lambda k, d=None: {
                     "client": {
-                        "webui": {"buttons": {"forward": "NICE_FORWARD"}}
+                        "nicegui": {"buttons": {"forward": "NICE_FORWARD"}}
                     }
                 }
                 if k == "jrpc"

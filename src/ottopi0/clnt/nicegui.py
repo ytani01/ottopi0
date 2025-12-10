@@ -21,9 +21,9 @@ ENVNAME_NICEGUI_PORT = f"{PKGNAME}_NICEGUI_PORT"
 
 
 class NiceGUI:
-    def __init__(self, jrpc_url: str, webui_port: int, debug: bool = False):
+    def __init__(self, jrpc_url: str, nicegui_port: int, debug: bool = False):
         self.jrpc_url = jrpc_url
-        self.webui_port = webui_port
+        self.nicegui_port = nicegui_port
         self.debug = debug
         self.logger = get_logger(self.__class__.__name__, self.debug)
 
@@ -37,7 +37,7 @@ class NiceGUI:
         self.btn_conf = (
             self.conf.get("jrpc", {})
             .get("client", {})
-            .get("webui", {})
+            .get("nicegui", {})
             .get("buttons", {})
         )
 
@@ -177,7 +177,7 @@ class NiceGUI:
         def index():
             self.build_ui()
 
-        self.logger.info(f"Starting NiceGUI on port {self.webui_port}")
+        self.logger.info(f"Starting NiceGUI on port {self.nicegui_port}")
 
         # Note: reload=True requires ui.run() to be called from __main__ guard
         # Since we're called from CLI, we cannot use auto-reload
@@ -191,7 +191,7 @@ class NiceGUI:
         try:
             ui.run(
                 host="0.0.0.0",
-                port=self.webui_port,
+                port=self.nicegui_port,
                 title="Ottopi0 Controller",
                 reload=False,  # Cannot use reload from CLI context
                 show=False,
@@ -206,23 +206,23 @@ def setup_app():
     """Setup NiceGUI app from environment variables for auto-reload support."""
     # Read configuration from environment variables
     jrpc_url = os.getenv(ENVNAME_NICEGUI_URL, "http://localhost:8000/api")
-    webui_port = int(os.getenv(ENVNAME_NICEGUI_PORT, "5000"))
+    nicegui_port = int(os.getenv(ENVNAME_NICEGUI_PORT, "5000"))
     debug = os.getenv(ENVNAME_DEBUG) == "1"
 
     logger = get_logger(__name__, debug)
     logger.debug(
-        f"setup_app: url={jrpc_url}, port={webui_port}, debug={debug}"
+        f"setup_app: url={jrpc_url}, port={nicegui_port}, debug={debug}"
     )
 
     # Create NiceGUI instance
-    app = NiceGUI(jrpc_url, webui_port, debug)
+    app = NiceGUI(jrpc_url, nicegui_port, debug)
 
     # Setup UI page
     @ui.page("/")
     def index():
         app.build_ui()
 
-    logger.info(f"NiceGUI app configured on port {webui_port}")
+    logger.info(f"NiceGUI app configured on port {nicegui_port}")
     return app
 
 
