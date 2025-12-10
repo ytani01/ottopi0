@@ -26,60 +26,61 @@ class TestJrpcClntCli:
                 "os": MockOs,
             }
 
-    def test_init(self, mock_deps):
-        """初期化と履歴ファイルの読み込みをテスト。"""
-        cli_obj = Cmd("history_file", "http://url")
+    @pytest.fixture
+    def cmd_app_instance(self, mock_deps):
+        """Cmdアプリのインスタンスを提供するフィクスチャ。"""
+        return Cmd("history_file", "http://url")
 
-        assert cli_obj.url == "http://url"
+    def test_init(self, mock_deps, cmd_app_instance):
+        """初期化と履歴ファイルの読み込みをテスト。"""
+        assert cmd_app_instance.url == "http://url"
         mock_deps[
             "readline"
         ].read_history_file.assert_called()  # 履歴ファイルが読み込まれたことを確認
 
-    def test_main_loop_command(self, mock_deps):
+    def test_main_loop_command(self, mock_deps, cmd_app_instance):
         """メインループでのコマンド処理をテスト。"""
-        cli_obj = Cmd("history_file", "http://url")
-
         # コマンドを返し、その後EOFを返すように入力をモック
         # (Ctrl-DをシミュレートするEOFErrorを発生させるか、ループを終了させるか？)
         # コードはEOFErrorをキャッチして中断する。
         with patch("builtins.input", side_effect=["cmd1", EOFError()]):
-            cli_obj.main()
+            cmd_app_instance.main()
 
         # "cmd1"でjrpc_callが呼び出されたことを確認
-        cast(MagicMock, cli_obj.jrpcclnt.jrpc_call).assert_called_with("cmd1")
+        cast(
+            MagicMock, cmd_app_instance.jrpcclnt.jrpc_call
+        ).assert_called_with("cmd1")
 
-    def test_main_loop_comment(self, mock_deps):
+    def test_main_loop_comment(self, mock_deps, cmd_app_instance):
         """メインループでのコメント除去をテスト。"""
-        cli_obj = Cmd("history_file", "http://url")
-
         with patch(
             "builtins.input", side_effect=["cmd # comment", EOFError()]
         ):
-            cli_obj.main()
+            cmd_app_instance.main()
 
         # "cmd # comment" -> "cmd " (partitionはセパレータを保持するか？
         # いいえ、[0]はセパレータの前)
         # "cmd # comment".partition("#")[0] -> "cmd "
-        cast(MagicMock, cli_obj.jrpcclnt.jrpc_call).assert_called_with("cmd ")
+        cast(
+            MagicMock, cmd_app_instance.jrpcclnt.jrpc_call
+        ).assert_called_with("cmd ")
 
-    def test_end_saves_history(self, mock_deps):
+    def test_end_saves_history(self, mock_deps, cmd_app_instance):
         """endメソッドが履歴を保存することをテスト。"""
-        cli_obj = Cmd("history_file", "http://url")
-        cli_obj.end()
+        cmd_app_instance.end()
 
         mock_deps["readline"].write_history_file.assert_called()
 
-    def test_init_no_history_file(self, mock_deps):
+    def test_init_no_history_file(self, mock_deps, cmd_app_instance):
         """履歴ファイルがない場合 (FileNotFoundError) の初期化をテスト。"""
         mock_deps[
             "readline"
         ].read_history_file.side_effect = FileNotFoundError
 
-        cli_obj = Cmd("history_file", "http://url")
         # 例外を処理し、警告をログに記録するはず
         # (get_loggerをモックすればログのアサート可能)
         # 重要なのはクラッシュしないこと
-        assert cli_obj.is_active
+        assert cmd_app_instance.is_active
 
     def test_init_invalid_history_file(self, mock_deps):
         """無効な履歴ファイル (OSError) で初期化 (ファイルを削除)。"""

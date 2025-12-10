@@ -35,6 +35,12 @@ class TestJrpcClntBt:
             # 簡略化のために入力文字列を展開されたものとして返す、または必要に応じて変更
             mock_cslib_instance.expand_func.side_effect = lambda x: x
 
+            MockPiBtInput.KEY = {
+                "up": 0,
+                "hold": 2,
+                "down": 1,
+            }  # Add this line
+
             yield {
                 "PiBtInput": MockPiBtInput,
                 "JrpcClient": MockJrpcClient,
@@ -89,13 +95,6 @@ class TestJrpcClntBt:
         # PiBtInput.KEY["up"]は通常0、
         # "hold"は2。1がダウンと仮定。
         # "up"または"hold"が返されないことを確認する必要がある。
-        # PiBtInput.KEYの値を知る必要がある。
-        # PiBtInputをモックしたので、
-        # コード内のクラス属性アクセスをチェック:
-        # if key_state == PiBtInput.KEY["up"]:
-        # モックされたPiBtInput.KEYディクショナリを設定する必要がある。
-        mock_deps["PiBtInput"].KEY = {"up": 0, "hold": 2, "down": 1}
-
         onkeys = {"KEY_A": 123}  # dict of key:keycode
 
         # 実行
@@ -122,7 +121,6 @@ class TestJrpcClntBt:
 
         mock_deps["conf"].jrpc.client.bluetooth.get.return_value = keys_config
         clnt = Bt("dummy_keyword", "http://dummy")
-        mock_deps["PiBtInput"].KEY = {"up": 0, "hold": 2, "down": 1}
 
         # ケース1: AとBが押された
         onkeys = {
@@ -156,7 +154,6 @@ class TestJrpcClntBt:
         keys_config = {"KEY_A": "cmd_a"}
         mock_deps["conf"].jrpc.client.bluetooth.get.return_value = keys_config
         clnt = Bt("dummy_keyword", "http://dummy")
-        mock_deps["PiBtInput"].KEY = {"up": 0, "hold": 2, "down": 1}
 
         # Zを押す (マップされていない)
         onkeys = {"KEY_Z": 1}

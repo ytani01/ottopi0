@@ -2,22 +2,18 @@
 # (c) 2025 Yoichi Tanibayashi
 #
 
-from click.testing import CliRunner
-
 from ottopi0.__main__ import cli
-from tests.conftest import cli_url_builder
+from tests.conftest import assert_cli_result, cli_url_builder
 
 
 class TestCliWebUI:
     """`ottopi0 webui` CLI コマンドの統合テスト。"""
 
-    def test_cli_invocation_default(self, mock_webui_app):
+    def test_cli_invocation_default(self, cli_runner, mock_webui_app):
         """デフォルト引数でコマンドを呼び出すテスト。"""
-        runner = CliRunner()
-        result = runner.invoke(cli, ["webui"])
+        result = cli_runner.invoke(cli, ["webui"])
 
-        assert result.exit_code == 0
-        assert "Done." in result.output
+        assert_cli_result(result, expected_output_fragments=["Done."])
 
         # アプリがデフォルト引数で初期化されたことを検証
         mock_webui_app.assert_called_once()
@@ -31,10 +27,9 @@ class TestCliWebUI:
         # app.run()が呼び出されたことを検証
         mock_webui_app.return_value.run.assert_called_once()
 
-    def test_cli_invocation_custom(self, mock_webui_app):
+    def test_cli_invocation_custom(self, cli_runner, mock_webui_app):
         """カスタム引数でコマンドを呼び出すテスト。"""
-        runner = CliRunner()
-        result = runner.invoke(
+        result = cli_runner.invoke(
             cli,
             [
                 "webui",
@@ -49,7 +44,7 @@ class TestCliWebUI:
             ],
         )
 
-        assert result.exit_code == 0
+        assert_cli_result(result)
 
         mock_webui_app.assert_called_once()
         args, kwargs = mock_webui_app.call_args
@@ -61,18 +56,13 @@ class TestCliWebUI:
         # WebUIポートの確認
         assert kwargs.get("webui_port") == 9000
 
-    def test_cli_exception_handling(self, mock_webui_app):
+    def test_cli_exception_handling(self, cli_runner, mock_webui_app):
         """CLIがアプリ実行中の例外をどのように処理するかをテスト。"""
         mock_webui_app.return_value.run.side_effect = Exception("Crash!")
 
-        runner = CliRunner()
-        result = runner.invoke(cli, ["webui"])
+        result = cli_runner.invoke(cli, ["webui"])
 
-        assert (
-            result.exit_code == 0
-        )  # コマンド自体はクラッシュせず、例外をキャッチする
-        # エラーがログに記録/表示されたことを確認。
-        # ClickRunnerはstdoutをキャプチャ。ログはstderrに行くか、キャプチャされる。
-        assert "ERROR" in result.output
-        assert "Exception: Crash!" in result.output
-        assert "Done." in result.output
+        assert_cli_result(
+            result,
+            expected_output_fragments=["ERROR", "Exception: Crash!", "Done."],
+        )

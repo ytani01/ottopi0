@@ -13,13 +13,14 @@ from fastapi.testclient import TestClient
 
 
 @pytest.fixture(scope="function")
-def mock_env_and_deps():
+def mock_env_and_deps(mocker):  # Add mocker as an argument
     """jrpcsvr.pyの外部依存関係を全てモックする包括的なフィクスチャ。
     インポート前に実行される。モジュールごとに一度だけ実行。
     """
-    # 環境変数をモック
-    os.environ["ottopi0_DEBUG"] = "1"
-    os.environ["ottopi0_SERVO_PINS"] = "20-,26"
+    # 環境変数をモック (mocker.patch.dictを使用)
+    mocker.patch.dict(
+        os.environ, {"ottopi0_DEBUG": "1", "ottopi0_SERVO_PINS": "20-,26"}
+    )
 
     # ライブラリをモック
     patcher_pigpio = patch("ottopi0.svr.svr.pigpio", spec=True)
@@ -51,10 +52,6 @@ def mock_env_and_deps():
     patcher_servo.stop()
     patcher_logger.stop()
     patcher_pigpio.stop()
-
-    # 環境変数をクリーンアップ
-    del os.environ["ottopi0_DEBUG"]
-    del os.environ["ottopi0_SERVO_PINS"]
 
 
 # This fixture depends on the module-level setup fixture
