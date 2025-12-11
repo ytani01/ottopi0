@@ -22,21 +22,54 @@ xxx = "ms:1 mv:10,10,10,10 mv:-10,-10,-10,-10 mv:c,c,c,c f:xxx"  # recursive sam
 
 home = "st:30 mv:-30,0,0,20 mv:0,0,0,0 mv:20,0,0,-30 mv:0,0,0,0"
 
-forward-r = "mv:-30,0,0,20  mv:.,20,-20,.  mv:0,.,.,0"
-forward-l = "mv:20,0,0,-30  mv:.,-20,20,.  mv:0,.,.,0"
-forward-rl = "f:forward-r ; f:forward-l"
-forward = "f:forward-rl"
 
-backward-l = "mv:20,0,0,-30  mv:20,20,-20,-30  mv:0,20,-20,0"
-backward-r = "mv:-30,0,0,20  mv:-30,-20,20,20  mv:0,-20,20,0"
-backward-lr = "f:backward-l  f:backward-r"
-backward = "f:backward-lr"
+forward-r     = "mv:-30,c,c,20  mv:.,30,-30,.  mv:c,.,.,c"
+forward-r-end = "mv:20,10,-10,-30  sl:.1  mv:c,c,c,c"
+forward-l     = "mv:20,c,c,-30  mv:.,-30,30,.  mv:c,.,.,c"
+forward-l-end = "mv:-30,-10,10,20  sl:.1  mv:c,c,c,c"
+
+forward-rl = "f:forward-r ; f:forward-l"
+forward-lr = "f:forward-l ; f:forward-r"
+
+forward-rl-seq5  = "f:forward-rl ; f:forward-rl ; f:forward-rl ; f:forward-rl ; f:forward-rl"
+forward-rl-seq10 = "f:forward-rl-seq5 f:forward-rl-seq5"
+
+cmd-forward-prefix  = "ca ms:.2"
+cmd-forward-postfix = "ms:.5 f:forward-l-end"
+cmd-forward = "f:cmd-forward-prefix ; f:forward-rl-seq10 ; f:cmd-forward-postfix"
+
+
+backward-l     = "mv:20,c,c,-30  mv:20,30,-30,-30  mv:0,.,.,0"
+backward-l-end = "mv:-30,-10,10,20  sl:.1  mv:c,c,c,c"
+backward-r     = "mv:-30,c,c,20  mv:-30,-30,30,20  mv:0,.,.,0"
+backward-r-end = "mv:20,10,-10,-30  sl:.1  mv:c,c,c,c"
+
+backward-rl = "f:backward-r ; f:backward-l"
+backward-lr = "f:backward-l ; f:backward-r"
+
+backward-lr-seq5 = "f:backward-lr ; f:backward-lr ; f:backward-lr ; f:backward-lr ; f:backward-lr"
+
+cmd-backward-prefix  = "ca ms:.3"
+cmd-backward-postfix = "ms:.5 f:backward-r-end"
+cmd-backward = "f:cmd-backward-prefix ; f:backward-lr-seq5 ; f:cmd-backward-postfix"
+
 
 turn-l = "mv:-30,0,0,20  mv:-30,-20,-20,20  mv:0,-20,-20,0  mv:20,-20,-20,-30  mv:20,0,0,-30  mv:0,0,0,0"
 turn-r = "mv:20,0,0,-30  mv:20,-20,-20,-30  mv:0,-20,-20,0  mv:-30,-20,-20,20  mv:-30,0,0,20  mv:0,0,0,0"
 
+turn-l-seq5  = "f:turn-l ; f:turn-l ; f:turn-l ; f:turn-l ; f:turn-l"
+turn-l-seq10 = "f:turn-l-seq5 ; f:turn-l-seq5"
+turn-r-seq5  = "f:turn-r ; f:turn-r ; f:turn-r ; f:turn-r ; f:turn-r"
+turn-r-seq10 = "f:turn-r-seq5 ; f:turn-r-seq5"
+
+cmd-turn-prefix = "ca ms:.4"
+cmd-turn-l = "f:cmd-turn-prefix f:turn-l-seq10"
+cmd-turn-r = "f:cmd-turn-prefix f:turn-r-seq10"
+
+
 slide-l = "mv:c,c,c,-60 mv:-30,.,,-30 mv:-60,.,.,c mv:c,c,c,c"
 slide-r = "mv:-60,c,c,c mv:-30,.,,-30 mv:c,.,.,-60 mv:c,c,c,c"
+
 
 happy-l = "mv:-15,c,c,-45  mv:c,c,c,c"
 happy-r = "mv:-45,c,c,-15  mv:c,c,c,c"
@@ -113,7 +146,7 @@ mr_prefix = "ms:0.3 st:10 mr:"  # TBD
 #
 KEY_S = "ca ms:.3 f:home"
 
-KEY_C = "ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:home"
+KEY_C = "f:forward-seq5"
 KEY_D = "ca ms:.3 f:backward ; f:home"
 KEY_E = "ca ms:.3 f:turn-l ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:home"
 KEY_F = "ca ms:.3 f:turn-r ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:home"
@@ -147,8 +180,8 @@ port = 8000
 apipath = "/api"
 
 [jrpc.client.webui.buttons]
-forward = "ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:forward"
-backward = "ca ms:.3 f:backward"
-left = "ca ms:.3 f:turn-l ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward"
-right = "ca ms:.3 f:turn-r ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward"
-stop = "ms:.3 f:home"
+forward = "f:cmd-forward"
+backward = "f:cmd-backward"
+left = "f:cmd-turn-l"
+right = "f:cmd-turn-r"
+stop = "ca ms:.3 f:home"
