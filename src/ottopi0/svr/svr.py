@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request
 from jsonrpc import JSONRPCResponseManager, dispatcher
 from pi0servo import CommonLib
 
-from .. import ENVNAME_DEBUG, PKGNAME, errmsg, get_logger
+from .. import ConfFile, ENVNAME_DEBUG, PKGNAME, errmsg, get_logger
 from .func_calc import Calc
 from .func_servo import Servo
 
@@ -35,6 +35,7 @@ async def lifespan(api: FastAPI):
 
     # sv_common = CommonLib(debug=__debug)
     sv_common = CommonLib()
+    conf = ConfFile().conf
 
     #
     # pigpio
@@ -45,8 +46,9 @@ async def lifespan(api: FastAPI):
     # servo
     #
     __log.debug("PKGNAME=%s", PKGNAME)
-    pins_str = os.environ[f"{PKGNAME}_SERVO_PINS"]
-
+    pins_str = os.getenv(f"{PKGNAME}_SERVO_PINS")
+    if not pins_str:
+        pins_str = conf.servo.pins
     servo_pins = sv_common.pins_str2list(pins_str)
     __log.debug("servo_pins=%s", servo_pins)
 
