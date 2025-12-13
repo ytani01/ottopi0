@@ -58,7 +58,7 @@ class Auto:
         while self.is_active:
             count += 1
             if count > 10:
-                self.jrpc_clnt.jrpc_call("ms:.2 f:forward")
+                self.jrpc_clnt.jrpc_call("ms:.2 f:forward-rl")
                 count = 0
 
             try:

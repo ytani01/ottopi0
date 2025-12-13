@@ -9,9 +9,7 @@ pins = "20-,26,19-,16"  # rpi0w
 #_prefix = "st:30 ms:.4"
 _prefix = ""
 
-auto-stop = "ca sl:.1 f:surprise ms:.3 f:backward f:turn-r f:turn-r"
-
-xxx = "ms:1 mv:10,10,10,10 mv:-10,-10,-10,-10 mv:c,c,c,c f:xxx"  # recursive sample
+auto-stop = "ca sl:.1 f:surprise ms:.3 f:backward-rl f:turn-r f:turn-r"
 
 home = "st:30 mv:-30,0,0,20 mv:0,0,0,0 mv:20,0,0,-30 mv:0,0,0,0"
 
