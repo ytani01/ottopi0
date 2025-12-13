@@ -21,10 +21,10 @@ class App:
         self.bt = pibtinput.PiBtInput(debug=self.__debug)
         self.prev_onkeys: dict[str, int] = {}
 
-        self.servo = pi0servo.JsonRpcWorker(
+        self.servo = pi0servo.ThreadWorker(
             self.pi, self.pins, debug=self.__debug
         )
-        self.parser = pi0servo.StrCmdToJson(debug=self.__debug)
+        self.parser = pi0servo.CmdParser(debug=self.__debug)
 
     def cb_ev(self, key_name, key_state, onkeys):
         """Event Callback."""
@@ -36,7 +36,7 @@ class App:
             self.prev_onkeys = onkeys.copy()
 
             if key_state == pibtinput.PiBtInput.KEY["up"]:
-                parsed_json = self.parser.cmdstr_to_jsonlist("ca")
+                parsed_json = self.parser.parse_to_jsonlist("ca")
                 self.servo.call(parsed_json)
                 return True
 
@@ -62,7 +62,7 @@ class App:
                 cmdstr = "ms:.5 mv:0,0 mv:45,30 mv:0,0 mv:-45,-30 mv:0,0"
 
             if cmdstr:
-                parsed_json = self.parser.cmdstr_to_jsonlist(cmdstr)
+                parsed_json = self.parser.parse_to_jsonlist(cmdstr)
                 self.servo.call(parsed_json)
 
             if key_name == "KEY_S":

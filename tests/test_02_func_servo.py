@@ -12,13 +12,13 @@ from ottopi0.svr.func_servo import Servo
 
 @pytest.fixture
 def mock_pi0servo_classes(mocker):
-    """pi0servoクラスStrCmdToJsonとJsonRpcWorkerをモックするフィクスチャ。"""
+    """pi0servoクラスCmdParserとThreadWorkerをモックするフィクスチャ。"""
     # 検索されるモジュール (ottopi0.func_servo) 内の名前をパッチする
     mock_str_cmd_to_json = mocker.patch(
-        "ottopi0.svr.func_servo.StrCmdToJson", spec=True
+        "ottopi0.svr.func_servo.CmdParser", spec=True
     )
     mock_json_rpc_worker = mocker.patch(
-        "ottopi0.svr.func_servo.JsonRpcWorker", spec=True
+        "ottopi0.svr.func_servo.ThreadWorker", spec=True
     )
     return mock_str_cmd_to_json, mock_json_rpc_worker
 
@@ -38,17 +38,17 @@ class TestServo:
 
     def test_init(self, mock_pi0servo_classes, mock_logger):
         """Servoクラスの__init__メソッドをテスト。
-        StrCmdToJsonとJsonRpcWorkerが正しく初期化されていることを検証する。
+        CmdParserとThreadWorkerが正しく初期化されていることを検証する。
         """
-        StrCmdToJson, JsonRpcWorker = mock_pi0servo_classes
+        CmdParser, ThreadWorker = mock_pi0servo_classes
         mock_pi = MagicMock()
         debug_mode1 = True
         debug_mode2 = False
 
         servo = Servo(mock_pi, self.PINS, debug=debug_mode1)
 
-        StrCmdToJson.assert_called_once_with(debug=debug_mode1)
-        JsonRpcWorker.assert_called_once_with(
+        CmdParser.assert_called_once_with(debug=debug_mode1)
+        ThreadWorker.assert_called_once_with(
             mock_pi, self.PINS, flag_verbose=True, debug=debug_mode2
         )
         assert servo.pi == mock_pi
@@ -98,7 +98,7 @@ class TestServo:
 
         # インスタンスメソッドの戻り値をモック
         cast(
-            MagicMock, servo.parser.cmdstr_to_jsonlist
+            MagicMock, servo.parser.parse_to_jsonlist
         ).return_value = expected_json_list
         cast(MagicMock, servo.servo.call).return_value = expected_return_value
 
@@ -106,7 +106,7 @@ class TestServo:
 
         # パーサーが正しく呼び出されたことをアサート
         cast(
-            MagicMock, servo.parser.cmdstr_to_jsonlist
+            MagicMock, servo.parser.parse_to_jsonlist
         ).assert_called_once_with(cmd_str)
 
         # jrpcワーカーがパーサーの出力で呼び出されたことをアサート

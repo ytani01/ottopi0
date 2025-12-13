@@ -3,7 +3,7 @@
 #
 import json
 
-from pi0servo import JsonRpcWorker, StrCmdToJson
+from pi0servo import CmdParser, ThreadWorker
 
 from .. import get_logger
 
@@ -20,8 +20,8 @@ class Servo:
         self.pi = pi
         self.pins = pins
 
-        self.parser = StrCmdToJson(debug=self.__debug)
-        self.servo = JsonRpcWorker(
+        self.parser = CmdParser(debug=self.__debug)
+        self.servo = ThreadWorker(
             self.pi, self.pins, flag_verbose=True, debug=False
         )
 
@@ -40,7 +40,7 @@ class Servo:
         """Call."""
         self.__log.debug("cmd_str=%s", cmd_str)
 
-        jrpcreq = self.parser.cmdstr_to_jsonlist(cmd_str)
+        jrpcreq = self.parser.parse_to_jsonlist(cmd_str)
         self.__log.debug("jrpcreq=%s", jrpcreq)
 
         ret = self.servo.call(jrpcreq)

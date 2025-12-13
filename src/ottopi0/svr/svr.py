@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request
 from jsonrpc import JSONRPCResponseManager, dispatcher
 from pi0servo import CommonLib
 
-from .. import ConfFile, ENVNAME_DEBUG, PKGNAME, errmsg, get_logger
+from .. import ENVNAME_DEBUG, PKGNAME, ConfFile, errmsg, get_logger
 from .func_calc import Calc
 from .func_servo import Servo
 

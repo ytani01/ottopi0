@@ -88,7 +88,7 @@ dance1 = "ms:0.08 f:step-l ; ms:0.08 f:step-r"
 dance2 = "ms:0.2 f:happy f:happy"
 dance3 = "ms:0.2 sl:.1 f:surprise sl:.1 f:surprise sl:.1"
 dance4 = "ms:0.2 f:slide-r ; ms:0.2 f:slide-l"
-dance5 = "ms:0.2 f:forward ; ms:0.2 f:backward"
+dance5 = "ms:0.2 f:forward-rl ; ms:0.2 f:backward-lr"
 
 dance-seq1 = "f:dance1 ; f:dance2 ; f:dance3: f:dance4: ; f:dance5 ; sl:.1 ; f:dance5 ; sl:.2"
 dance-seq2 = "f:hi ; sl:.5 ; f:dance-seq1 ; ; sl:.5 ; f:bye ; ms:.2 f:turn-r ; ms:.2 f:turn-r"
@@ -139,10 +139,10 @@ mr_prefix = "ms:0.3 st:10 mr:"  # TBD
 #
 KEY_S = "ca ms:.3 f:home"
 
-KEY_C = "f:forward-seq5"
-KEY_D = "ca ms:.3 f:backward ; f:home"
-KEY_E = "ca ms:.3 f:turn-l ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:home"
-KEY_F = "ca ms:.3 f:turn-r ; ms:.2 f:forward ; f:forward ; f:forward ; f:forward ; f:forward ; f:home"
+KEY_C = "f:cmd-forward"
+KEY_D = "f:cmd-backward ; f:home"
+KEY_E = "f:cmd-turn-l"
+KEY_F = "f:cmd-turn-r"
 
 KEY_G = "ms:.2 f:happy"
 KEY_J = "f:surprise"
