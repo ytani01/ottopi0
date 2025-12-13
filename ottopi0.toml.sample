@@ -1,8 +1,8 @@
 ##### Servo
 [servo]
 # ピン番号: 逆回転の場合は '-' を**後ろに**つける
-pins = "22,27-"  # rpi4b
-#pins = "20-,26,19-,16"  # rpi0w
+#pins = "22,27-"  # rpi4b
+pins = "20-,26,19-,16"  # rpi0w
 #pins = "16-,19,26-,20"  # rpi3b
 
 [servo.funcs]
@@ -82,11 +82,11 @@ step-r = "f:toes-r f:toes-r f:heel-r f:heel-r"
 
 step1 = "f:toes-l f:toes-l f:heel-l f:heel-l  f:toes-r f:toes-r f:heel-r f:heel-r"
 
-dance1 = "ms:c.08 f:step-l ; ms:c.08 f:step-r"
-dance2 = "ms:c.2 f:happy f:happy"
-dance3 = "ms:c.2 sl:.1 f:surprise sl:.1 f:surprise sl:.1"
-dance4 = "ms:c.2 f:slide-r ; ms:c.2 f:slide-l"
-dance5 = "ms:c.2 f:forward-rl ; ms:c.2 f:backward-lr"
+dance1 = "ms:.08 f:step-l ; ms:c.08 f:step-r"
+dance2 = "ms:.2 f:happy f:happy"
+dance3 = "ms:.2 sl:.1 f:surprise sl:.1 f:surprise sl:.1"
+dance4 = "ms:.2 f:slide-r ; ms:.2 f:slide-l"
+dance5 = "ms:.17 f:forward-rl ; ms:c.17 f:backward-lr"
 
 dance-seq1 = "f:dance1 ; f:dance2 ; f:dance3: f:dance4: ; f:dance5 ; sl:.1 ; f:dance5 ; sl:.2"
 dance-seq2 = "f:hi ; sl:.5 ; f:dance-seq1 ; ; sl:.5 ; f:bye ; ms:.2 f:turn-r ; ms:.2 f:turn-r"
