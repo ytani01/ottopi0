@@ -10,24 +10,24 @@ def face(lcd, draw, color):
     x1, y1 = 0, 0
     x2, y2 = lcd.width - 1, lcd.height - 1
     draw.rounded_rectangle(
-        [(x1, y1), (x2, y2)],
-        radius=80,
-        fill=color, outline="black", width=10
+        [(x1, y1), (x2, y2)], radius=80, fill=color, outline="black", width=10
     )
+
 
 def eyes1(lcd, draw, r, y, d, color):
     """Eyes."""
     x00, y00 = lcd.width / 2, y
 
     x0, y0 = x00 - d / 2, y00
-    x1, y1 = x0 - r / 2, y0 - r /2
-    x2, y2 = x0 + r / 2, y0 + r /2
+    x1, y1 = x0 - r / 2, y0 - r / 2
+    x2, y2 = x0 + r / 2, y0 + r / 2
     draw.ellipse([(x1, y1), (x2, y2)], fill=color, width=10)
 
     x0, y0 = x00 + d / 2, y00
-    x1, y1 = x0 - r / 2, y0 - r /2
-    x2, y2 = x0 + r / 2, y0 + r /2
+    x1, y1 = x0 - r / 2, y0 - r / 2
+    x2, y2 = x0 + r / 2, y0 + r / 2
     draw.ellipse([(x1, y1), (x2, y2)], fill=color, width=10)
+
 
 def mouth1(lcd, draw, color):
     """Mouse1"""
@@ -36,11 +36,7 @@ def mouth1(lcd, draw, color):
     x2, y2 = lcd.width / 2 + w / 2, 190
     a = 15
     # draw.ellipse([(x1, y1), (x2, y2)], outline="black")
-    draw.arc(
-        [(x1, y1), (x2, y2)],
-        start=a, end=180 - a,
-        fill=color, width=10
-    )
+    draw.arc([(x1, y1), (x2, y2)], start=a, end=180 - a, fill=color, width=10)
 
 
 def main():
@@ -57,6 +53,7 @@ def main():
         lcd.display(image1)
 
         lcd.display(image1)
+
 
 if __name__ == "__main__":
     main()

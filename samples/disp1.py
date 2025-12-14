@@ -1,10 +1,9 @@
 import time
 
+from pi0disp import ST7789V
 from PIL import Image, ImageDraw
 
-from pi0disp import ST7789V
-
-INTERVAL = .5
+INTERVAL = 0.5
 with ST7789V(rotation=90) as lcd:
     image = Image.new("RGB", (lcd.width, lcd.height), 128)
     lcd.display(image)
@@ -20,7 +19,9 @@ with ST7789V(rotation=90) as lcd:
 
     W, H = 150, 100
     X, Y = 100, 100
-    draw.rectangle((X, Y, X + W, Y + H), fill="green", outline="yellow", width=10)
+    draw.rectangle(
+        (X, Y, X + W, Y + H), fill="green", outline="yellow", width=10
+    )
     # lcd.display(image)
     # time.sleep(INTERVAL)
 
