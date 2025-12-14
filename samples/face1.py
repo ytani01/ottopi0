@@ -42,7 +42,7 @@ def mouth1(lcd, draw, color):
 def main():
     """Main."""
 
-    with ST7789V(rotation=90) as lcd:
+    with ST7789V(rotation=270) as lcd:
         image1 = Image.new("RGB", (lcd.width, lcd.height), (0, 0, 0))
         draw1 = ImageDraw.Draw(image1)
 
