@@ -108,7 +108,7 @@ def init_display():
     if not HAS_DISPLAY:
         return None
     print("ST7789 ディスプレイを初期化中...")
-    disp = ST7789V(rotation=90)
+    disp = ST7789V(rotation=270)
     return disp
 
 
@@ -261,7 +261,7 @@ def main():
             # 2. 現在の状態をターゲットに少し近づける (イージング効果)
             # speed=0.15 は毎フレーム残りの距離の15%ずつ近づくという意味
             current_state = interpolate_state(
-                current_state, target_state, speed=0.8
+                current_state, target_state, speed=0.5
             )
 
             # 3. 描画
@@ -274,7 +274,8 @@ def main():
                 img,
                 (SCREEN_WIDTH, SCREEN_HEIGHT),
                 color=(128, 128, 128),
-                centering=(0.5, 0.5),
+                # centering=(0.5, 0.5),
+                centering=(0.1, 0.5),
             )
 
             # 4. ディスプレイ転送
