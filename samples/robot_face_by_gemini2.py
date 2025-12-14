@@ -288,7 +288,7 @@ def main():
         print("\n終了します...")
 
     finally:
-        disp.close()
+        disp.close(True)
 
 
 if __name__ == "__main__":
