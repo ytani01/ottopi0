@@ -44,6 +44,7 @@ echo "# pip"
 uv pip install -U ../pi0servo
 uv pip install -U ../pibtinput
 uv pip install -U ../vl53l0x_pigpio
+uv pip install -U ../pi0disp
 
 uv pip install -U -e .
 uv pip install -U --group dev -e .

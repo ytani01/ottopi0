@@ -23,8 +23,10 @@ dependencies = [
     "fastapi[standard]>=0.120.2",
     "json-rpc>=1.15.0",
     "nicegui>=2.0.0",
+    "pi0disp",
     "pi0servo",
     "pibtinput",
+    "pillow>=12.0.0",
     "uvicorn>=0.38.0",
     "vl53l0x-pigpio",
 ]
@@ -46,6 +48,7 @@ dev = [
     "pytest>=8.4.2",
     "ruff>=0.14.0",
     "pytest-mock>=0.14.0",
+    "isort>=7.0.0",
 ]
 
 [tool.ruff.format]
@@ -86,3 +89,4 @@ pythonpath = "tests"
 pi0servo = { path = "../pi0servo" }
 pibtinput = { path = "../pibtinput" }
 vl53l0x-pigpio = { path = "../vl53l0x_pigpio" }
+pi0disp = { path = "../pi0disp" }
