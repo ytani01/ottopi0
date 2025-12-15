@@ -4,7 +4,7 @@ import time
 
 # Check for Pillow
 try:
-    from PIL import Image, ImageDraw
+    from PIL import Image, ImageDraw, ImageOps
 except ImportError:
     print(
         "Error: PIL (Pillow) not found. Install it with: pip install pillow"
@@ -13,27 +13,16 @@ except ImportError:
 
 # Check for ST7789 (Pimoroni library)
 try:
-    import ST7789
+    from pi0disp import ST7789V
 
     HAS_DISPLAY = True
 except ImportError:
-    print(
-        "Warning: ST7789 library not found. Running in preview mode (showing images on screen)."
-    )
-    print("To install on Pi: pip install st7789")
+    print("Warning: ST7789V library not found. Running in preview mode.")
     HAS_DISPLAY = False
 
 # --- Configuration ---
-SCREEN_WIDTH = 240
+SCREEN_WIDTH = 320
 SCREEN_HEIGHT = 240
-
-# GPIO Pins (BCM) - Adjust based on your HAT/Wiring
-SPI_PORT = 0
-SPI_CS = 1  # CE1 (often 0 or 1)
-DC_PIN = 9
-RST_PIN = 25
-BL_PIN = 13
-SPI_SPEED_HZ = 40 * 1000 * 1000
 
 
 def init_display():
@@ -42,22 +31,8 @@ def init_display():
         return None
 
     print("Initializing ST7789 Display...")
-    disp = ST7789.ST7789(
-        port=SPI_PORT,
-        cs=SPI_CS,
-        dc=DC_PIN,
-        backlight=BL_PIN,
-        rst=RST_PIN,
-        width=SCREEN_WIDTH,
-        height=SCREEN_HEIGHT,
-        rotation=90,  # 0, 90, 180, 270
-        spi_speed_hz=SPI_SPEED_HZ,
-    )
-    disp.begin()
+    disp = ST7789V(rotation=90)
     return disp
-
-
-# --- Drawing Logic ---
 
 
 def draw_bezier(draw, p0, p1, p2, fill, width):
@@ -67,7 +42,7 @@ def draw_bezier(draw, p0, p1, p2, fill, width):
     B(t) = (1-t)^2 * P0 + 2(1-t)t * P1 + t^2 * P2
     """
     points = []
-    steps = 20
+    steps = 5
     for i in range(steps + 1):
         t = i / steps
         x = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t**2 * p2[0]
@@ -97,20 +72,20 @@ def create_robot_face(mood, size=240, bg_color="white", line_color="black"):
     def w(width):
         return max(1, int(width * s))
 
-    # --- Antenna ---
-    draw.line([c(50, 20), c(50, 10)], fill=line_color, width=w(4))
+    # # --- Antenna ---
+    # draw.line([c(50, 20), c(50, 10)], fill=line_color, width=w(4))
 
-    r_ant = 4 * s
-    cx_a, cy_a = c(50, 8)
-    draw.ellipse(
-        [cx_a - r_ant, cy_a - r_ant, cx_a + r_ant, cy_a + r_ant],
-        fill=line_color,
-    )
+    # r_ant = 4 * s
+    # cx_a, cy_a = c(50, 8)
+    # draw.ellipse(
+    #     [cx_a - r_ant, cy_a - r_ant, cx_a + r_ant, cy_a + r_ant],
+    #     fill=line_color,
+    # )
 
     # --- Head Box ---
     # PIL rounded rectangle expects [x0, y0, x1, y1]
     # SVG Reference: x=15, y=20, w=70, h=60
-    box = [c(15, 20)[0], c(15, 20)[1], c(85, 80)[0], c(85, 80)[1]]
+    box = [c(5, 10)[0], c(5, 10)[1], c(95, 90)[0], c(95, 90)[1]]
     draw.rounded_rectangle(box, radius=12 * s, outline=line_color, width=w(5))
 
     # --- Eyes Helpers ---
@@ -143,8 +118,11 @@ def create_robot_face(mood, size=240, bg_color="white", line_color="black"):
         draw_eye(35, eye_y)
         # Right (Wink >)
         # polyline 57,42 65,50 73,42
-        points = [c(57, 42), c(65, 50), c(73, 42)]
-        draw.line(points, fill=line_color, width=w(5), joint="curve")
+        # points = [c(57, 42), c(65, 50), c(73, 42)]
+        # draw.line(points, fill=line_color, width=w(5), joint="curve")
+        draw_bezier(
+            draw, c(57, 42), c(65, 50), c(73, 42), line_color, width=w(5)
+        )
 
     else:
         # Normal
@@ -191,7 +169,13 @@ def main():
             print(f"Displaying: {mood}")
 
             # Generate Image (matching screen resolution)
-            img = create_robot_face(mood, size=SCREEN_WIDTH)
+            img = create_robot_face(mood, size=SCREEN_HEIGHT)
+            img = ImageOps.pad(
+                img,
+                (SCREEN_WIDTH, SCREEN_HEIGHT),
+                color=(128, 128, 128),
+                centering=(0.5, 0.5),
+            )
 
             if disp:
                 # Send to ST7789
@@ -206,6 +190,9 @@ def main():
 
     except KeyboardInterrupt:
         print("\nExiting...")
+
+    finally:
+        disp.close()
 
 
 if __name__ == "__main__":
