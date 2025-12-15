@@ -75,7 +75,7 @@ MOODS = {
         mouth_curve=15, eye_height=8, eye_tilt=0, wink_right=0.1
     ),
     "surprised": FaceState(
-        mouth_curve=0, eye_height=11, eye_tilt=0, mouth_open=1.0
+        mouth_curve=0, eye_height=5, eye_tilt=0, mouth_open=1.0
     ),
     "sleepy": FaceState(
         mouth_curve=0, eye_height=8, eye_tilt=0, wink_left=0.1, wink_right=0.1
@@ -145,7 +145,7 @@ def draw_face(draw, state, size=240):
     # --- 動的なパーツ ---
 
     # 目の描画関数
-    eye_y = 40
+    eye_y = 45
 
     def draw_eye(cx, scale_y, tilt_angle):
         # 目の基本半径
