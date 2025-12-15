@@ -67,18 +67,18 @@ class FaceState:
 
 # --- 表情の定義 (ターゲットとなる状態) ---
 MOODS = {
-    "neutral": FaceState(mouth_curve=0, eye_height=6, eye_tilt=0),
-    "happy": FaceState(mouth_curve=15, eye_height=6, eye_tilt=0),
-    "sad": FaceState(mouth_curve=-15, eye_height=6, eye_tilt=-10),
-    "angry": FaceState(mouth_curve=-10, eye_height=5, eye_tilt=25),
+    "neutral": FaceState(mouth_curve=0, eye_height=9, eye_tilt=0),
+    "happy": FaceState(mouth_curve=15, eye_height=8, eye_tilt=0),
+    "sad": FaceState(mouth_curve=-15, eye_height=8, eye_tilt=-10),
+    "angry": FaceState(mouth_curve=-10, eye_height=6, eye_tilt=25),
     "wink": FaceState(
-        mouth_curve=15, eye_height=6, eye_tilt=0, wink_right=0.1
+        mouth_curve=15, eye_height=8, eye_tilt=0, wink_right=0.1
     ),
     "surprised": FaceState(
-        mouth_curve=0, eye_height=7, eye_tilt=0, mouth_open=1.0
+        mouth_curve=0, eye_height=11, eye_tilt=0, mouth_open=1.0
     ),
     "sleepy": FaceState(
-        mouth_curve=0, eye_height=6, eye_tilt=0, wink_left=0.1, wink_right=0.1
+        mouth_curve=0, eye_height=8, eye_tilt=0, wink_left=0.1, wink_right=0.1
     ),
 }
 
@@ -115,33 +115,37 @@ def init_display():
 def draw_face(draw, state, size=240):
     # 座標計算用ヘルパー
     s = size / 100.0  # スケール係数 (100x100座標系からの変換)
+    sx, sy = SCREEN_HEIGHT / 100.0, SCREEN_HEIGHT / 100.0
 
-    def c(x, y):
-        return (x * s, y * s)
+    def xy(x, y):
+        # return (x * s, y * s)
+        return (x * sx, y * sy)
 
-    def w(width):
+    def line_w(width):
         return max(1, int(width * s))
 
     # 背景クリア
-    draw.rectangle([0, 0, size, size], fill="black")
+    # draw.rectangle([0, 0, size, size], fill="black")
+    # draw.rectangle([0, 0, SCREEN_WIDTH - 1, SCREEN_HEIGHT - 1], fill="black")
 
     x0, y0 = 0, 0
 
     # 顔の輪郭（四角いボックス）
+    face_color = (255, 255, 220)
     box = [
-        c(x0, y0)[0],
-        c(x0, y0)[1],
-        c(100 - x0, 100 - y0)[0],
-        c(100 - x0, 100 - y0)[1],
+        xy(x0, y0)[0],
+        xy(x0, y0)[1],
+        xy(100 - x0, 100 - y0)[0],
+        xy(100 - x0, 100 - y0)[1],
     ]
     draw.rounded_rectangle(
-        box, radius=20 * s, outline=LINE_COLOR, fill=BG_COLOR, width=1
+        box, radius=20 * s, outline=(0, 0, 0), fill=face_color, width=1
     )
 
     # --- 動的なパーツ ---
 
     # 目の描画関数
-    eye_y = 45
+    eye_y = 40
 
     def draw_eye(cx, scale_y, tilt_angle):
         # 目の基本半径
@@ -150,21 +154,26 @@ def draw_face(draw, state, size=240):
         ry = r * scale_y
 
         # ほぼ閉じている場合は線を描画
-        if ry < 3:
+        if ry < 4:
             draw.line(
-                [c(cx - 6, eye_y), c(cx + 6, eye_y)],
+                [xy(cx - 7, eye_y), xy(cx + 7, eye_y)],
                 fill=LINE_COLOR,
-                width=w(4),
+                width=line_w(4),
             )
         else:
             # 開いている場合は楕円を描画
             bbox = [
-                c(cx, eye_y)[0] - r,
-                c(cx, eye_y)[1] - ry,
-                c(cx, eye_y)[0] + r,
-                c(cx, eye_y)[1] + ry,
+                xy(cx, eye_y)[0] - r,
+                xy(cx, eye_y)[1] - ry,
+                xy(cx, eye_y)[0] + r,
+                xy(cx, eye_y)[1] + ry,
             ]
-            draw.ellipse(bbox, fill=LINE_COLOR)
+            draw.ellipse(
+                bbox,
+                outline=(0, 0, 192),
+                fill=(255, 255, 255),
+                width=line_w(10),
+            )
 
         # 眉毛（tilt）の表現
         # 目の上に線を描き、角度をつけることで怒りや悲しみを表現
@@ -175,49 +184,52 @@ def draw_face(draw, state, size=240):
             # 左右で傾きを反転させる
             if cx < 50:  # 左目
                 # 怒り: 内側が下がる, 悲しみ: 内側が上がる
-                p1 = c(cx - 8, brow_y - offset_y)
-                p2 = c(cx + 8, brow_y + offset_y)
+                p1 = xy(cx - 9, brow_y - offset_y)
+                p2 = xy(cx + 9, brow_y + offset_y)
             else:  # 右目
-                p1 = c(cx - 8, brow_y + offset_y)
-                p2 = c(cx + 8, brow_y - offset_y)
+                p1 = xy(cx - 9, brow_y + offset_y)
+                p2 = xy(cx + 9, brow_y - offset_y)
 
-            draw.line([p1, p2], fill=LINE_COLOR, width=w(5))
+            draw.line([p1, p2], fill=(128, 64, 64), width=line_w(5))
 
     # 左右の目を描画
-    draw_eye(35, state.wink_left, state.eye_tilt)
-    draw_eye(65, state.wink_right, state.eye_tilt)
+    eye_x = 32
+    draw_eye(eye_x, state.wink_left, state.eye_tilt)
+    draw_eye(100 - eye_x, state.wink_right, state.eye_tilt)
 
     # 口の描画
-    mouth_cx, mouth_cy = 50, 65
+    mouth_line_color = (255, 32, 0)
+    mouth_cx, mouth_cy = 50, 70
 
     # 驚き口（丸）への遷移
     if state.mouth_open > 0.5:
         # 開き具合(0.5~1.0)に応じて円を大きくする
         open_factor = (state.mouth_open - 0.5) * 2
-        r_mouth = 6 * s * open_factor
+        r_mouth = 7 * s * open_factor
         if r_mouth > 1:
-            cx_m, cy_m = c(mouth_cx, mouth_cy)
+            cx_m, cy_m = xy(mouth_cx, mouth_cy)
             draw.ellipse(
                 [
                     cx_m - r_mouth,
-                    cy_m - r_mouth,
+                    cy_m - r_mouth * 1.2,
                     cx_m + r_mouth,
-                    cy_m + r_mouth,
+                    cy_m + r_mouth * 1.2,
                 ],
-                outline=LINE_COLOR,
-                width=w(5),
+                outline=mouth_line_color,
+                fill=(128, 0, 0),
+                width=line_w(4),
             )
 
     # 通常の口（線・カーブ）への遷移
     if state.mouth_open <= 0.5:
         # ベジェ曲線で口のカーブを描く
         # P0(左端) -> P1(制御点) -> P2(右端)
-        p0 = c(35, mouth_cy)
-        p2 = c(65, mouth_cy)
+        p0 = xy(35, mouth_cy)
+        p2 = xy(65, mouth_cy)
 
         # 制御点を上下させて笑顔/への字を表現
         mid_y_offset = state.mouth_curve
-        p1 = c(50, mouth_cy + mid_y_offset)
+        p1 = xy(50, mouth_cy + mid_y_offset)
 
         # 線分に分割して曲線を描画
         points = []
@@ -229,7 +241,9 @@ def draw_face(draw, state, size=240):
             y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t**2 * p2[1]
             points.append((x, y))
 
-        draw.line(points, fill=LINE_COLOR, width=w(5), joint="curve")
+        draw.line(
+            points, fill=mouth_line_color, width=line_w(5), joint="curve"
+        )
 
     return
 
@@ -267,10 +281,11 @@ def main():
             )
 
             # 3. 描画
-            img_size = min(SCREEN_WIDTH, SCREEN_HEIGHT)
-            img = Image.new("RGB", (img_size, img_size), BG_COLOR)
+            # img_size = min(SCREEN_WIDTH, SCREEN_HEIGHT)
+            # img = Image.new("RGB", (img_size, img_size), BG_COLOR)
+            img = Image.new("RGB", (SCREEN_HEIGHT, SCREEN_HEIGHT), "black")
             draw = ImageDraw.Draw(img)
-            draw_face(draw, current_state, size=img_size)
+            draw_face(draw, current_state)
 
             img = ImageOps.pad(
                 img,
