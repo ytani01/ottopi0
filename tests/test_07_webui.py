@@ -1,7 +1,7 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
-from unittest import mock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -12,46 +12,41 @@ class TestWebUI:
     """ottopi0.clnt.webui.WebUI クラスの単体テスト。"""
 
     @pytest.fixture
-    def mock_jrpc_client(self):
+    def mock_jrpc_client(self, mocker):
         """ottopi0.clnt.webui.Client をモックするフィクスチャ。"""
-        with mock.patch("ottopi0.clnt.webui.Client") as MockClient:
-            yield MockClient
+        return mocker.patch("ottopi0.clnt.webui.Client")
 
     @pytest.fixture
-    def mock_ui(self):
+    def mock_ui(self, mocker):
         """nicegui.ui をモックするフィクスチャ。"""
-        with mock.patch("ottopi0.clnt.webui.ui") as MockUI:
-            yield MockUI
+        return mocker.patch("ottopi0.clnt.webui.ui")
 
     @pytest.fixture
-    def mock_webui_internal_deps(self):
+    def mock_webui_internal_deps(self, mocker):
         """WebUIの内部依存関係 (ConfFile, CmdStrLib) をモックするフィクスチャ。"""
-        with (
-            mock.patch("ottopi0.clnt.webui.ConfFile") as MockConfFile,
-            mock.patch("ottopi0.clnt.webui.CmdStrLib") as MockCmdStrLib,
-        ):
-            # モック設定のセットアップ
-            mock_conf = MockConfFile.return_value.conf
-            mock_conf.servo.funcs = {"_prefix": "PREFIX"}
-            mock_conf.get.side_effect = (
-                lambda k, d=None: {
-                    "client": {
-                        "webui": {"buttons": {"forward": "NICE_FORWARD"}}
-                    }
-                }
-                if k == "jrpc"
-                else d
-            )
+        MockConfFile = mocker.patch("ottopi0.clnt.webui.ConfFile")
+        MockCmdStrLib = mocker.patch("ottopi0.clnt.webui.CmdStrLib")
 
-            # モックCmdStrLibのセットアップ
-            MockCmdStrLib.return_value.expand_func.side_effect = (
-                lambda x: f"EXPANDED:{x}"
-            )
-            yield {
-                "MockConfFile": MockConfFile,
-                "MockCmdStrLib": MockCmdStrLib,
-                "mock_conf": mock_conf,
+        # モック設定のセットアップ
+        mock_conf = MockConfFile.return_value.conf
+        mock_conf.servo.funcs = {"_prefix": "PREFIX"}
+        mock_conf.get.side_effect = (
+            lambda k, d=None: {
+                "client": {"webui": {"buttons": {"forward": "NICE_FORWARD"}}}
             }
+            if k == "jrpc"
+            else d
+        )
+
+        # モックCmdStrLibのセットアップ
+        MockCmdStrLib.return_value.expand_func.side_effect = (
+            lambda x: f"EXPANDED:{x}"
+        )
+        yield {
+            "MockConfFile": MockConfFile,
+            "MockCmdStrLib": MockCmdStrLib,
+            "mock_conf": mock_conf,
+        }
 
     def test_init(self, mock_jrpc_client, mock_ui, mock_webui_internal_deps):
         """初期化とコマンドの読み込みをテスト。"""
@@ -98,7 +93,7 @@ class TestWebUI:
         app = WebUI("http://host", 5001)
 
         # ログコンテナのコンテキストマネージャをモック
-        app.log_container = mock.MagicMock()
+        app.log_container = MagicMock()
 
         app.log_message("Hello")
 

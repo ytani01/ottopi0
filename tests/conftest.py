@@ -1,28 +1,23 @@
-from unittest import mock
-
 import pytest
 from click.testing import CliRunner
 
 
 @pytest.fixture
-def mock_cli_app():
+def mock_cli_app(mocker):
     """ottopi0.clnt.cmd.Cmd をモックするフィクスチャ。"""
-    with mock.patch("ottopi0.clnt.cmd.Cmd") as MockApp:
-        yield MockApp
+    return mocker.patch("ottopi0.clnt.cmd.Cmd")
 
 
 @pytest.fixture
-def mock_bt_app():
+def mock_bt_app(mocker):
     """ottopi0.clnt.bt.Bt をモックするフィクスチャ。"""
-    with mock.patch("ottopi0.clnt.bt.Bt") as MockApp:
-        yield MockApp
+    return mocker.patch("ottopi0.clnt.bt.Bt")
 
 
 @pytest.fixture
-def mock_webui_app():
+def mock_webui_app(mocker):
     """ottopi0.clnt.webui.WebUI をモックするフィクスチャ。"""
-    with mock.patch("ottopi0.clnt.webui.WebUI") as MockApp:
-        yield MockApp
+    return mocker.patch("ottopi0.clnt.webui.WebUI")
 
 
 def cli_url_builder(host, port, apipath):

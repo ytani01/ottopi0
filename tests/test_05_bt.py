@@ -2,53 +2,52 @@
 # (c) 2025 Yoichi Tanibayashi
 #
 from typing import cast
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from ottopi0.clnt.bt import Bt
 
 
-class TestJrpcClntBt:
-    """jrpcclnt_bt.py内のJrpcClntBtのテストクラス。"""
+class TestBt:
+    """ottopi0.clnt.bt.Btのテストクラス。"""
 
     @pytest.fixture
-    def mock_deps(self):
+    def mock_deps(self, mocker):
         """依存関係をモック: PiBtInput, JrpcClient, CmdStrLib, ConfFile。"""
-        with (
-            patch("ottopi0.clnt.bt.PiBtInput") as MockPiBtInput,
-            patch("ottopi0.clnt.bt.Client") as MockJrpcClient,
-            patch("ottopi0.clnt.bt.CmdStrLib") as MockCmdStrLib,
-            patch("ottopi0.clnt.bt.ConfFile") as MockConfFile,
-        ):
-            # モックConfFileのセットアップ
-            mock_conf_instance = MockConfFile.return_value
-            mock_conf = MagicMock()
-            mock_conf_instance.conf = mock_conf
+        MockPiBtInput = mocker.patch("ottopi0.clnt.bt.PiBtInput")
+        MockJrpcClient = mocker.patch("ottopi0.clnt.bt.Client")
+        MockCmdStrLib = mocker.patch("ottopi0.clnt.bt.CmdStrLib")
+        MockConfFile = mocker.patch("ottopi0.clnt.bt.ConfFile")
 
-            # デフォルト設定構造
-            mock_conf.servo.funcs = {"_prefix": "prefix:"}
-            mock_conf.jrpc.client.bluetooth.get.return_value = {}  # デフォルトは空のキー
+        # モックConfFileのセットアップ
+        mock_conf_instance = MockConfFile.return_value
+        mock_conf = MagicMock()
+        mock_conf_instance.conf = mock_conf
 
-            # モックCmdStrLibのセットアップ
-            mock_cslib_instance = MockCmdStrLib.return_value
-            # 簡略化のために入力文字列を展開されたものとして返す、または必要に応じて変更
-            mock_cslib_instance.expand_func.side_effect = lambda x: x
+        # デフォルト設定構造
+        mock_conf.servo.funcs = {"_prefix": "prefix:"}
+        mock_conf.jrpc.client.bluetooth.get.return_value = {}  # デフォルトは空のキー
 
-            MockPiBtInput.KEY = {
-                "up": 0,
-                "hold": 2,
-                "down": 1,
-            }  # Add this line
+        # モックCmdStrLibのセットアップ
+        mock_cslib_instance = MockCmdStrLib.return_value
+        # 簡略化のために入力文字列を展開されたものとして返す
+        mock_cslib_instance.expand_func.side_effect = lambda x: x
 
-            yield {
-                "PiBtInput": MockPiBtInput,
-                "JrpcClient": MockJrpcClient,
-                "CmdStrLib": MockCmdStrLib,
-                "ConfFile": MockConfFile,
-                "conf": mock_conf,
-                "cslib": mock_cslib_instance,
-            }
+        MockPiBtInput.KEY = {
+            "up": 0,
+            "hold": 2,
+            "down": 1,
+        }  # Add this line
+
+        yield {
+            "PiBtInput": MockPiBtInput,
+            "JrpcClient": MockJrpcClient,
+            "CmdStrLib": MockCmdStrLib,
+            "ConfFile": MockConfFile,
+            "conf": mock_conf,
+            "cslib": mock_cslib_instance,
+        }
 
     def test_mk_keymap_normalization(self, mock_deps):
         """mk_keymapが 'KEY_B-KEY_A' を 'KEY_A-KEY_B' に正規化することをテスト。"""

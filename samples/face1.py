@@ -43,7 +43,9 @@ def main():
     """Main."""
 
     with ST7789V(rotation=270) as lcd:
-        image1 = Image.new("RGB", (lcd.width, lcd.height), (0, 0, 0))
+        image1 = Image.new(
+            "RGB", (lcd.size["width"], lcd.size["height"]), (0, 0, 0)
+        )
         draw1 = ImageDraw.Draw(image1)
 
         face(lcd, draw1, (128, 192, 192))

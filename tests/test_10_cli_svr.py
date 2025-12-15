@@ -1,8 +1,6 @@
 #
 # (c) 2025 Yoichi Tanibayashi
 #
-from unittest import mock
-
 import pytest
 
 from ottopi0.__main__ import cli
@@ -13,10 +11,9 @@ class TestCliSvr:
     """`ottopi0 svr` CLI コマンドの統合テスト。"""
 
     @pytest.fixture
-    def mock_uvicorn(self):
+    def mock_uvicorn(self, mocker):
         """uvicorn.run をモックするフィクスチャ。"""
-        with mock.patch("uvicorn.run") as MockUvicorn:
-            yield MockUvicorn
+        return mocker.patch("uvicorn.run")
 
     def test_cli_invocation_default(self, cli_runner, mock_uvicorn):
         """デフォルト引数でコマンドを呼び出すテスト。"""

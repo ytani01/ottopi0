@@ -1,20 +1,25 @@
-import time
 import random
 import sys
+import time
 
 # Check for Pillow
 try:
-    from PIL import Image, ImageDraw, ImageOps
+    from PIL import Image, ImageDraw
 except ImportError:
-    print("Error: PIL (Pillow) not found. Install it with: pip install pillow")
+    print(
+        "Error: PIL (Pillow) not found. Install it with: pip install pillow"
+    )
     sys.exit(1)
 
 # Check for ST7789 (Pimoroni library)
 try:
     import ST7789
+
     HAS_DISPLAY = True
 except ImportError:
-    print("Warning: ST7789 library not found. Running in preview mode (showing images on screen).")
+    print(
+        "Warning: ST7789 library not found. Running in preview mode (showing images on screen)."
+    )
     print("To install on Pi: pip install st7789")
     HAS_DISPLAY = False
 
@@ -24,17 +29,18 @@ SCREEN_HEIGHT = 240
 
 # GPIO Pins (BCM) - Adjust based on your HAT/Wiring
 SPI_PORT = 0
-SPI_CS = 1    # CE1 (often 0 or 1)
+SPI_CS = 1  # CE1 (often 0 or 1)
 DC_PIN = 9
 RST_PIN = 25
 BL_PIN = 13
 SPI_SPEED_HZ = 40 * 1000 * 1000
 
+
 def init_display():
     """Initializes the ST7789 display driver."""
     if not HAS_DISPLAY:
         return None
-    
+
     print("Initializing ST7789 Display...")
     disp = ST7789.ST7789(
         port=SPI_PORT,
@@ -44,13 +50,15 @@ def init_display():
         rst=RST_PIN,
         width=SCREEN_WIDTH,
         height=SCREEN_HEIGHT,
-        rotation=90, # 0, 90, 180, 270
-        spi_speed_hz=SPI_SPEED_HZ
+        rotation=90,  # 0, 90, 180, 270
+        spi_speed_hz=SPI_SPEED_HZ,
     )
     disp.begin()
     return disp
 
+
 # --- Drawing Logic ---
+
 
 def draw_bezier(draw, p0, p1, p2, fill, width):
     """
@@ -62,11 +70,12 @@ def draw_bezier(draw, p0, p1, p2, fill, width):
     steps = 20
     for i in range(steps + 1):
         t = i / steps
-        x = (1-t)**2 * p0[0] + 2*(1-t)*t * p1[0] + t**2 * p2[0]
-        y = (1-t)**2 * p0[1] + 2*(1-t)*t * p1[1] + t**2 * p2[1]
+        x = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t**2 * p2[0]
+        y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t**2 * p2[1]
         points.append((x, y))
-    
-    draw.line(points, fill=fill, width=width, joint='curve')
+
+    draw.line(points, fill=fill, width=width, joint="curve")
+
 
 def create_robot_face(mood, size=240, bg_color="white", line_color="black"):
     """
@@ -76,30 +85,33 @@ def create_robot_face(mood, size=240, bg_color="white", line_color="black"):
     # Create canvas
     img = Image.new("RGB", (size, size), bg_color)
     draw = ImageDraw.Draw(img)
-    
+
     # Scale factor (Reference SVG is 100x100)
     s = size / 100.0
-    
+
     # Helper for scaling coordinates
     def c(x, y):
         return (x * s, y * s)
-    
+
     # Helper for scaling width (min 1px)
     def w(width):
         return max(1, int(width * s))
 
     # --- Antenna ---
     draw.line([c(50, 20), c(50, 10)], fill=line_color, width=w(4))
-    
+
     r_ant = 4 * s
     cx_a, cy_a = c(50, 8)
-    draw.ellipse([cx_a - r_ant, cy_a - r_ant, cx_a + r_ant, cy_a + r_ant], fill=line_color)
+    draw.ellipse(
+        [cx_a - r_ant, cy_a - r_ant, cx_a + r_ant, cy_a + r_ant],
+        fill=line_color,
+    )
 
     # --- Head Box ---
     # PIL rounded rectangle expects [x0, y0, x1, y1]
     # SVG Reference: x=15, y=20, w=70, h=60
     box = [c(15, 20)[0], c(15, 20)[1], c(85, 80)[0], c(85, 80)[1]]
-    draw.rounded_rectangle(box, radius=12*s, outline=line_color, width=w(5))
+    draw.rounded_rectangle(box, radius=12 * s, outline=line_color, width=w(5))
 
     # --- Eyes Helpers ---
     eye_y = 45
@@ -107,55 +119,68 @@ def create_robot_face(mood, size=240, bg_color="white", line_color="black"):
 
     def draw_eye(cx_base, cy_base):
         cx, cy = c(cx_base, cy_base)
-        draw.ellipse([cx - eye_radius, cy - eye_radius, cx + eye_radius, cy + eye_radius], fill=line_color)
+        draw.ellipse(
+            [
+                cx - eye_radius,
+                cy - eye_radius,
+                cx + eye_radius,
+                cy + eye_radius,
+            ],
+            fill=line_color,
+        )
 
     # --- Mood Logic: Eyes ---
-    if mood == 'angry':
+    if mood == "angry":
         # Left
         draw_eye(35, eye_y)
         draw.line([c(25, 35), c(45, 45)], fill=line_color, width=w(5))
         # Right
         draw_eye(65, eye_y)
         draw.line([c(55, 45), c(75, 35)], fill=line_color, width=w(5))
-        
-    elif mood == 'wink':
+
+    elif mood == "wink":
         # Left (Open)
         draw_eye(35, eye_y)
         # Right (Wink >)
         # polyline 57,42 65,50 73,42
         points = [c(57, 42), c(65, 50), c(73, 42)]
-        draw.line(points, fill=line_color, width=w(5), joint='curve')
-        
+        draw.line(points, fill=line_color, width=w(5), joint="curve")
+
     else:
         # Normal
         draw_eye(35, eye_y)
         draw_eye(65, eye_y)
 
     # --- Mood Logic: Mouth ---
-    if mood in ['happy', 'wink']:
+    if mood in ["happy", "wink"]:
         # Smile: M 35 65 Q 50 80 65 65
         draw_bezier(draw, c(35, 65), c(50, 80), c(65, 65), line_color, w(5))
-        
-    elif mood in ['angry', 'sad']:
+
+    elif mood in ["angry", "sad"]:
         # Frown: M 35 75 Q 50 60 65 75
         draw_bezier(draw, c(35, 75), c(50, 60), c(65, 75), line_color, w(5))
-        
-    elif mood == 'surprised':
+
+    elif mood == "surprised":
         # O mouth
         r_mouth = 6 * s
         cx_m, cy_m = c(50, 70)
-        draw.ellipse([cx_m - r_mouth, cy_m - r_mouth, cx_m + r_mouth, cy_m + r_mouth], outline=line_color, width=w(5))
-        
-    else: # Neutral
+        draw.ellipse(
+            [cx_m - r_mouth, cy_m - r_mouth, cx_m + r_mouth, cy_m + r_mouth],
+            outline=line_color,
+            width=w(5),
+        )
+
+    else:  # Neutral
         draw.line([c(35, 70), c(65, 70)], fill=line_color, width=w(5))
 
     return img
 
+
 def main():
     disp = init_display()
-    
+
     # List of moods to cycle through
-    moods = ['happy', 'neutral', 'wink', 'surprised', 'sad', 'angry']
+    moods = ["happy", "neutral", "wink", "surprised", "sad", "angry"]
     print(f"Starting Robot Face Loop... (Modes: {moods})")
     print("Press Ctrl+C to exit")
 
@@ -164,10 +189,10 @@ def main():
             # Pick a random mood
             mood = random.choice(moods)
             print(f"Displaying: {mood}")
-            
+
             # Generate Image (matching screen resolution)
             img = create_robot_face(mood, size=SCREEN_WIDTH)
-            
+
             if disp:
                 # Send to ST7789
                 disp.display(img)
@@ -176,11 +201,12 @@ def main():
                 img.show()
                 # Sleep longer in debug so we don't spam windows
                 time.sleep(2)
-                
+
             time.sleep(3)
-            
+
     except KeyboardInterrupt:
         print("\nExiting...")
+
 
 if __name__ == "__main__":
     main()

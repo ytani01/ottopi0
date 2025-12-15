@@ -6,7 +6,7 @@ from ottopi0.__main__ import cli
 from tests.conftest import assert_cli_result, cli_url_builder
 
 
-class TestCliJrpcClntBt:
+class TestCliBt:
     """`ottopi0 bt` CLI コマンドの統合テスト。"""
 
     def test_cli_invocation_default(self, cli_runner, mock_bt_app):

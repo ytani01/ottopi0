@@ -2,7 +2,7 @@
 # (c) 2025 Yoichi Tanibayashi
 #
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -13,30 +13,23 @@ from fastapi.testclient import TestClient
 
 
 @pytest.fixture(scope="function")
-def mock_env_and_deps(mocker):  # Add mocker as an argument
-    """jrpcsvr.pyの外部依存関係を全てモックする包括的なフィクスチャ。
-    インポート前に実行される。モジュールごとに一度だけ実行。
+def mock_env_and_deps(mocker):
+    """ottopi0.svr.svr.pyの外部依存関係を全てモックする包括的なフィクスチャ。
+    インポート前に実行される。
     """
-    # 環境変数をモック (mocker.patch.dictを使用)
+    # 環境変数をモック
     mocker.patch.dict(
         os.environ, {"ottopi0_DEBUG": "1", "ottopi0_SERVO_PINS": "20-,26"}
     )
 
     # ライブラリをモック
-    patcher_pigpio = patch("ottopi0.svr.svr.pigpio", spec=True)
-    patcher_logger = patch(
+    mock_pigpio = mocker.patch("ottopi0.svr.svr.pigpio", spec=True)
+    mock_logger = mocker.patch(
         "ottopi0.svr.svr.get_logger", return_value=MagicMock()
     )
-    patcher_servo = patch("ottopi0.svr.svr.Servo", spec=True)
-    patcher_calc = patch("ottopi0.svr.svr.Calc", spec=True)
-    patcher_dispatcher = patch("ottopi0.svr.svr.dispatcher", spec=True)
-
-    # 全てのパッチャーを開始
-    mock_pigpio = patcher_pigpio.start()
-    mock_logger = patcher_logger.start()
-    mock_servo = patcher_servo.start()
-    mock_calc = patcher_calc.start()
-    mock_dispatcher = patcher_dispatcher.start()
+    mock_servo = mocker.patch("ottopi0.svr.svr.Servo", spec=True)
+    mock_calc = mocker.patch("ottopi0.svr.svr.Calc", spec=True)
+    mock_dispatcher = mocker.patch("ottopi0.svr.svr.dispatcher", spec=True)
 
     yield {
         "pigpio": mock_pigpio,
@@ -45,13 +38,6 @@ def mock_env_and_deps(mocker):  # Add mocker as an argument
         "Calc": mock_calc,
         "dispatcher": mock_dispatcher,
     }
-
-    # 全てのパッチャーを逆順に停止
-    patcher_dispatcher.stop()
-    patcher_calc.stop()
-    patcher_servo.stop()
-    patcher_logger.stop()
-    patcher_pigpio.stop()
 
 
 # This fixture depends on the module-level setup fixture
@@ -67,8 +53,8 @@ def client(mock_env_and_deps):
         yield test_client
 
 
-class TestJrpcsvr:
-    """jrpcsvr.pyのテストクラス。"""
+class TestSvr:
+    """ottopi0.svr.svr.pyのテストクラス。"""
 
     def test_lifespan_startup(self, client, mock_env_and_deps):
         """ライフスパンマネージャーの起動部分をテスト。
@@ -114,9 +100,12 @@ class TestJrpcsvr:
         mock_servo_instance._end.assert_called_once()
         mock_pigpio_instance.stop.assert_called_once()
 
-    @patch("ottopi0.svr.svr.JSONRPCResponseManager.handle")
-    def test_handle_req_success(self, mock_handle, client, mock_env_and_deps):
+    def test_handle_req_success(self, client, mock_env_and_deps, mocker):
         """成功したJSON-RPC応答で/apiエンドポイントをテスト。"""
+        mock_handle = mocker.patch(
+            "ottopi0.svr.svr.JSONRPCResponseManager.handle"
+        )
+
         json_payload = {"jsonrpc": "2.0", "id": 1, "method": "test"}
 
         mock_response = MagicMock()
@@ -134,9 +123,10 @@ class TestJrpcsvr:
             mock_env_and_deps["dispatcher"],
         )
 
-    @patch("ottopi0.svr.svr.JSONRPCResponseManager.handle")
-    def test_handle_req_no_response(self, mock_handle, client):
+    def test_handle_req_no_response(self, client, mocker):
         """応答マネージャーが何も返さない場合の/apiエンドポイントをテスト。"""
+        mocker.patch("ottopi0.svr.svr.JSONRPCResponseManager.handle")
+
         json_payload = {"jsonrpc": "2.0", "id": 1, "method": "notify"}
         # 通知用
 

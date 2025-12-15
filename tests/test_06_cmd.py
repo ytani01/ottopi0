@@ -2,29 +2,28 @@
 # (c) 2025 Yoichi Tanibayashi
 #
 from typing import cast
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
 from ottopi0.clnt.cmd import Cmd
 
 
-class TestJrpcClntCli:
-    """JrpcClntCliのテストクラス。"""
+class TestCmd:
+    """JrpcClntCli (Cmd) のテストクラス。"""
 
     @pytest.fixture
-    def mock_deps(self):
+    def mock_deps(self, mocker):
         """依存関係をモック: JrpcClient, readline, os。"""
-        with (
-            patch("ottopi0.clnt.cmd.Client") as MockJrpcClient,
-            patch("ottopi0.clnt.cmd.readline") as MockReadline,
-            patch("ottopi0.clnt.cmd.os") as MockOs,
-        ):
-            yield {
-                "JrpcClient": MockJrpcClient,
-                "readline": MockReadline,
-                "os": MockOs,
-            }
+        MockJrpcClient = mocker.patch("ottopi0.clnt.cmd.Client")
+        MockReadline = mocker.patch("ottopi0.clnt.cmd.readline")
+        MockOs = mocker.patch("ottopi0.clnt.cmd.os")
+
+        yield {
+            "JrpcClient": MockJrpcClient,
+            "readline": MockReadline,
+            "os": MockOs,
+        }
 
     @pytest.fixture
     def cmd_app_instance(self, mock_deps):
@@ -38,25 +37,23 @@ class TestJrpcClntCli:
             "readline"
         ].read_history_file.assert_called()  # 履歴ファイルが読み込まれたことを確認
 
-    def test_main_loop_command(self, mock_deps, cmd_app_instance):
+    def test_main_loop_command(self, mock_deps, cmd_app_instance, mocker):
         """メインループでのコマンド処理をテスト。"""
         # コマンドを返し、その後EOFを返すように入力をモック
-        # (Ctrl-DをシミュレートするEOFErrorを発生させるか、ループを終了させるか？)
-        # コードはEOFErrorをキャッチして中断する。
-        with patch("builtins.input", side_effect=["cmd1", EOFError()]):
-            cmd_app_instance.main()
+        mocker.patch("builtins.input", side_effect=["cmd1", EOFError()])
+        cmd_app_instance.main()
 
         # "cmd1"でjrpc_callが呼び出されたことを確認
         cast(
             MagicMock, cmd_app_instance.jrpcclnt.jrpc_call
         ).assert_called_with("cmd1")
 
-    def test_main_loop_comment(self, mock_deps, cmd_app_instance):
+    def test_main_loop_comment(self, mock_deps, cmd_app_instance, mocker):
         """メインループでのコメント除去をテスト。"""
-        with patch(
+        mocker.patch(
             "builtins.input", side_effect=["cmd # comment", EOFError()]
-        ):
-            cmd_app_instance.main()
+        )
+        cmd_app_instance.main()
 
         # "cmd # comment" -> "cmd " (partitionはセパレータを保持するか？
         # いいえ、[0]はセパレータの前)
