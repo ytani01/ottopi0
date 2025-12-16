@@ -349,12 +349,12 @@ def main():
 
                 print(f"表情変更: {mood_name}")
                 # 2〜4秒間その表情をキープ
-                next_change_time = now + random.uniform(2.0, 4.0)
+                next_change_time = now + random.uniform(3.0, 5.0)
 
             # 1b. ランダムに視線（gaze_x）を変更
             if now > next_gaze_time:
                 # -20 ~ +20 の範囲でランダム
-                target_state.gaze_x = random.uniform(-20, 20)
+                target_state.gaze_x = random.uniform(-5, 5)
                 # 次の視線変更までの時間 (0.5秒〜2.0秒)
                 next_gaze_time = now + random.uniform(0.5, 2.0)
 

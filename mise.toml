@@ -48,6 +48,7 @@ uv pip install -U ../pi0disp
 
 uv pip install -U -e .
 uv pip install -U --group dev -e .
+uv pip install -U --group samples -e .
 '''
 alias = "uppj"
 #depends = ["upgradeuv"]
