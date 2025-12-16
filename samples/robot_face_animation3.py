@@ -59,6 +59,7 @@ class FaceState:
         wink_left=1.0,
         wink_right=1.0,
         mouth_open=0,
+        gaze_x=0,
     ):
         self.mouth_curve = (
             mouth_curve  # 口の曲がり具合: +20(笑顔) ～ -20(への字)
@@ -68,6 +69,7 @@ class FaceState:
         self.wink_left = wink_left  # 左目の開き具合: 1.0(開) ～ 0.1(閉)
         self.wink_right = wink_right  # 右目の開き具合
         self.mouth_open = mouth_open  # 口の開き具合: 0(線) ～ 1(丸)
+        self.gaze_x = gaze_x  # 視線の水平位置: 0(正面), +20(右), -20(左)
 
     def copy(self):
         return FaceState(
@@ -77,6 +79,7 @@ class FaceState:
             self.wink_left,
             self.wink_right,
             self.mouth_open,
+            self.gaze_x,
         )
 
 
@@ -116,6 +119,7 @@ def interpolate_state(current, target, speed=0.1):
     new_state.wink_left = lerp(current.wink_left, target.wink_left, speed)
     new_state.wink_right = lerp(current.wink_right, target.wink_right, speed)
     new_state.mouth_open = lerp(current.mouth_open, target.mouth_open, speed)
+    new_state.gaze_x = lerp(current.gaze_x, target.gaze_x, speed)
     return new_state
 
 
@@ -184,7 +188,10 @@ def draw_face(draw, state, size=240):
     # 目の描画関数
     eye_y = 45
 
-    def draw_eye(cx, scale_y, tilt_angle):
+    def draw_eye(base_cx, scale_y, tilt_angle):
+        # 視線を反映
+        cx = base_cx + state.gaze_x
+
         # 目の基本半径
         r = state.eye_height * s
         # まばたき・ウインクによる縦方向の潰れ
@@ -313,7 +320,10 @@ def main():
     # 初期状態
     current_state = MOODS["neutral"].copy()
     target_state = MOODS["neutral"]
+
+    # 次の視線変更時刻
     next_change_time = time.time() + 2
+    next_gaze_time = time.time() + 1.0
 
     print("ロボットフェイス アニメーション開始...")
     print("終了するには Ctrl+C を押してください")
@@ -322,13 +332,31 @@ def main():
         while True:
             now = time.time()
 
-            # 1. 一定時間ごとに次の表情をランダムに決定
+            # 1a. 一定時間ごとに次の表情をランダムに決定
             if now > next_change_time:
                 mood_name = random.choice(list(MOODS.keys()))
-                target_state = MOODS[mood_name]
+                # gaze_x は現在のターゲットのものを維持するか、個別に管理する
+                # ここでは MOODS に gaze_x は定義していない(デフォルト0)ので、
+                # target_state更新時に現在の gaze_x を上書きしないように注意が必要だが
+                # MOODS定義自体には gaze_x=0 が入るため、表情変更で視線もリセットされる挙動になる。
+                # 視線を独立させたい場合は target_state.gaze_x を別途保存・復元する必要がある。
+
+                new_mood = MOODS[mood_name]
+                # 視線ターゲットは維持する（または別途ランダム変更されるのを待つ）
+                current_target_gaze = target_state.gaze_x
+                target_state = new_mood.copy()
+                target_state.gaze_x = current_target_gaze
+
                 print(f"表情変更: {mood_name}")
                 # 2〜4秒間その表情をキープ
                 next_change_time = now + random.uniform(2.0, 4.0)
+
+            # 1b. ランダムに視線（gaze_x）を変更
+            if now > next_gaze_time:
+                # -20 ~ +20 の範囲でランダム
+                target_state.gaze_x = random.uniform(-20, 20)
+                # 次の視線変更までの時間 (0.5秒〜2.0秒)
+                next_gaze_time = now + random.uniform(0.5, 2.0)
 
             # 2. 現在の状態をターゲットに少し近づける (イージング効果)
             # speed=0.15 は毎フレーム残りの距離の15%ずつ近づくという意味
