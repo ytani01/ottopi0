@@ -50,6 +50,9 @@ dev = [
     "pytest-mock>=0.14.0",
     "isort>=7.0.0",
 ]
+samples = [
+    "opencv-python>=4.11.0.86",
+]
 
 [tool.ruff.format]
 docstring-code-line-length = 78

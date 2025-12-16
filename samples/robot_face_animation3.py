@@ -1,5 +1,6 @@
 import math
 import random
+import socket
 import sys
 import time
 
@@ -14,17 +15,31 @@ except ImportError:
     sys.exit(1)
 
 # ディスプレイ制御用 (Raspberry Pi + ST7789用)
-# PCでテストする場合はエラーになってもプレビューモード(表示なし)で動きます
+# PCでテストする場合はエラーになってもプレビューモードで動きます
 try:
     from pi0disp import ST7789V
 
     HAS_DISPLAY = True
 except ImportError:
-    print(
-        "警告: ST7789 ライブラリが見つかりません。プレビューモードで動作します（画面出力なし）。"
-    )
-    print("Piで実行する場合はインストールしてください: pip install st7789")
     HAS_DISPLAY = False
+
+# PCプレビュー用 (OpenCV)
+try:
+    import cv2
+    import numpy as np
+
+    HAS_OPENCV = True
+except ImportError:
+    HAS_OPENCV = False
+
+# 動作モード決定
+# 優先順位:
+# 1. SSD7789V (実機)
+# 2. OpenCV (PCプレビュー)
+# 3. なし (コンソールのみ)
+
+USE_PREVIEW = False  # デフォルト値（main関数で最終決定）
+
 
 # --- 設定 ---
 SCREEN_WIDTH = 320
@@ -104,12 +119,34 @@ def interpolate_state(current, target, speed=0.1):
     return new_state
 
 
+def check_pigpio(host="localhost", port=8888, timeout=0.1):
+    """pigpioデーモンが動いているかチェックする"""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
 def init_display():
+    """ディスプレイを初期化する。失敗した場合はNoneを返す"""
     if not HAS_DISPLAY:
         return None
-    print("ST7789 ディスプレイを初期化中...")
-    disp = ST7789V(rotation=270)
-    return disp
+
+    # pigpioデーモンの存在確認 (これをしないと pigpio.pi() で長時間ハングする)
+    if not check_pigpio():
+        print("警告: pigpioデーモン(port 8888)が見つかりません。")
+        return None
+
+    try:
+        print("ST7789 ディスプレイを初期化中...")
+        disp = ST7789V(rotation=270)
+        return disp
+    except Exception as e:
+        print(
+            f"警告: ST7789の初期化に失敗しました (これはPC環境では正常です): {e}"
+        )
+        return None
 
 
 def draw_face(draw, state, size=240):
@@ -252,7 +289,26 @@ def draw_face(draw, state, size=240):
 
 
 def main():
+    global USE_PREVIEW
+
+    # ディスプレイ初期化試行
     disp = init_display()
+
+    # ディスプレイが使えない場合、OpenCVプレビューを試みる
+    if disp is None:
+        if HAS_OPENCV:
+            USE_PREVIEW = True
+            print("OpenCVによるプレビューモードで動作します。")
+        else:
+            print(
+                "警告: ディスプレイもOpenCVも使用できません。画面出力なしで動作します。"
+            )
+            if not HAS_DISPLAY:
+                print("  - ST7789ライブラリが見つかりません")
+            if not HAS_OPENCV:
+                print(
+                    "  - OpenCV (cv2) が見つかりません (pip install opencv-python numpy)"
+                )
 
     # 初期状態
     current_state = MOODS["neutral"].copy()
@@ -296,9 +352,19 @@ def main():
                 centering=(0.1, 0.5),
             )
 
-            # 4. ディスプレイ転送
-            if disp:
+            # 4. ディスプレイ転送 or PCプレビュー
+            if HAS_DISPLAY and disp:
                 disp.display(img)
+
+            elif USE_PREVIEW:
+                # PIL -> OpenCV (BGR)
+                frame = np.array(img)
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                cv2.imshow("Robot Face (Preview)", frame)
+                # キー入力待機 (1ms)。これがないとウィンドウが更新されない
+                key = cv2.waitKey(1) & 0xFF
+                if key == 27:  # ESCキーで終了
+                    break
 
             # フレームレート調整
             time.sleep(0.1)
@@ -307,7 +373,10 @@ def main():
         print("\n終了します...")
 
     finally:
-        disp.close(True)
+        if HAS_DISPLAY and disp:
+            disp.close(True)
+        if USE_PREVIEW:
+            cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
