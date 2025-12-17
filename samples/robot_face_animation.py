@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 import click
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageColor, ImageDraw, ImageOps
 
 from ottopi0 import __version__, click_common_opts, errmsg, get_logger
 
@@ -36,9 +36,8 @@ except ImportError:
 class EyeState:
     openness: float = 1.0  # 目の開き具合 (0.0: 閉, 1.0: 開)
     size: float = 8.0  # 目の大きさの基準となる半径
-    curve: float = (
-        0.0  # 閉じたときの目の曲がり具合 (-1.0: 谷, 0.0: 直線, 1.0: 山)
-    )
+    # 閉じたときの目の曲がり具合 (-1.0: 谷, 0.0: 直線, 1.0: 山)
+    curve: float = 0.0
 
     def copy(self):
         return EyeState(self.openness, self.size, self.curve)
@@ -170,6 +169,34 @@ class RobotFace:
     LINE_COLOR = "black"
     FACE_BG_COLOR = (255, 255, 220)
 
+    # レイアウト定数 (顔のパーツの相対座標)
+    LAYOUT = {
+        "eye_y": 45,
+        "eye_offset": 32,
+        "brow_y_offset": -12,  # 目のY座標からのオフセット
+        "mouth_cy": 70,
+        "mouth_width": 30,
+        "mouth_open_radius_factor": 8,
+        "mouth_curve_p0_x": 35,
+        "mouth_curve_p2_x": 65,
+        "eye_closed_bezier_offset_x": 8,
+        "eye_closed_bezier_offset_y": 2,
+        "eye_closed_line_offset_x": 7,
+        "brow_bezier_offset_x": 9,
+        "brow_bezier_y_offset_factor": 10,
+    }
+
+    # カラー定数
+    COLORS = {
+        "line": "black",
+        "face_bg": (255, 255, 220),
+        "brow": (128, 64, 64),
+        "eye_outline": (0, 0, 192),  # 開いている目の輪郭
+        "mouth_line": (255, 32, 0),  # 口の線
+        "mouth_fill": (128, 0, 0),  # 開いている口の塗りつぶし
+        "eye_fill": "white",  # 開いている目の塗りつぶし
+    }
+
     MOODS = {
         "neutral": FaceState(brow_tilt=0),
         "happy": FaceState(
@@ -241,31 +268,9 @@ class RobotFace:
         # 描画用ヘルパー係数
         self.scale = size / 100.0
 
-        # アニメーションタイミング管理
-        now = time.time()
-        self._next_mood_time: float = now + 5.0
-        self._next_gaze_time: float = now + 5.0
-
         # 視線状態管理
         self.current_gaze_x: float = 0.0
         self.target_gaze_x: float = 0.0
-
-    def animate_step(self):
-        """アニメーションのステップを実行する"""
-        now = time.time()
-
-        # 表情変更
-        if now > self._next_mood_time:
-            new_mood = random.choice(list(self.MOODS.keys()))
-            print(f"表情: {new_mood}")
-            self.set_target_mood(new_mood)
-            self._next_mood_time = now + random.uniform(3.0, 5.0)
-
-        # 視線変更
-        if now > self._next_gaze_time:
-            gaze = random.uniform(-10, 10)
-            self.set_gaze(gaze)
-            self._next_gaze_time = now + random.uniform(0.5, 2.0)
 
     def update(self, speed=0.5):
         """状態をターゲットに近づける"""
@@ -339,15 +344,26 @@ class RobotFace:
             # 目が閉じている場合
             if eye_state.curve != 0:
                 # ベジェ曲線
-                p0 = self._xy(real_cx - 8, eye_y + 2)
-                p1 = self._xy(real_cx, eye_y - 8 * eye_state.curve)
-                p2 = self._xy(real_cx + 8, eye_y + 2)
+                p0 = self._xy(
+                    real_cx - self.LAYOUT["eye_closed_bezier_offset_x"],
+                    eye_y + self.LAYOUT["eye_closed_bezier_offset_y"],
+                )
+                p1 = self._xy(
+                    real_cx,
+                    eye_y
+                    - self.LAYOUT["eye_closed_bezier_offset_x"]
+                    * eye_state.curve,
+                )
+                p2 = self._xy(
+                    real_cx + self.LAYOUT["eye_closed_bezier_offset_x"],
+                    eye_y + self.LAYOUT["eye_closed_bezier_offset_y"],
+                )
                 self._draw_bezier_curve(
                     draw,
                     p0,
                     p1,
                     p2,
-                    color=self.LINE_COLOR,
+                    color=self.COLORS["line"],
                     width=self._w(4),
                     steps=10,
                 )
@@ -355,10 +371,16 @@ class RobotFace:
                 # 直線
                 draw.line(
                     [
-                        self._xy(real_cx - 7, eye_y),
-                        self._xy(real_cx + 7, eye_y),
+                        self._xy(
+                            real_cx - self.LAYOUT["eye_closed_line_offset_x"],
+                            eye_y,
+                        ),
+                        self._xy(
+                            real_cx + self.LAYOUT["eye_closed_line_offset_x"],
+                            eye_y,
+                        ),
                     ],
-                    fill=self.LINE_COLOR,
+                    fill=self.COLORS["line"],
                     width=self._w(4),
                 )
         else:
@@ -366,42 +388,92 @@ class RobotFace:
             s_cx, s_cy = self._xy(real_cx, eye_y)
             bbox = [s_cx - r, s_cy - ry, s_cx + r, s_cy + ry]
             draw.ellipse(
-                bbox, outline=(0, 0, 192), fill="white", width=self._w(10)
+                bbox,
+                outline=self.COLORS["eye_outline"],
+                fill=self.COLORS["eye_fill"],
+                width=self._w(10),
             )
 
-        # 眉毛
-        if abs(tilt) > 1:
-            brow_y = eye_y - 12
-            offset_y = math.tan(math.radians(tilt)) * 10
-            # 左目(cx<50)と右目で傾きの符号を変える簡易ロジック
-            # 実際には引数でleft/rightフラグをもらう方が綺麗だが、ここでは座標判定
-            if cx < 50:
-                p1 = self._xy(real_cx - 9, brow_y - offset_y)
-                p2 = self._xy(real_cx + 9, brow_y + offset_y)
-            else:
-                p1 = self._xy(real_cx - 9, brow_y + offset_y)
-                p2 = self._xy(real_cx + 9, brow_y - offset_y)
-            draw.line([p1, p2], fill=(128, 64, 64), width=self._w(5))
+    def _draw_brows(self, draw, left_cx, right_cx, eye_y, brow_tilt):
+        if abs(brow_tilt) > 1:
+            brow_y = eye_y + self.LAYOUT["brow_y_offset"]
+            offset_y = (
+                math.tan(math.radians(brow_tilt))
+                * self.LAYOUT["brow_bezier_y_offset_factor"]
+            )
 
-    def draw(self, screen_width: int, screen_height: int, bg_color: str):
-        # 画像生成
-        # 正方形キャンバスを作成してからパディングする
-        img = Image.new("RGB", (self.size, self.size), bg_color)
-        draw = ImageDraw.Draw(img)
+            # 左眉
+            p1_l = self._xy(
+                left_cx - self.LAYOUT["brow_bezier_offset_x"],
+                brow_y - offset_y,
+            )
+            p2_l = self._xy(
+                left_cx + self.LAYOUT["brow_bezier_offset_x"],
+                brow_y + offset_y,
+            )
+            draw.line(
+                [p1_l, p2_l], fill=self.COLORS["brow"], width=self._w(5)
+            )
 
-        # 輪郭
+            # 右眉
+            # 右目の眉毛はX軸方向のオフセットの符号が逆になる
+            p1_r = self._xy(
+                right_cx - self.LAYOUT["brow_bezier_offset_x"],
+                brow_y + offset_y,
+            )
+            p2_r = self._xy(
+                right_cx + self.LAYOUT["brow_bezier_offset_x"],
+                brow_y - offset_y,
+            )
+            draw.line(
+                [p1_r, p2_r], fill=self.COLORS["brow"], width=self._w(5)
+            )
+
+    def _draw_outline(self, draw):
         box = [*self._xy(0, 0), *self._xy(100, 100)]
         draw.rounded_rectangle(
             box,
             radius=20 * self.scale,
-            outline="black",
-            fill=self.FACE_BG_COLOR,
+            outline=self.COLORS["line"],
+            fill=self.COLORS["face_bg"],
             width=1,
         )
 
-        # 目
-        eye_y = 45
-        eye_offset = 32
+    def _draw_mouth(self, draw):
+        mouth_cx = 50  # 水平中央
+        mouth_cy = self.LAYOUT["mouth_cy"]
+        st = self.current_state
+
+        if st.mouth_open > 0.5:
+            # 丸い口 (驚きなど)
+            factor = (st.mouth_open - 0.5) * 2
+            r = self.LAYOUT["mouth_open_radius_factor"] * self.scale * factor
+            if r > 1:
+                cx, cy = self._xy(mouth_cx, mouth_cy)
+                draw.ellipse(
+                    [cx - r, cy - r * 1.2, cx + r, cy + r * 1.2],
+                    outline=self.COLORS["mouth_line"],
+                    fill=self.COLORS["mouth_fill"],
+                    width=self._w(4),
+                )
+        if st.mouth_open <= 0.5:
+            # カーブする口
+            p0 = self._xy(mouth_cx - self.LAYOUT["mouth_width"] / 2, mouth_cy)
+            p2 = self._xy(mouth_cx + self.LAYOUT["mouth_width"] / 2, mouth_cy)
+            p1 = self._xy(mouth_cx, mouth_cy + st.mouth_curve)
+
+            self._draw_bezier_curve(
+                draw,
+                p0,
+                p1,
+                p2,
+                color=self.COLORS["mouth_line"],
+                width=self._w(5),
+            )
+
+    def _draw_eyes(self, draw):
+        eye_y = self.LAYOUT["eye_y"]
+        eye_offset = self.LAYOUT["eye_offset"]
         self._draw_eye(
             draw,
             eye_offset,
@@ -419,32 +491,27 @@ class RobotFace:
             self.current_gaze_x,
         )
 
-        # 口
-        mouth_cx, mouth_cy = 50, 70
-        mouth_line_color = (255, 32, 0)
-        st = self.current_state
+    def draw(self, screen_width: int, screen_height: int, bg_color: tuple):
+        # 画像生成
+        # 正方形キャンバスを作成してからパディングする
+        img = Image.new("RGB", (self.size, self.size), bg_color)
+        draw = ImageDraw.Draw(img)
 
-        if st.mouth_open > 0.5:
-            # 丸い口 (驚きなど)
-            factor = (st.mouth_open - 0.5) * 2
-            r = 8 * self.scale * factor
-            if r > 1:
-                cx, cy = self._xy(mouth_cx, mouth_cy)
-                draw.ellipse(
-                    [cx - r, cy - r * 1.2, cx + r, cy + r * 1.2],
-                    outline=mouth_line_color,
-                    fill=(128, 0, 0),
-                    width=self._w(4),
-                )
-        if st.mouth_open <= 0.5:
-            # カーブする口
-            p0 = self._xy(35, mouth_cy)
-            p2 = self._xy(65, mouth_cy)
-            p1 = self._xy(50, mouth_cy + st.mouth_curve)
-
-            self._draw_bezier_curve(
-                draw, p0, p1, p2, color=mouth_line_color, width=self._w(5)
-            )
+        self._draw_outline(draw)
+        self._draw_eyes(draw)
+        # 眉毛は目の上に描画されるべきなので、ここで呼び出す
+        eye_y = self.LAYOUT["eye_y"]
+        eye_offset = self.LAYOUT["eye_offset"]
+        left_eye_cx = eye_offset  # 視線に追従しない眉毛のX座標
+        right_eye_cx = 100 - eye_offset
+        self._draw_brows(
+            draw,
+            left_eye_cx,
+            right_eye_cx,
+            eye_y,
+            self.current_state.brow_tilt,
+        )
+        self._draw_mouth(draw)
 
         # パディングして画面サイズに合わせる (中央寄せなど)
         final_img = ImageOps.pad(
@@ -459,9 +526,11 @@ class RobotFace:
 class RobotFaceApp:
     """Robot face App class."""
 
+    GAZE_WIDTH = 5
+
     def __init__(
         self,
-        mood: str,
+        init_mood: str,
         output: DisplayOutput,
         screen_width: int,
         screen_height: int,
@@ -471,13 +540,19 @@ class RobotFaceApp:
         """Constractor."""
         self.__debug = debug
         self.__log = get_logger(self.__class__.__name__, self.__debug)
-        self.__log.debug("mood=%a", mood)
+        self.__log.debug("init_mood=%a", init_mood)
 
-        self.mood = mood
+        self.mood = init_mood
         self.output = output
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.bg_color = bg_color
+        self.bg_color_tuple = ImageColor.getrgb(bg_color)
+
+        # アニメーションタイミング管理
+        now = time.time()
+        self._next_mood_time: float = now + 5.0
+        self._next_gaze_time: float = now + 5.0
 
         try:
             face_size = min(self.screen_width, self.screen_height)
@@ -496,12 +571,25 @@ class RobotFaceApp:
             self.__log.info("mood=%a", self.mood)
 
         while True:
-            self.face.animate_step()
+            now = time.time()
+
+            # 表情変更
+            if now > self._next_mood_time:
+                new_mood = random.choice(list(self.face.MOODS.keys()))
+                print(f"mood: {new_mood}")
+                self.face.set_target_mood(new_mood)
+                self._next_mood_time = now + random.uniform(3.0, 5.0)
+
+            # 視線変更
+            if now > self._next_gaze_time:
+                gaze = random.uniform(-self.GAZE_WIDTH, self.GAZE_WIDTH)
+                self.face.set_gaze(gaze)
+                self._next_gaze_time = now + random.uniform(0.5, 2.0)
 
             # 更新と描画
             self.face.update(speed=0.5)
             img = self.face.draw(
-                self.screen_width, self.screen_height, self.bg_color
+                self.screen_width, self.screen_height, self.bg_color_tuple
             )
             self.output.show(img)
 
