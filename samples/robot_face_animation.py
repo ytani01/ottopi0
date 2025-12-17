@@ -65,7 +65,7 @@ MOODS = {
         mouth_curve=15, eye_height=8, eye_tilt=0, wink_right=0.1
     ),
     "surprised": FaceState(
-        mouth_curve=0, eye_height=11, eye_tilt=0, mouth_open=1.0
+        mouth_curve=0, eye_height=12, eye_tilt=0, mouth_open=1.0
     ),
     "sleepy": FaceState(
         mouth_curve=0, eye_height=8, eye_tilt=0, wink_left=0.1, wink_right=0.1
