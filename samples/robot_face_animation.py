@@ -35,12 +35,10 @@ except ImportError:
     HAS_OPENCV = False
 
 
-# --- 設定 ---
-
-
-# --- 状態クラス ---
 @dataclass
 class EyeState:
+    """Eye status."""
+
     openness: float = 1.0  # 目の開き具合 (0.0: 閉, 1.0: 開)
     size: float = 8.0  # 目の大きさの基準となる半径
     # 閉じたときの目の曲がり具合 (-1.0: 谷, 0.0: 直線, 1.0: 山)
@@ -52,8 +50,10 @@ class EyeState:
 
 @dataclass
 class FaceState:
+    """Face status."""
+
     mouth_curve: float = 0  # 口の曲がり具合: +20(笑顔) ～ -20(への字)
-    brow_tilt: float = 0  # 眉毛の角度
+    brow_tilt: float = 0  # 眉毛の角度(abs(brow_tilt) <= 1: 描画しない)
     mouth_open: float = 0  # 口の開き具合: 0(線) ～ 1(丸)
     left_eye: EyeState = field(default_factory=EyeState)
     right_eye: EyeState = field(default_factory=EyeState)
@@ -68,16 +68,9 @@ class FaceState:
         )
 
 
-# --- 表情定義 ---
-
-
-# --- ヘルパー関数 ---
 def lerp(a, b, t):
-    """線形補間"""
+    """線形補間:ヘルパー関数."""
     return a + (b - a) * t
-
-
-# --- クラス定義 ---
 
 
 class DisplayOutput(ABC):
@@ -85,9 +78,9 @@ class DisplayOutput(ABC):
 
     def __init__(self, debug=False):
         """Constructor."""
-        self._debug = debug
-        self._log = get_logger(self.__class__.__name__, self._debug)
-        self._log.debug("initialized DisplayOutput (abstract)")
+        self.__debug = debug
+        self.__log = get_logger(DisplayOutput.__name__, self.__debug)
+        self.__log.debug("(abstract)")
 
     @abstractmethod
     def show(self, pil_image):
@@ -101,12 +94,33 @@ class DisplayOutput(ABC):
 
 
 class LcdOutput(DisplayOutput):
-    """LCDへの出力を担当する具象クラス"""
+    """LCD Output (ST7789V)."""
 
     def __init__(self, debug=False):
-        super().__init__(debug)
-        self.lcd = ST7789V(rotation=270)
-        self._log.debug("initialized LcdOutput")
+        super().__init__(debug=debug)
+        self.__debug = debug
+        self.__log = get_logger(self.__class__.__name__, self.__debug)
+
+        if not self._check_pigpio():
+            msg = "no pigpiod"
+            self.__log.warning(msg)
+            raise RuntimeError(msg)
+
+        try:
+            self.lcd = ST7789V(rotation=270)
+        except Exception as e:
+            self.__log.error(errmsg(e))
+            raise RuntimeError(errmsg(e))
+
+        self.__log.debug("Found LCD, returning LcdOutput.")
+
+    def _check_pigpio(self, host="localhost", port=8888, timeout=0.1):
+        """pigpioデーモンの存在確認"""
+        try:
+            with socket.create_connection((host, port), timeout=timeout):
+                return True
+        except OSError:
+            return False
 
     def show(self, pil_image):
         self.lcd.display(pil_image)
@@ -116,11 +130,13 @@ class LcdOutput(DisplayOutput):
 
 
 class PreviewOutput(DisplayOutput):
-    """OpenCVウィンドウへの出力を担当する具象クラス"""
+    """OpenCV."""
 
     def __init__(self, debug=False):
         super().__init__(debug)
-        self._log.debug("initialized PreviewOutput")
+        self.__debug = debug
+        self.__log = get_logger(self.__class__.__name__, self.__debug)
+        self.__log.debug("initialized PreviewOutput")
 
     def show(self, pil_image):
         # PIL -> OpenCV (BGR)
@@ -135,29 +151,16 @@ class PreviewOutput(DisplayOutput):
         cv2.destroyAllWindows()
 
 
-def _check_pigpio(host="localhost", port=8888, timeout=0.1):
-    """pigpioデーモンの存在確認"""
-    try:
-        with socket.create_connection((host, port), timeout=timeout):
-            return True
-    except OSError:
-        return False
-
-
 def create_output_device(debug=False) -> DisplayOutput:
-    """利用可能な出力デバイスを検出し、適切なDisplayOutputインスタンスを返すファクトリ関数"""
-    _log = get_logger("create_output_device", debug)
+    """利用可能な出力デバイスを検出して返すファクトリ関数"""
+    _log = get_logger("()", debug)
 
     # 1. ハードウェア (ST7789) の確認
     if HAS_LCD:
-        if _check_pigpio():
-            try:
-                _log.debug("Found LCD, returning LcdOutput.")
-                return LcdOutput(debug=debug)
-            except Exception as e:
-                _log.warning(errmsg(e))
-        else:
-            _log.warning("no pigpiod")
+        try:
+            return LcdOutput(debug=debug)
+        except Exception as e:
+            _log.error(errmsg(e))
 
     # 2. OpenCVプレビュー
     if HAS_OPENCV:
@@ -317,7 +320,7 @@ class RobotFace:
     def _w(self, width):
         return max(1, int(width * self.scale))
 
-    def _draw_bezier_curve(self, draw, p0, p1, p2, color, width, steps=15):
+    def _draw_bezier_curve(self, draw, p0, p1, p2, color, width, steps=5):
         """3点の制御点からベジェ曲線を計算して描画する"""
         points = []
         for i in range(steps + 1):
@@ -346,50 +349,7 @@ class RobotFace:
         ry = r * eye_state.openness
 
         # 描画
-        if ry < 4:
-            # 目が閉じている場合
-            if eye_state.curve != 0:
-                # ベジェ曲線
-                p0 = self._xy(
-                    real_cx - self.LAYOUT["eye_closed_bezier_offset_x"],
-                    eye_y + self.LAYOUT["eye_closed_bezier_offset_y"],
-                )
-                p1 = self._xy(
-                    real_cx,
-                    eye_y
-                    - self.LAYOUT["eye_closed_bezier_offset_x"]
-                    * eye_state.curve,
-                )
-                p2 = self._xy(
-                    real_cx + self.LAYOUT["eye_closed_bezier_offset_x"],
-                    eye_y + self.LAYOUT["eye_closed_bezier_offset_y"],
-                )
-                self._draw_bezier_curve(
-                    draw,
-                    p0,
-                    p1,
-                    p2,
-                    color=self.COLORS["line"],
-                    width=self._w(4),
-                    steps=10,
-                )
-            else:
-                # 直線
-                draw.line(
-                    [
-                        self._xy(
-                            real_cx - self.LAYOUT["eye_closed_line_offset_x"],
-                            eye_y,
-                        ),
-                        self._xy(
-                            real_cx + self.LAYOUT["eye_closed_line_offset_x"],
-                            eye_y,
-                        ),
-                    ],
-                    fill=self.COLORS["line"],
-                    width=self._w(4),
-                )
-        else:
+        if ry >= 4:
             # 開いている場合: 楕円
             s_cx, s_cy = self._xy(real_cx, eye_y)
             bbox = [s_cx - r, s_cy - ry, s_cx + r, s_cy + ry]
@@ -399,41 +359,83 @@ class RobotFace:
                 fill=self.COLORS["eye_fill"],
                 width=self._w(10),
             )
+            return
+
+        # ry < 4: 目が閉じている場合
+        if eye_state.curve == 0:
+            # 直線
+            draw.line(
+                [
+                    self._xy(
+                        real_cx - self.LAYOUT["eye_closed_line_offset_x"],
+                        eye_y,
+                    ),
+                    self._xy(
+                        real_cx + self.LAYOUT["eye_closed_line_offset_x"],
+                        eye_y,
+                    ),
+                ],
+                fill=self.COLORS["line"],
+                width=self._w(4),
+            )
+            return
+
+        # eye_state.curve != 0: ベジェ曲線
+        p0 = self._xy(
+            real_cx - self.LAYOUT["eye_closed_bezier_offset_x"],
+            eye_y + self.LAYOUT["eye_closed_bezier_offset_y"],
+        )
+        p1 = self._xy(
+            real_cx,
+            eye_y
+            - self.LAYOUT["eye_closed_bezier_offset_x"] * eye_state.curve,
+        )
+        p2 = self._xy(
+            real_cx + self.LAYOUT["eye_closed_bezier_offset_x"],
+            eye_y + self.LAYOUT["eye_closed_bezier_offset_y"],
+        )
+        self._draw_bezier_curve(
+            draw,
+            p0,
+            p1,
+            p2,
+            color=self.COLORS["line"],
+            width=self._w(4),
+        )
 
     def _draw_brows(self, draw, left_cx, right_cx, eye_y, brow_tilt):
-        if abs(brow_tilt) > 1:
-            brow_y = eye_y + self.LAYOUT["brow_y_offset"]
-            offset_y = (
-                math.tan(math.radians(brow_tilt))
-                * self.LAYOUT["brow_bezier_y_offset_factor"]
-            )
+        if abs(brow_tilt) <= 1:
+            # 描画しない
+            return
 
-            # 左眉
-            p1_l = self._xy(
-                left_cx - self.LAYOUT["brow_bezier_offset_x"],
-                brow_y - offset_y,
-            )
-            p2_l = self._xy(
-                left_cx + self.LAYOUT["brow_bezier_offset_x"],
-                brow_y + offset_y,
-            )
-            draw.line(
-                [p1_l, p2_l], fill=self.COLORS["brow"], width=self._w(5)
-            )
+        brow_y = eye_y + self.LAYOUT["brow_y_offset"]
+        offset_y = (
+            math.tan(math.radians(brow_tilt))
+            * self.LAYOUT["brow_bezier_y_offset_factor"]
+        )
 
-            # 右眉
-            # 右目の眉毛はX軸方向のオフセットの符号が逆になる
-            p1_r = self._xy(
-                right_cx - self.LAYOUT["brow_bezier_offset_x"],
-                brow_y + offset_y,
-            )
-            p2_r = self._xy(
-                right_cx + self.LAYOUT["brow_bezier_offset_x"],
-                brow_y - offset_y,
-            )
-            draw.line(
-                [p1_r, p2_r], fill=self.COLORS["brow"], width=self._w(5)
-            )
+        # 左眉
+        p1_l = self._xy(
+            left_cx - self.LAYOUT["brow_bezier_offset_x"],
+            brow_y - offset_y,
+        )
+        p2_l = self._xy(
+            left_cx + self.LAYOUT["brow_bezier_offset_x"],
+            brow_y + offset_y,
+        )
+        draw.line([p1_l, p2_l], fill=self.COLORS["brow"], width=self._w(5))
+
+        # 右眉
+        # 右目の眉毛はX軸方向のオフセットの符号が逆になる
+        p1_r = self._xy(
+            right_cx - self.LAYOUT["brow_bezier_offset_x"],
+            brow_y + offset_y,
+        )
+        p2_r = self._xy(
+            right_cx + self.LAYOUT["brow_bezier_offset_x"],
+            brow_y - offset_y,
+        )
+        draw.line([p1_r, p2_r], fill=self.COLORS["brow"], width=self._w(5))
 
     def _draw_outline(self, draw):
         box = [*self._xy(0, 0), *self._xy(100, 100)]
@@ -462,24 +464,25 @@ class RobotFace:
                     fill=self.COLORS["mouth_fill"],
                     width=self._w(4),
                 )
-        if st.mouth_open <= 0.5:
-            # カーブする口
-            p0 = self._xy(
-                mouth_cx - self.LAYOUT["mouth_curve_half_width"], mouth_cy
-            )
-            p2 = self._xy(
-                mouth_cx + self.LAYOUT["mouth_curve_half_width"], mouth_cy
-            )
-            p1 = self._xy(mouth_cx, mouth_cy + st.mouth_curve)
+            return
 
-            self._draw_bezier_curve(
-                draw,
-                p0,
-                p1,
-                p2,
-                color=self.COLORS["mouth_line"],
-                width=self._w(5),
-            )
+        # カーブする口
+        p0 = self._xy(
+            mouth_cx - self.LAYOUT["mouth_curve_half_width"], mouth_cy
+        )
+        p2 = self._xy(
+            mouth_cx + self.LAYOUT["mouth_curve_half_width"], mouth_cy
+        )
+        p1 = self._xy(mouth_cx, mouth_cy + st.mouth_curve)
+
+        self._draw_bezier_curve(
+            draw,
+            p0,
+            p1,
+            p2,
+            color=self.COLORS["mouth_line"],
+            width=self._w(5),
+        )
 
     def _draw_eyes(self, draw, brow_tilt: float):
         eye_y = self.LAYOUT["eye_y"]
