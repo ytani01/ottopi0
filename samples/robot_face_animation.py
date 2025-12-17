@@ -188,11 +188,11 @@ class RobotFace:
             mouth_curve=15,
         ),
         "surprised": FaceState(
-            mouth_curve=0,
             eye_height=12,
             eye_tilt=0,
             eye_curve=0,
             mouth_open=1.0,
+            mouth_curve=0,
         ),
         "sleepy": FaceState(
             eye_height=8,
