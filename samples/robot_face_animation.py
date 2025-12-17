@@ -45,6 +45,7 @@ class FaceState:
     wink_right: float = 1.0  # 右目の開き具合
     mouth_open: float = 0  # 口の開き具合: 0(線) ～ 1(丸)
     gaze_x: float = 0  # 視線の水平位置: 0(正面), +20(右), -20(左)
+    eye_curve: float = 0  # 目の曲がり具合: +1(山なり) ～ -1(谷なり)
 
     def copy(self):
         return FaceState(
@@ -55,6 +56,7 @@ class FaceState:
             self.wink_right,
             self.mouth_open,
             self.gaze_x,
+            self.eye_curve,
         )
 
 
@@ -147,29 +149,66 @@ class RobotFace:
     """顔の状態管理と描画を担当するクラス"""
 
     MOODS = {
-        "neutral": FaceState(mouth_curve=0, eye_height=9, eye_tilt=0),
-        "happy": FaceState(mouth_curve=15, eye_height=8, eye_tilt=0),
-        "sad": FaceState(mouth_curve=-15, eye_height=7, eye_tilt=-10),
-        "angry": FaceState(mouth_curve=-10, eye_height=6, eye_tilt=25),
-        "wink": FaceState(
-            mouth_curve=15, eye_height=8, eye_tilt=0, wink_right=0.1
+        "neutral": FaceState(
+            eye_height=9,
+            eye_tilt=0,
+            eye_curve=0,
+            mouth_curve=0,
+        ),
+        "happy": FaceState(
+            eye_height=8,
+            eye_tilt=0,
+            eye_curve=1,
+            mouth_curve=15,
+        ),
+        "sad": FaceState(
+            eye_height=7,
+            eye_tilt=-10,
+            eye_curve=-1,
+            mouth_curve=-15,
+        ),
+        "angry": FaceState(
+            eye_height=6,
+            eye_tilt=25,
+            eye_curve=0,
+            mouth_curve=-10,
+        ),
+        "winkr": FaceState(
+            mouth_curve=15,
+            eye_height=8,
+            eye_tilt=0,
+            wink_right=0.1,
+            eye_curve=1,
+        ),
+        "winkl": FaceState(
+            eye_height=8,
+            eye_tilt=0,
+            wink_left=0.1,
+            eye_curve=1,
+            mouth_curve=15,
         ),
         "surprised": FaceState(
-            mouth_curve=0, eye_height=12, eye_tilt=0, mouth_open=1.0
+            mouth_curve=0,
+            eye_height=12,
+            eye_tilt=0,
+            eye_curve=0,
+            mouth_open=1.0,
         ),
         "sleepy": FaceState(
-            mouth_curve=0,
             eye_height=8,
             eye_tilt=0,
             wink_left=0.1,
             wink_right=0.1,
+            eye_curve=-1,
+            mouth_curve=0,
         ),
-        "nikoniko": FaceState(
-            mouth_curve=20,
+        "smily": FaceState(
             eye_height=7,
             eye_tilt=0,
+            eye_curve=1,
             wink_left=0.1,
             wink_right=0.1,
+            mouth_curve=20,
         ),
     }
 
@@ -205,6 +244,7 @@ class RobotFace:
         c.wink_right = lerp(c.wink_right, t.wink_right, speed)
         c.mouth_open = lerp(c.mouth_open, t.mouth_open, speed)
         c.gaze_x = lerp(c.gaze_x, t.gaze_x, speed)
+        c.eye_curve = lerp(c.eye_curve, t.eye_curve, speed)
 
     def set_mood(self, mood_name):
         """表情セット"""
@@ -240,10 +280,12 @@ class RobotFace:
         # 描画
         if ry < 4:
             # 目が閉じている場合
-            if self.current_state.mouth_curve > 5:
-                # 笑顔: ベジェ曲線で ^ (山なり)
+            if self.current_state.eye_curve != 0:
+                # ベジェ曲線
                 p0 = self._xy(real_cx - 8, eye_y + 2)
-                p1 = self._xy(real_cx, eye_y - 8)
+                p1 = self._xy(
+                    real_cx, eye_y - 8 * self.current_state.eye_curve
+                )
                 p2 = self._xy(real_cx + 8, eye_y + 2)
 
                 points = []
@@ -265,9 +307,8 @@ class RobotFace:
                 draw.line(
                     points, fill=LINE_COLOR, width=self._w(4), joint="curve"
                 )
-
             else:
-                # 通常: 直線
+                # 直線
                 draw.line(
                     [
                         self._xy(real_cx - 7, eye_y),
