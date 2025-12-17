@@ -300,9 +300,9 @@ class RobotFace:
         """視線セット (-20 to +20)"""
         self.target_gaze_x = x
 
-    def _xy(self, x, y, screen_height):
-        sx = screen_height / 100.0
-        sy = screen_height / 100.0
+    def _xy(self, x, y, face_size):
+        sx = face_size / 100.0
+        sy = face_size / 100.0
         return (x * sx, y * sy)
 
     def _w(self, width):
@@ -316,7 +316,7 @@ class RobotFace:
         eye_state: EyeState,
         tilt,
         gaze_offset,
-        screen_height,
+        face_size,
     ):
         # 視線を加味した中心X
         real_cx = cx + gaze_offset
@@ -330,11 +330,9 @@ class RobotFace:
             # 目が閉じている場合
             if eye_state.curve != 0:
                 # ベジェ曲線
-                p0 = self._xy(real_cx - 8, eye_y + 2, screen_height)
-                p1 = self._xy(
-                    real_cx, eye_y - 8 * eye_state.curve, screen_height
-                )
-                p2 = self._xy(real_cx + 8, eye_y + 2, screen_height)
+                p0 = self._xy(real_cx - 8, eye_y + 2, face_size)
+                p1 = self._xy(real_cx, eye_y - 8 * eye_state.curve, face_size)
+                p2 = self._xy(real_cx + 8, eye_y + 2, face_size)
 
                 points = []
                 steps = 10
@@ -362,8 +360,8 @@ class RobotFace:
                 # 直線
                 draw.line(
                     [
-                        self._xy(real_cx - 7, eye_y, screen_height),
-                        self._xy(real_cx + 7, eye_y, screen_height),
+                        self._xy(real_cx - 7, eye_y, face_size),
+                        self._xy(real_cx + 7, eye_y, face_size),
                     ],
                     fill=self.LINE_COLOR,
                     width=self._w(4),
@@ -371,10 +369,10 @@ class RobotFace:
         else:
             # 開いている場合: 楕円
             bbox = [
-                self._xy(real_cx, eye_y, screen_height)[0] - r,
-                self._xy(real_cx, eye_y, screen_height)[1] - ry,
-                self._xy(real_cx, eye_y, screen_height)[0] + r,
-                self._xy(real_cx, eye_y, screen_height)[1] + ry,
+                self._xy(real_cx, eye_y, face_size)[0] - r,
+                self._xy(real_cx, eye_y, face_size)[1] - ry,
+                self._xy(real_cx, eye_y, face_size)[0] + r,
+                self._xy(real_cx, eye_y, face_size)[1] + ry,
             ]
             draw.ellipse(
                 bbox, outline=(0, 0, 192), fill="white", width=self._w(10)
@@ -387,31 +385,32 @@ class RobotFace:
             # 左目(cx<50)と右目で傾きの符号を変える簡易ロジック
             # 実際には引数でleft/rightフラグをもらう方が綺麗だが、ここでは座標判定
             if cx < 50:
-                p1 = self._xy(real_cx - 9, brow_y - offset_y, screen_height)
-                p2 = self._xy(real_cx + 9, brow_y + offset_y, screen_height)
+                p1 = self._xy(real_cx - 9, brow_y - offset_y, face_size)
+                p2 = self._xy(real_cx + 9, brow_y + offset_y, face_size)
             else:
-                p1 = self._xy(real_cx - 9, brow_y + offset_y, screen_height)
-                p2 = self._xy(real_cx + 9, brow_y - offset_y, screen_height)
+                p1 = self._xy(real_cx - 9, brow_y + offset_y, face_size)
+                p2 = self._xy(real_cx + 9, brow_y - offset_y, face_size)
             draw.line([p1, p2], fill=(128, 64, 64), width=self._w(5))
 
     def draw(self, screen_width: int, screen_height: int, bg_color: str):
         # 画像生成
         # 正方形キャンバスを作成してからパディングする
-        img = Image.new("RGB", (screen_height, screen_height), bg_color)
+        face_size = min(screen_width, screen_height)
+        img = Image.new("RGB", (face_size, face_size), bg_color)
         draw = ImageDraw.Draw(img)
 
         # 輪郭
         box = [
-            self._xy(0, 0, screen_height)[0],
-            self._xy(0, 0, screen_height)[1],
-            self._xy(100, 100, screen_height)[0],
-            self._xy(100, 100, screen_height)[1],
+            self._xy(0, 0, face_size)[0],
+            self._xy(0, 0, face_size)[1],
+            self._xy(100, 100, face_size)[0],
+            self._xy(100, 100, face_size)[1],
         ]
         draw.rounded_rectangle(
             box,
             radius=20 * self.scale,
             outline="black",
-            fill=self.FACE_BG_COLOR,  # ここを修正
+            fill=self.FACE_BG_COLOR,
             width=1,
         )
 
@@ -425,7 +424,7 @@ class RobotFace:
             self.current_state.left_eye,
             self.current_state.brow_tilt,
             self.current_gaze_x,
-            screen_height,
+            face_size,
         )
         self._draw_eye(
             draw,
@@ -434,7 +433,7 @@ class RobotFace:
             self.current_state.right_eye,
             self.current_state.brow_tilt,
             self.current_gaze_x,
-            screen_height,
+            face_size,
         )
 
         # 口
@@ -447,7 +446,7 @@ class RobotFace:
             factor = (st.mouth_open - 0.5) * 2
             r = 8 * self.scale * factor
             if r > 1:
-                cx, cy = self._xy(mouth_cx, mouth_cy, screen_height)
+                cx, cy = self._xy(mouth_cx, mouth_cy, face_size)
                 draw.ellipse(
                     [cx - r, cy - r * 1.2, cx + r, cy + r * 1.2],
                     outline=mouth_line_color,
@@ -456,9 +455,9 @@ class RobotFace:
                 )
         if st.mouth_open <= 0.5:
             # カーブする口
-            p0 = self._xy(35, mouth_cy, screen_height)
-            p2 = self._xy(65, mouth_cy, screen_height)
-            p1 = self._xy(50, mouth_cy + st.mouth_curve, screen_height)
+            p0 = self._xy(35, mouth_cy, face_size)
+            p2 = self._xy(65, mouth_cy, face_size)
+            p1 = self._xy(50, mouth_cy + st.mouth_curve, face_size)
 
             points = []
             steps = 15
