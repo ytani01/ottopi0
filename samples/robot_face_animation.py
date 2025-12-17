@@ -365,12 +365,8 @@ class RobotFace:
                 )
         else:
             # 開いている場合: 楕円
-            bbox = [
-                self._xy(real_cx, eye_y)[0] - r,
-                self._xy(real_cx, eye_y)[1] - ry,
-                self._xy(real_cx, eye_y)[0] + r,
-                self._xy(real_cx, eye_y)[1] + ry,
-            ]
+            s_cx, s_cy = self._xy(real_cx, eye_y)
+            bbox = [s_cx - r, s_cy - ry, s_cx + r, s_cy + ry]
             draw.ellipse(
                 bbox, outline=(0, 0, 192), fill="white", width=self._w(10)
             )
@@ -396,12 +392,7 @@ class RobotFace:
         draw = ImageDraw.Draw(img)
 
         # 輪郭
-        box = [
-            self._xy(0, 0)[0],
-            self._xy(0, 0)[1],
-            self._xy(100, 100)[0],
-            self._xy(100, 100)[1],
-        ]
+        box = [*self._xy(0, 0), *self._xy(100, 100)]
         draw.rounded_rectangle(
             box,
             radius=20 * self.scale,
