@@ -49,7 +49,6 @@ class FaceState:
     mouth_curve: float = 0  # 口の曲がり具合: +20(笑顔) ～ -20(への字)
     brow_tilt: float = 0  # 眉毛の角度
     mouth_open: float = 0  # 口の開き具合: 0(線) ～ 1(丸)
-    gaze_x: float = 0  # 視線の水平位置: 0(正面), +20(右), -20(左)
     left_eye: EyeState = field(default_factory=EyeState)
     right_eye: EyeState = field(default_factory=EyeState)
 
@@ -58,7 +57,6 @@ class FaceState:
             self.mouth_curve,
             self.brow_tilt,
             self.mouth_open,
-            self.gaze_x,
             self.left_eye.copy(),
             self.right_eye.copy(),
         )
@@ -248,6 +246,10 @@ class RobotFace:
         self._next_mood_time: float = now + 5.0
         self._next_gaze_time: float = now + 5.0
 
+        # 視線状態管理
+        self.current_gaze_x: float = 0.0
+        self.target_gaze_x: float = 0.0
+
     def animate_step(self):
         """アニメーションのステップを実行する"""
         now = time.time()
@@ -271,7 +273,9 @@ class RobotFace:
         c.mouth_curve = lerp(c.mouth_curve, t.mouth_curve, speed)
         c.brow_tilt = lerp(c.brow_tilt, t.brow_tilt, speed)
         c.mouth_open = lerp(c.mouth_open, t.mouth_open, speed)
-        c.gaze_x = lerp(c.gaze_x, t.gaze_x, speed)
+        self.current_gaze_x = lerp(
+            self.current_gaze_x, self.target_gaze_x, speed
+        )
 
         # left eye
         c.left_eye.openness = lerp(
@@ -290,19 +294,11 @@ class RobotFace:
     def set_target_mood(self, mood_name):
         """表情セット"""
         if mood_name in self.MOODS:
-            # 視線(gaze_x)は表情定義に依存せず維持したいが
-            # 今回はリファクタ前の挙動に合わせて、表情を変えたら
-            # 表情定義の視線値(通常0)をターゲットにする。
-            # ただしメインループ側で直後にgazeを上書きする運用も可。
-            # ここではシンプルにMood定義をコピーする。
-            current_gaze = self.target_state.gaze_x
             self.target_state = self.MOODS[mood_name].copy()
-            # 視線を維持する場合はアンコメント
-            self.target_state.gaze_x = current_gaze
 
     def set_gaze(self, x):
         """視線セット (-20 to +20)"""
-        self.target_state.gaze_x = x
+        self.target_gaze_x = x
 
     def _xy(self, x, y, screen_height):
         sx = screen_height / 100.0
@@ -428,7 +424,7 @@ class RobotFace:
             eye_y,
             self.current_state.left_eye,
             self.current_state.brow_tilt,
-            self.current_state.gaze_x,
+            self.current_gaze_x,
             screen_height,
         )
         self._draw_eye(
@@ -437,7 +433,7 @@ class RobotFace:
             eye_y,
             self.current_state.right_eye,
             self.current_state.brow_tilt,
-            self.current_state.gaze_x,
+            self.current_gaze_x,
             screen_height,
         )
 
