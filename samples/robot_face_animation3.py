@@ -1,18 +1,10 @@
 import math
 import random
 import socket
-import sys
 import time
 from dataclasses import dataclass
 
-# --- 依存ライブラリのチェック ---
-try:
-    from PIL import Image, ImageDraw, ImageOps
-except ImportError:
-    print(
-        "エラー: PIL (Pillow) が見つかりません。インストールしてください: pip install pillow"
-    )
-    sys.exit(1)
+from PIL import Image, ImageDraw, ImageOps
 
 # ディスプレイ制御用
 try:
@@ -73,7 +65,7 @@ MOODS = {
         mouth_curve=15, eye_height=8, eye_tilt=0, wink_right=0.1
     ),
     "surprised": FaceState(
-        mouth_curve=0, eye_height=5, eye_tilt=0, mouth_open=1.0
+        mouth_curve=0, eye_height=12, eye_tilt=0, mouth_open=1.0
     ),
     "sleepy": FaceState(
         mouth_curve=0, eye_height=8, eye_tilt=0, wink_left=0.1, wink_right=0.1
