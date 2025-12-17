@@ -2,7 +2,7 @@ import math
 import random
 import socket
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import click
 from PIL import Image, ImageDraw, ImageOps
@@ -37,26 +37,34 @@ FACE_BG_COLOR = (255, 255, 220)
 
 # --- 状態クラス ---
 @dataclass
+class EyeState:
+    openness: float = 1.0  # 目の開き具合 (0.0: 閉, 1.0: 開)
+    size: float = 8.0  # 目の大きさの基準となる半径
+    curve: float = (
+        0.0  # 閉じたときの目の曲がり具合 (-1.0: 谷, 0.0: 直線, 1.0: 山)
+    )
+
+    def copy(self):
+        return EyeState(self.openness, self.size, self.curve)
+
+
+@dataclass
 class FaceState:
     mouth_curve: float = 0  # 口の曲がり具合: +20(笑顔) ～ -20(への字)
-    eye_height: float = 6  # 目の縦半径
-    eye_tilt: float = 0  # 眉毛の角度
-    wink_left: float = 1.0  # 左目の開き具合: 1.0(開) ～ 0.1(閉)
-    wink_right: float = 1.0  # 右目の開き具合
+    brow_tilt: float = 0  # 眉毛の角度
     mouth_open: float = 0  # 口の開き具合: 0(線) ～ 1(丸)
     gaze_x: float = 0  # 視線の水平位置: 0(正面), +20(右), -20(左)
-    eye_curve: float = 0  # 目の曲がり具合: +1(山なり) ～ -1(谷なり)
+    left_eye: EyeState = field(default_factory=EyeState)
+    right_eye: EyeState = field(default_factory=EyeState)
 
     def copy(self):
         return FaceState(
             self.mouth_curve,
-            self.eye_height,
-            self.eye_tilt,
-            self.wink_left,
-            self.wink_right,
+            self.brow_tilt,
             self.mouth_open,
             self.gaze_x,
-            self.eye_curve,
+            self.left_eye.copy(),
+            self.right_eye.copy(),
         )
 
 
@@ -149,66 +157,54 @@ class RobotFace:
     """顔の状態管理と描画を担当するクラス"""
 
     MOODS = {
-        "neutral": FaceState(
-            eye_height=9,
-            eye_tilt=0,
-            eye_curve=0,
-            mouth_curve=0,
-        ),
+        "neutral": FaceState(brow_tilt=0),
         "happy": FaceState(
-            eye_height=8,
-            eye_tilt=0,
-            eye_curve=1,
             mouth_curve=15,
+            brow_tilt=0,
+            left_eye=EyeState(size=8, curve=1),
+            right_eye=EyeState(size=8, curve=1),
         ),
         "sad": FaceState(
-            eye_height=7,
-            eye_tilt=-10,
-            eye_curve=-1,
             mouth_curve=-15,
+            brow_tilt=-10,
+            left_eye=EyeState(size=7, curve=-1),
+            right_eye=EyeState(size=7, curve=-1),
         ),
         "angry": FaceState(
-            eye_height=6,
-            eye_tilt=25,
-            eye_curve=0,
             mouth_curve=-10,
+            brow_tilt=25,
+            left_eye=EyeState(size=6),
+            right_eye=EyeState(size=6),
         ),
-        "winkr": FaceState(
+        "wink-r": FaceState(
             mouth_curve=15,
-            eye_height=8,
-            eye_tilt=0,
-            wink_right=0.1,
-            eye_curve=1,
+            brow_tilt=0,
+            left_eye=EyeState(size=8, openness=0.1, curve=1),
+            right_eye=EyeState(size=8, curve=1),
         ),
-        "winkl": FaceState(
-            eye_height=8,
-            eye_tilt=0,
-            wink_left=0.1,
-            eye_curve=1,
+        "wink-l": FaceState(
             mouth_curve=15,
+            brow_tilt=0,
+            left_eye=EyeState(size=8, curve=1),
+            right_eye=EyeState(size=8, openness=0.1, curve=1),
         ),
         "surprised": FaceState(
-            eye_height=12,
-            eye_tilt=0,
-            eye_curve=0,
-            mouth_open=1.0,
             mouth_curve=0,
+            mouth_open=1.0,
+            left_eye=EyeState(size=12),
+            right_eye=EyeState(size=12),
         ),
         "sleepy": FaceState(
-            eye_height=8,
-            eye_tilt=0,
-            wink_left=0.1,
-            wink_right=0.1,
-            eye_curve=-1,
             mouth_curve=0,
+            brow_tilt=0,
+            left_eye=EyeState(size=8, openness=0.1, curve=-1),
+            right_eye=EyeState(size=8, openness=0.1, curve=-1),
         ),
-        "smily": FaceState(
-            eye_height=7,
-            eye_tilt=0,
-            eye_curve=1,
-            wink_left=0.1,
-            wink_right=0.1,
+        "nikoniko": FaceState(
             mouth_curve=20,
+            brow_tilt=0,
+            left_eye=EyeState(size=7, openness=0.1, curve=1),
+            right_eye=EyeState(size=7, openness=0.1, curve=1),
         ),
     }
 
@@ -238,13 +234,23 @@ class RobotFace:
         """状態をターゲットに近づける"""
         c, t = self.current_state, self.target_state
         c.mouth_curve = lerp(c.mouth_curve, t.mouth_curve, speed)
-        c.eye_height = lerp(c.eye_height, t.eye_height, speed)
-        c.eye_tilt = lerp(c.eye_tilt, t.eye_tilt, speed)
-        c.wink_left = lerp(c.wink_left, t.wink_left, speed)
-        c.wink_right = lerp(c.wink_right, t.wink_right, speed)
+        c.brow_tilt = lerp(c.brow_tilt, t.brow_tilt, speed)
         c.mouth_open = lerp(c.mouth_open, t.mouth_open, speed)
         c.gaze_x = lerp(c.gaze_x, t.gaze_x, speed)
-        c.eye_curve = lerp(c.eye_curve, t.eye_curve, speed)
+
+        # left eye
+        c.left_eye.openness = lerp(
+            c.left_eye.openness, t.left_eye.openness, speed
+        )
+        c.left_eye.size = lerp(c.left_eye.size, t.left_eye.size, speed)
+        c.left_eye.curve = lerp(c.left_eye.curve, t.left_eye.curve, speed)
+
+        # right eye
+        c.right_eye.openness = lerp(
+            c.right_eye.openness, t.right_eye.openness, speed
+        )
+        c.right_eye.size = lerp(c.right_eye.size, t.right_eye.size, speed)
+        c.right_eye.curve = lerp(c.right_eye.curve, t.right_eye.curve, speed)
 
     def set_mood(self, mood_name):
         """表情セット"""
@@ -269,23 +275,23 @@ class RobotFace:
     def _w(self, width):
         return max(1, int(width * self.scale))
 
-    def _draw_eye(self, draw, cx, eye_y, wink_scale, tilt, gaze_offset):
+    def _draw_eye(
+        self, draw, cx, eye_y, eye_state: EyeState, tilt, gaze_offset
+    ):
         # 視線を加味した中心X
         real_cx = cx + gaze_offset
 
         # 目のサイズ
-        r = self.current_state.eye_height * self.scale
-        ry = r * wink_scale
+        r = eye_state.size * self.scale
+        ry = r * eye_state.openness
 
         # 描画
         if ry < 4:
             # 目が閉じている場合
-            if self.current_state.eye_curve != 0:
+            if eye_state.curve != 0:
                 # ベジェ曲線
                 p0 = self._xy(real_cx - 8, eye_y + 2)
-                p1 = self._xy(
-                    real_cx, eye_y - 8 * self.current_state.eye_curve
-                )
+                p1 = self._xy(real_cx, eye_y - 8 * eye_state.curve)
                 p2 = self._xy(real_cx + 8, eye_y + 2)
 
                 points = []
@@ -305,7 +311,10 @@ class RobotFace:
                     points.append((bx, by))
 
                 draw.line(
-                    points, fill=LINE_COLOR, width=self._w(4), joint="curve"
+                    points,
+                    fill=LINE_COLOR,
+                    width=self._w(4),
+                    joint="curve",
                 )
             else:
                 # 直線
@@ -371,16 +380,16 @@ class RobotFace:
             draw,
             eye_offset,
             eye_y,
-            self.current_state.wink_left,
-            self.current_state.eye_tilt,
+            self.current_state.left_eye,
+            self.current_state.brow_tilt,
             self.current_state.gaze_x,
         )
         self._draw_eye(
             draw,
             100 - eye_offset,
             eye_y,
-            self.current_state.wink_right,
-            self.current_state.eye_tilt,
+            self.current_state.right_eye,
+            self.current_state.brow_tilt,
             self.current_state.gaze_x,
         )
 
@@ -462,7 +471,7 @@ class RobotFaceApp:
             self.mood = "neutral"
             self.__log.info("mood=%a", self.mood)
 
-        next_mood_time = time.time() + 2.0
+        next_mood_time = time.time() + 5.0
         next_gaze_time = time.time() + 1.0
 
         while True:
@@ -503,6 +512,8 @@ def main(ctx, mood, debug):
 
     app = None
     try:
+        if not mood:
+            mood = "neutral"
         app = RobotFaceApp(mood, debug=debug)
         app.main()
     except KeyboardInterrupt:
