@@ -1,3 +1,10 @@
+#
+# (c) 2025 Yoichi Tanibayashi
+#
+"""
+ロボットの顔のアニメーション
+"""
+
 import math
 import random
 import socket
@@ -177,8 +184,7 @@ class RobotFace:
         "mouth_cy": 70,
         "mouth_width": 30,
         "mouth_open_radius_factor": 8,
-        "mouth_curve_p0_x": 35,
-        "mouth_curve_p2_x": 65,
+        "mouth_curve_half_width": 15,
         "eye_closed_bezier_offset_x": 8,
         "eye_closed_bezier_offset_y": 2,
         "eye_closed_line_offset_x": 7,
@@ -458,8 +464,12 @@ class RobotFace:
                 )
         if st.mouth_open <= 0.5:
             # カーブする口
-            p0 = self._xy(mouth_cx - self.LAYOUT["mouth_width"] / 2, mouth_cy)
-            p2 = self._xy(mouth_cx + self.LAYOUT["mouth_width"] / 2, mouth_cy)
+            p0 = self._xy(
+                mouth_cx - self.LAYOUT["mouth_curve_half_width"], mouth_cy
+            )
+            p2 = self._xy(
+                mouth_cx + self.LAYOUT["mouth_curve_half_width"], mouth_cy
+            )
             p1 = self._xy(mouth_cx, mouth_cy + st.mouth_curve)
 
             self._draw_bezier_curve(
@@ -471,7 +481,7 @@ class RobotFace:
                 width=self._w(5),
             )
 
-    def _draw_eyes(self, draw):
+    def _draw_eyes(self, draw, brow_tilt: float):
         eye_y = self.LAYOUT["eye_y"]
         eye_offset = self.LAYOUT["eye_offset"]
         self._draw_eye(
@@ -479,7 +489,7 @@ class RobotFace:
             eye_offset,
             eye_y,
             self.current_state.left_eye,
-            self.current_state.brow_tilt,
+            brow_tilt,  # <-- ここを修正
             self.current_gaze_x,
         )
         self._draw_eye(
@@ -487,8 +497,15 @@ class RobotFace:
             100 - eye_offset,
             eye_y,
             self.current_state.right_eye,
-            self.current_state.brow_tilt,
+            brow_tilt,
             self.current_gaze_x,
+        )
+        self._draw_brows(
+            draw,
+            eye_offset,  # left_brow_cx (視線に追従しない)
+            100 - eye_offset,  # right_brow_cx (視線に追従しない)
+            eye_y,
+            brow_tilt,
         )
 
     def draw(self, screen_width: int, screen_height: int, bg_color: tuple):
@@ -498,19 +515,7 @@ class RobotFace:
         draw = ImageDraw.Draw(img)
 
         self._draw_outline(draw)
-        self._draw_eyes(draw)
-        # 眉毛は目の上に描画されるべきなので、ここで呼び出す
-        eye_y = self.LAYOUT["eye_y"]
-        eye_offset = self.LAYOUT["eye_offset"]
-        left_eye_cx = eye_offset  # 視線に追従しない眉毛のX座標
-        right_eye_cx = 100 - eye_offset
-        self._draw_brows(
-            draw,
-            left_eye_cx,
-            right_eye_cx,
-            eye_y,
-            self.current_state.brow_tilt,
-        )
+        self._draw_eyes(draw, self.current_state.brow_tilt)
         self._draw_mouth(draw)
 
         # パディングして画面サイズに合わせる (中央寄せなど)
