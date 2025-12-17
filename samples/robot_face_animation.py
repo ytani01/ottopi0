@@ -306,6 +306,18 @@ class RobotFace:
     def _w(self, width):
         return max(1, int(width * self.scale))
 
+    def _draw_bezier_curve(self, draw, p0, p1, p2, color, width, steps=15):
+        """3点の制御点からベジェ曲線を計算して描画する"""
+        points = []
+        for i in range(steps + 1):
+            t = i / steps
+            # 2次ベジェ曲線の公式
+            bx = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t**2 * p2[0]
+            by = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t**2 * p2[1]
+            points.append((bx, by))
+
+        draw.line(points, fill=color, width=width, joint="curve")
+
     def _draw_eye(
         self,
         draw,
@@ -330,28 +342,14 @@ class RobotFace:
                 p0 = self._xy(real_cx - 8, eye_y + 2)
                 p1 = self._xy(real_cx, eye_y - 8 * eye_state.curve)
                 p2 = self._xy(real_cx + 8, eye_y + 2)
-
-                points = []
-                steps = 10
-                for i in range(steps + 1):
-                    t = i / steps
-                    bx = (
-                        (1 - t) ** 2 * p0[0]
-                        + 2 * (1 - t) * t * p1[0]
-                        + t**2 * p2[0]
-                    )
-                    by = (
-                        (1 - t) ** 2 * p0[1]
-                        + 2 * (1 - t) * t * p1[1]
-                        + t**2 * p2[1]
-                    )
-                    points.append((bx, by))
-
-                draw.line(
-                    points,
-                    fill=self.LINE_COLOR,
+                self._draw_bezier_curve(
+                    draw,
+                    p0,
+                    p1,
+                    p2,
+                    color=self.LINE_COLOR,
                     width=self._w(4),
-                    joint="curve",
+                    steps=10,
                 )
             else:
                 # 直線
@@ -444,24 +442,8 @@ class RobotFace:
             p2 = self._xy(65, mouth_cy)
             p1 = self._xy(50, mouth_cy + st.mouth_curve)
 
-            points = []
-            steps = 15
-            for i in range(steps + 1):
-                t = i / steps
-                bx = (
-                    (1 - t) ** 2 * p0[0]
-                    + 2 * (1 - t) * t * p1[0]
-                    + t**2 * p2[0]
-                )
-                by = (
-                    (1 - t) ** 2 * p0[1]
-                    + 2 * (1 - t) * t * p1[1]
-                    + t**2 * p2[1]
-                )
-                points.append((bx, by))
-
-            draw.line(
-                points, fill=mouth_line_color, width=self._w(5), joint="curve"
+            self._draw_bezier_curve(
+                draw, p0, p1, p2, color=mouth_line_color, width=self._w(5)
             )
 
         # パディングして画面サイズに合わせる (中央寄せなど)
