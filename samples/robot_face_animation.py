@@ -4,7 +4,10 @@ import socket
 import time
 from dataclasses import dataclass
 
+import click
 from PIL import Image, ImageDraw, ImageOps
+
+from ottopi0 import __version__, click_common_opts, errmsg, get_logger
 
 # ディスプレイ制御用
 try:
@@ -56,28 +59,6 @@ class FaceState:
 
 
 # --- 表情定義 ---
-MOODS = {
-    "neutral": FaceState(mouth_curve=0, eye_height=9, eye_tilt=0),
-    "happy": FaceState(mouth_curve=15, eye_height=8, eye_tilt=0),
-    "sad": FaceState(mouth_curve=-15, eye_height=7, eye_tilt=-10),
-    "angry": FaceState(mouth_curve=-10, eye_height=6, eye_tilt=25),
-    "wink": FaceState(
-        mouth_curve=15, eye_height=8, eye_tilt=0, wink_right=0.1
-    ),
-    "surprised": FaceState(
-        mouth_curve=0, eye_height=12, eye_tilt=0, mouth_open=1.0
-    ),
-    "sleepy": FaceState(
-        mouth_curve=0, eye_height=8, eye_tilt=0, wink_left=0.1, wink_right=0.1
-    ),
-    "nikoniko": FaceState(
-        mouth_curve=20,
-        eye_height=7,
-        eye_tilt=0,
-        wink_left=0.1,
-        wink_right=0.1,
-    ),
-}
 
 
 # --- ヘルパー関数 ---
@@ -96,10 +77,16 @@ class DisplayOutput:
     MODE_LCD = 1
     MODE_PREVIEW = 2
 
-    def __init__(self):
+    def __init__(self, debug=False):
+        """Constractor."""
+        self.__debug = debug
+        self.__log = get_logger(self.__class__.__name__, self.__debug)
+        self.__log.debug("")
+
         self.mode = self.MODE_NONE
         self.lcd = None
         self._detect_hardware()
+        self.__log.debug("mode=%s", self.mode)
 
     def _check_pigpio(self, host="localhost", port=8888, timeout=0.1):
         """pigpioデーモンの存在確認"""
@@ -110,29 +97,29 @@ class DisplayOutput:
             return False
 
     def _detect_hardware(self):
+        """Detect hardware."""
+
         # 1. ハードウェア (ST7789) の確認
         if HAS_LCD:
             if self._check_pigpio():
                 try:
-                    print("ST7789 ディスプレイ初期化中...")
                     self.lcd = ST7789V(rotation=270)
                     self.mode = self.MODE_LCD
-                    print("モード: ハードウェアディスプレイ")
                     return
                 except Exception as e:
-                    print(f"ST7789初期化失敗: {e}")
+                    self.__log.warning(errmsg(e))
             else:
-                print("警告: pigpioデーモンが見つかりません (port 8888)")
+                self.__log.warning("no pigpiod")
 
         # 2. OpenCVプレビュー
         if HAS_OPENCV:
             self.mode = self.MODE_PREVIEW
-            print("モード: OpenCVプレビュー")
-            print("ST7789が見つからないためウィンドウ表示します")
             return
 
         # 3. なし
-        print("警告: 表示可能なデバイスがありません (コンソール実行のみ)")
+        self.__log.warning(
+            "警告: 表示可能なデバイスがありません (コンソール実行のみ)"
+        )
 
     def show(self, pil_image):
         """画像をデバイスに転送"""
@@ -159,10 +146,48 @@ class DisplayOutput:
 class RobotFace:
     """顔の状態管理と描画を担当するクラス"""
 
-    def __init__(self, size=240):
+    MOODS = {
+        "neutral": FaceState(mouth_curve=0, eye_height=9, eye_tilt=0),
+        "happy": FaceState(mouth_curve=15, eye_height=8, eye_tilt=0),
+        "sad": FaceState(mouth_curve=-15, eye_height=7, eye_tilt=-10),
+        "angry": FaceState(mouth_curve=-10, eye_height=6, eye_tilt=25),
+        "wink": FaceState(
+            mouth_curve=15, eye_height=8, eye_tilt=0, wink_right=0.1
+        ),
+        "surprised": FaceState(
+            mouth_curve=0, eye_height=12, eye_tilt=0, mouth_open=1.0
+        ),
+        "sleepy": FaceState(
+            mouth_curve=0,
+            eye_height=8,
+            eye_tilt=0,
+            wink_left=0.1,
+            wink_right=0.1,
+        ),
+        "nikoniko": FaceState(
+            mouth_curve=20,
+            eye_height=7,
+            eye_tilt=0,
+            wink_left=0.1,
+            wink_right=0.1,
+        ),
+    }
+
+    def __init__(self, mood: str, size=240, debug=False):
+        self.__debug = debug
+        self.__log = get_logger(self.__class__.__name__, self.__debug)
+        self.__log.debug("mood=%s,size=%s", mood, size)
+
+        if mood not in self.MOODS:
+            raise ValueError(
+                f"invalid mood: '{mood}' not in {list(self.MOODS.keys())}",
+            )
+
+        self.mood = mood
         self.size = size
-        self.current_state = MOODS["neutral"].copy()
-        self.target_state = MOODS["neutral"].copy()
+
+        self.current_state = self.MOODS[self.mood].copy()
+        self.target_state = self.MOODS[self.mood].copy()
 
         # 描画用ヘルパー係数
         self.scale = size / 100.0
@@ -183,14 +208,14 @@ class RobotFace:
 
     def set_mood(self, mood_name):
         """表情セット"""
-        if mood_name in MOODS:
+        if mood_name in self.MOODS:
             # 視線(gaze_x)は表情定義に依存せず維持したいが
             # 今回はリファクタ前の挙動に合わせて、表情を変えたら
             # 表情定義の視線値(通常0)をターゲットにする。
             # ただしメインループ側で直後にgazeを上書きする運用も可。
             # ここではシンプルにMood定義をコピーする。
             current_gaze = self.target_state.gaze_x
-            self.target_state = MOODS[mood_name].copy()
+            self.target_state = self.MOODS[mood_name].copy()
             # 視線を維持する場合はアンコメント
             self.target_state.gaze_x = current_gaze
 
@@ -371,47 +396,81 @@ class RobotFace:
         return final_img
 
 
-# --- メインロジック ---
+class RobotFaceApp:
+    """Robot face App class."""
 
+    def __init__(self, mood: str, debug=False):
+        """Constractor."""
+        self.__debug = debug
+        self.__log = get_logger(self.__class__.__name__, self.__debug)
+        self.__log.debug("mood=%a", mood)
 
-def main():
-    output = DisplayOutput()
-    face = RobotFace()
+        self.mood = mood
 
-    print("ロボットフェイス アニメーション (Refactored)")
-    print("終了: Ctrl+C (またはプレビューウィンドウでESC)")
+        try:
+            self.output = DisplayOutput(debug=self.__debug)
+            self.face = RobotFace(self.mood, debug=self.__debug)
+        except Exception as e:
+            self.__log.error(errmsg(e))
+            raise e
 
-    next_mood_time = time.time() + 2.0
-    next_gaze_time = time.time() + 1.0
+    def main(self):
+        """Main."""
 
-    try:
+        if not self.mood:
+            self.mood = "neutral"
+            self.__log.info("mood=%a", self.mood)
+
+        next_mood_time = time.time() + 2.0
+        next_gaze_time = time.time() + 1.0
+
         while True:
             now = time.time()
 
             # 表情変更
             if now > next_mood_time:
-                mood = random.choice(list(MOODS.keys()))
-                print(f"表情: {mood}")
-                face.set_mood(mood)
+                self.mood = random.choice(list(RobotFace.MOODS.keys()))
+                print(f"表情: {self.mood}")
+                self.face.set_mood(self.mood)
                 next_mood_time = now + random.uniform(3.0, 5.0)
 
             # 視線変更
             if now > next_gaze_time:
                 gaze = random.uniform(-10, 10)
-                face.set_gaze(gaze)
+                self.face.set_gaze(gaze)
                 next_gaze_time = now + random.uniform(0.5, 2.0)
 
             # 更新と描画
-            face.update(speed=0.5)
-            img = face.draw()
-            output.show(img)
+            self.face.update(speed=0.5)
+            img = self.face.draw()
+            self.output.show(img)
 
             time.sleep(0.1)
 
+    def end(self):
+        """End."""
+        self.output.close()
+
+
+@click.command(__file__.split("/")[-1])  # file name
+@click.argument("mood", type=str, default="")
+@click_common_opts(__version__)
+def main(ctx, mood, debug):
+    """Main."""
+    __log = get_logger(__name__, debug)
+    __log.info("mood=%a", mood)
+
+    app = None
+    try:
+        app = RobotFaceApp(mood, debug=debug)
+        app.main()
     except KeyboardInterrupt:
-        print("\n終了します...")
+        print("\nEnd.")
+    except Exception as e:
+        __log.error(errmsg(e))
     finally:
-        output.close()
+        if app:
+            app.end()
 
 
 if __name__ == "__main__":
