@@ -601,7 +601,7 @@ class RobotFaceApp:
             )
             self.output.show(img)
 
-            time.sleep(0.1)
+            time.sleep(0.2)
 
     def end(self):
         """End."""
