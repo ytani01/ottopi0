@@ -10,9 +10,9 @@ from PIL import Image, ImageDraw, ImageOps
 try:
     from pi0disp import ST7789V
 
-    HAS_DISPLAY = True
+    HAS_LCD = True
 except ImportError:
-    HAS_DISPLAY = False
+    HAS_LCD = False
 
 # PCプレビュー用 (OpenCV)
 try:
@@ -59,13 +59,13 @@ class FaceState:
 MOODS = {
     "neutral": FaceState(mouth_curve=0, eye_height=9, eye_tilt=0),
     "happy": FaceState(mouth_curve=15, eye_height=8, eye_tilt=0),
-    "sad": FaceState(mouth_curve=-15, eye_height=8, eye_tilt=-10),
+    "sad": FaceState(mouth_curve=-15, eye_height=7, eye_tilt=-10),
     "angry": FaceState(mouth_curve=-10, eye_height=6, eye_tilt=25),
     "wink": FaceState(
         mouth_curve=15, eye_height=8, eye_tilt=0, wink_right=0.1
     ),
     "surprised": FaceState(
-        mouth_curve=0, eye_height=12, eye_tilt=0, mouth_open=1.0
+        mouth_curve=0, eye_height=11, eye_tilt=0, mouth_open=1.0
     ),
     "sleepy": FaceState(
         mouth_curve=0, eye_height=8, eye_tilt=0, wink_left=0.1, wink_right=0.1
@@ -93,12 +93,12 @@ class DisplayOutput:
     """ディスプレイ出力を抽象化するクラス"""
 
     MODE_NONE = 0
-    MODE_HW = 1
+    MODE_LCD = 1
     MODE_PREVIEW = 2
 
     def __init__(self):
         self.mode = self.MODE_NONE
-        self.disp = None
+        self.lcd = None
         self._detect_hardware()
 
     def _check_pigpio(self, host="localhost", port=8888, timeout=0.1):
@@ -111,12 +111,12 @@ class DisplayOutput:
 
     def _detect_hardware(self):
         # 1. ハードウェア (ST7789) の確認
-        if HAS_DISPLAY:
+        if HAS_LCD:
             if self._check_pigpio():
                 try:
                     print("ST7789 ディスプレイ初期化中...")
-                    self.disp = ST7789V(rotation=270)
-                    self.mode = self.MODE_HW
+                    self.lcd = ST7789V(rotation=270)
+                    self.mode = self.MODE_LCD
                     print("モード: ハードウェアディスプレイ")
                     return
                 except Exception as e:
@@ -136,8 +136,8 @@ class DisplayOutput:
 
     def show(self, pil_image):
         """画像をデバイスに転送"""
-        if self.mode == self.MODE_HW and self.disp:
-            self.disp.display(pil_image)
+        if self.mode == self.MODE_LCD and self.lcd:
+            self.lcd.display(pil_image)
 
         elif self.mode == self.MODE_PREVIEW:
             # PIL -> OpenCV (BGR)
@@ -150,8 +150,8 @@ class DisplayOutput:
 
     def close(self):
         """リソース解放"""
-        if self.mode == self.MODE_HW and self.disp:
-            self.disp.close(True)
+        if self.mode == self.MODE_LCD and self.lcd:
+            self.lcd.close(True)
         elif self.mode == self.MODE_PREVIEW:
             cv2.destroyAllWindows()
 
@@ -326,7 +326,7 @@ class RobotFace:
         if st.mouth_open > 0.5:
             # 丸い口 (驚きなど)
             factor = (st.mouth_open - 0.5) * 2
-            r = 7 * self.scale * factor
+            r = 8 * self.scale * factor
             if r > 1:
                 cx, cy = self._xy(mouth_cx, mouth_cy)
                 draw.ellipse(
