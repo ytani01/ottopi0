@@ -11,6 +11,7 @@ import socket
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from typing import Optional
 
 import click
 from PIL import Image, ImageColor, ImageDraw, ImageOps
@@ -35,17 +36,48 @@ except ImportError:
     HAS_OPENCV = False
 
 
-@dataclass
 class EyeState:
     """Eye status."""
 
-    openness: float = 1.0  # 目の開き具合 (0.0: 閉, 1.0: 開)
-    size: float = 8.0  # 目の大きさの基準となる半径
-    # 閉じたときの目の曲がり具合 (-1.0: 谷, 0.0: 直線, 1.0: 山)
-    curve: float = 0.0
+    # __init__で初期化するため、ここでは型アノテーションのみ
+    openness: float
+    size: float
+    curve: float
+
+    def __init__(
+        self, size: float = 8.0, closed_curve: Optional[float] = None
+    ):
+        """
+        Constructor.
+        'closed_curve' に値が設定された場合、目は閉じていると判断する。
+        """
+        self.size = size
+        if closed_curve is not None and closed_curve != 0:
+            # 閉じた目（カーブあり）
+            self.openness = 0.0
+            self.curve = closed_curve
+        else:
+            # 開いた目
+            self.openness = 1.0
+            self.curve = 0.0
 
     def copy(self):
-        return EyeState(self.openness, self.size, self.curve)
+        """
+        アニメーション中の状態も含めて正確にコピーする
+        """
+        new_state = EyeState(size=self.size)
+        new_state.openness = self.openness
+        new_state.curve = self.curve
+        return new_state
+
+    def __repr__(self):
+        """
+        デバッグ用に現在の内部状態を表示する
+        """
+        return (
+            f"EyeState(size={self.size}, openness={self.openness:.2f}, "
+            f"curve={self.curve:.2f})"
+        )
 
 
 @dataclass
@@ -55,8 +87,8 @@ class FaceState:
     mouth_curve: float = 0  # 口の曲がり具合: +20(笑顔) ～ -20(への字)
     brow_tilt: float = 0  # 眉毛の角度(abs(brow_tilt) <= 1: 描画しない)
     mouth_open: float = 0  # 口の開き具合: 0(線) ～ 1(丸)
-    left_eye: EyeState = field(default_factory=EyeState)
-    right_eye: EyeState = field(default_factory=EyeState)
+    left_eye: EyeState = field(default_factory=lambda: EyeState())
+    right_eye: EyeState = field(default_factory=lambda: EyeState())
 
     def copy(self):
         return FaceState(
@@ -107,7 +139,7 @@ class LcdOutput(DisplayOutput):
             raise RuntimeError(msg)
 
         try:
-            self.lcd = ST7789V(rotation=270)
+            self.lcd = ST7789V(rotation=270, debug=True)
         except Exception as e:
             self.__log.error(errmsg(e))
             raise RuntimeError(errmsg(e))
@@ -207,18 +239,18 @@ class RobotFace:
     }
 
     MOODS = {
-        "neutral": FaceState(brow_tilt=0),
+        "neutral": FaceState(),
         "happy": FaceState(
             mouth_curve=15,
             brow_tilt=0,
-            left_eye=EyeState(size=8, curve=1),
-            right_eye=EyeState(size=8, curve=1),
+            left_eye=EyeState(),
+            right_eye=EyeState(),
         ),
         "sad": FaceState(
-            mouth_curve=-15,
+            mouth_curve=-10,
             brow_tilt=-10,
-            left_eye=EyeState(size=7, curve=-1),
-            right_eye=EyeState(size=7, curve=-1),
+            left_eye=EyeState(size=6),
+            right_eye=EyeState(size=6),
         ),
         "angry": FaceState(
             mouth_curve=-10,
@@ -229,32 +261,38 @@ class RobotFace:
         "wink-r": FaceState(
             mouth_curve=15,
             brow_tilt=0,
-            left_eye=EyeState(size=8, openness=0.1, curve=1),
-            right_eye=EyeState(size=8, curve=1),
+            left_eye=EyeState(closed_curve=1),
+            right_eye=EyeState(),
         ),
         "wink-l": FaceState(
             mouth_curve=15,
             brow_tilt=0,
-            left_eye=EyeState(size=8, curve=1),
-            right_eye=EyeState(size=8, openness=0.1, curve=1),
+            left_eye=EyeState(),
+            right_eye=EyeState(closed_curve=1),
+        ),
+        "sleepy": FaceState(
+            mouth_curve=15,
+            brow_tilt=0,
+            left_eye=EyeState(closed_curve=-1),
+            right_eye=EyeState(closed_curve=-1),
+        ),
+        "smily": FaceState(
+            mouth_curve=15,
+            brow_tilt=0,
+            left_eye=EyeState(closed_curve=1),
+            right_eye=EyeState(closed_curve=1),
         ),
         "surprised": FaceState(
             mouth_curve=0,
-            mouth_open=1.0,
-            left_eye=EyeState(size=12),
-            right_eye=EyeState(size=12),
+            mouth_open=1.1,
+            left_eye=EyeState(size=6),
+            right_eye=EyeState(size=6),
         ),
-        "sleepy": FaceState(
+        "kiss": FaceState(
             mouth_curve=0,
-            brow_tilt=0,
-            left_eye=EyeState(size=8, openness=0.1, curve=-1),
-            right_eye=EyeState(size=8, openness=0.1, curve=-1),
-        ),
-        "smily": FaceState(
-            mouth_curve=20,
-            brow_tilt=0,
-            left_eye=EyeState(size=7, openness=0.1, curve=1),
-            right_eye=EyeState(size=7, openness=0.1, curve=1),
+            mouth_open=0.85,
+            left_eye=EyeState(closed_curve=-1),
+            right_eye=EyeState(closed_curve=-1),
         ),
     }
 
@@ -357,7 +395,7 @@ class RobotFace:
                 bbox,
                 outline=self.COLORS["eye_outline"],
                 fill=self.COLORS["eye_fill"],
-                width=self._w(10),
+                width=self._w(9),
             )
             return
 
