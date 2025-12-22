@@ -44,18 +44,16 @@ class EyeState:
     size: float
     curve: float
 
-    def __init__(
-        self, size: float = 8.0, closed_curve: Optional[float] = None
-    ):
+    def __init__(self, size: float = 8.0, curve: Optional[float] = None):
         """
         Constructor.
-        'closed_curve' に値が設定された場合、目は閉じていると判断する。
+        'curve' に値が設定された場合、目は閉じていると判断する。
         """
         self.size = size
-        if closed_curve is not None and closed_curve != 0:
+        if curve is not None and curve != 0:
             # 閉じた目（カーブあり）
             self.openness = 0.0
-            self.curve = closed_curve
+            self.curve = curve
         else:
             # 開いた目
             self.openness = 1.0
@@ -196,7 +194,7 @@ def create_output_device(debug=False) -> DisplayOutput:
 
     # 2. OpenCVプレビュー
     if HAS_OPENCV:
-        _log.debug("Found OpenCV, returning PreviewOutput.")
+        _log.warning("Found OpenCV, returning PreviewOutput.")
         return PreviewOutput(debug=debug)
 
     # 3. なし
@@ -214,15 +212,14 @@ class RobotFace:
     # レイアウト定数 (顔のパーツの相対座標)
     LAYOUT = {
         "eye_y": 45,
-        "eye_offset": 32,
-        "brow_y_offset": -12,  # 目のY座標からのオフセット
+        "eye_offset": 30,
+        "eye_line_offset_x": 8,
+        "eye_bezier_offset_y": 6,
         "mouth_cy": 70,
         "mouth_width": 30,
         "mouth_open_radius_factor": 8,
         "mouth_curve_half_width": 15,
-        "eye_closed_bezier_offset_x": 8,
-        "eye_closed_bezier_offset_y": 2,
-        "eye_closed_line_offset_x": 7,
+        "brow_y_offset": -12,  # 目のY座標からのオフセット
         "brow_bezier_offset_x": 9,
         "brow_bezier_y_offset_factor": 10,
     }
@@ -261,26 +258,26 @@ class RobotFace:
         "wink-r": FaceState(
             mouth_curve=15,
             brow_tilt=0,
-            left_eye=EyeState(closed_curve=1),
+            left_eye=EyeState(curve=1),
             right_eye=EyeState(),
         ),
         "wink-l": FaceState(
             mouth_curve=15,
             brow_tilt=0,
             left_eye=EyeState(),
-            right_eye=EyeState(closed_curve=1),
+            right_eye=EyeState(curve=1),
         ),
         "sleepy": FaceState(
             mouth_curve=15,
             brow_tilt=0,
-            left_eye=EyeState(closed_curve=-1),
-            right_eye=EyeState(closed_curve=-1),
+            left_eye=EyeState(curve=-1),
+            right_eye=EyeState(curve=-1),
         ),
         "smily": FaceState(
             mouth_curve=15,
             brow_tilt=0,
-            left_eye=EyeState(closed_curve=1),
-            right_eye=EyeState(closed_curve=1),
+            left_eye=EyeState(curve=1),
+            right_eye=EyeState(curve=1),
         ),
         "surprised": FaceState(
             mouth_curve=0,
@@ -291,8 +288,8 @@ class RobotFace:
         "kiss": FaceState(
             mouth_curve=0,
             mouth_open=0.85,
-            left_eye=EyeState(closed_curve=-1),
-            right_eye=EyeState(closed_curve=-1),
+            left_eye=EyeState(curve=-1),
+            right_eye=EyeState(curve=-1),
         ),
     }
 
@@ -353,13 +350,17 @@ class RobotFace:
         self.target_gaze_x = x
 
     def _xy(self, x, y):
-        return (x * self.scale, y * self.scale)
+        return (round(x * self.scale), round(y * self.scale))
 
-    def _w(self, width):
-        return max(1, int(width * self.scale))
+    def _w(self, width) -> int:
+        return round(max(1, int(width * self.scale)))
 
     def _draw_bezier_curve(self, draw, p0, p1, p2, color, width, steps=5):
         """3点の制御点からベジェ曲線を計算して描画する"""
+        self.__log.debug(
+            "p0,p1,p2=%s,%s,%s, color=%s, width=%s", p0, p1, p2, color, width
+        )
+
         points = []
         for i in range(steps + 1):
             t = i / steps
@@ -370,78 +371,79 @@ class RobotFace:
 
         draw.line(points, fill=color, width=width, joint="curve")
 
-    def _draw_eye(
+    def _draw_outline(self, draw):
+        box = [*self._xy(0, 0), *self._xy(100, 100)]
+        draw.rounded_rectangle(
+            box,
+            radius=20 * self.scale,
+            outline=self.COLORS["line"],
+            fill=self.COLORS["face_bg"],
+            width=1,
+        )
+
+    def _draw_one_eye(
         self,
         draw,
-        cx,
+        eye_x,
         eye_y,
         eye_state: EyeState,
-        tilt,
         gaze_offset,
     ):
-        # 視線を加味した中心X
-        real_cx = cx + gaze_offset
+        """Drow one eye."""
+        eye_cx = eye_x + gaze_offset  # 視線を加味した中心X
 
-        # 目のサイズ
-        r = eye_state.size * self.scale
-        ry = r * eye_state.openness
+        eye_w = eye_state.size * self.scale  # 目のサイズ(幅)
+        eye_h = eye_w * eye_state.openness  # 開き具合をかけた目の高さ
 
         # 描画
-        if ry >= 4:
+        if eye_h >= 6:
+            #
             # 開いている場合: 楕円
-            s_cx, s_cy = self._xy(real_cx, eye_y)
-            bbox = [s_cx - r, s_cy - ry, s_cx + r, s_cy + ry]
+            #
+            cx, cy = self._xy(eye_cx, eye_y)
             draw.ellipse(
-                bbox,
+                [cx - eye_w, cy - eye_h, cx + eye_w, cy + eye_h],
                 outline=self.COLORS["eye_outline"],
                 fill=self.COLORS["eye_fill"],
                 width=self._w(9),
             )
             return
 
-        # ry < 4: 目が閉じている場合
+        #
+        # eye_h < 6: 目が閉じている場合
+        #
+        LINE_OFFSET_X = self.LAYOUT["eye_line_offset_x"]
+        x1 = eye_cx - LINE_OFFSET_X
+        x2 = eye_cx + LINE_OFFSET_X
+
         if eye_state.curve == 0:
+            #
             # 直線
+            #
             draw.line(
-                [
-                    self._xy(
-                        real_cx - self.LAYOUT["eye_closed_line_offset_x"],
-                        eye_y,
-                    ),
-                    self._xy(
-                        real_cx + self.LAYOUT["eye_closed_line_offset_x"],
-                        eye_y,
-                    ),
-                ],
+                [self._xy(x1, eye_y), self._xy(x2, eye_y)],
                 fill=self.COLORS["line"],
                 width=self._w(4),
             )
             return
 
+        #
         # eye_state.curve != 0: ベジェ曲線
-        p0 = self._xy(
-            real_cx - self.LAYOUT["eye_closed_bezier_offset_x"],
-            eye_y + self.LAYOUT["eye_closed_bezier_offset_y"],
-        )
-        p1 = self._xy(
-            real_cx,
-            eye_y
-            - self.LAYOUT["eye_closed_bezier_offset_x"] * eye_state.curve,
-        )
-        p2 = self._xy(
-            real_cx + self.LAYOUT["eye_closed_bezier_offset_x"],
-            eye_y + self.LAYOUT["eye_closed_bezier_offset_y"],
-        )
+        #
+        BEZIER_OFFSET_Y = self.LAYOUT["eye_bezier_offset_y"]
+        y1 = eye_y + BEZIER_OFFSET_Y * eye_state.curve / 2
+        y2 = eye_y - BEZIER_OFFSET_Y * eye_state.curve
+
+        p0 = self._xy(x1, y1)
+        p2 = self._xy(x2, y1)
+        p1 = self._xy(eye_cx, y2)
+
         self._draw_bezier_curve(
-            draw,
-            p0,
-            p1,
-            p2,
-            color=self.COLORS["line"],
-            width=self._w(4),
+            draw, p0, p1, p2, color=self.COLORS["line"], width=self._w(4)
         )
 
     def _draw_brows(self, draw, left_cx, right_cx, eye_y, brow_tilt):
+        """Draw brows."""
         if abs(brow_tilt) <= 1:
             # 描画しない
             return
@@ -475,17 +477,35 @@ class RobotFace:
         )
         draw.line([p1_r, p2_r], fill=self.COLORS["brow"], width=self._w(5))
 
-    def _draw_outline(self, draw):
-        box = [*self._xy(0, 0), *self._xy(100, 100)]
-        draw.rounded_rectangle(
-            box,
-            radius=20 * self.scale,
-            outline=self.COLORS["line"],
-            fill=self.COLORS["face_bg"],
-            width=1,
+    def _draw_eyes(self, draw):
+        """Draw both eyes and brows."""
+        eye_y = self.LAYOUT["eye_y"]
+        eye_offset = self.LAYOUT["eye_offset"]
+
+        self._draw_one_eye(
+            draw,
+            eye_offset,
+            eye_y,
+            self.current_state.left_eye,
+            self.current_gaze_x,
+        )
+        self._draw_one_eye(
+            draw,
+            100 - eye_offset,
+            eye_y,
+            self.current_state.right_eye,
+            self.current_gaze_x,
+        )
+        self._draw_brows(
+            draw,
+            eye_offset,  # left_brow_cx (視線に追従しない)
+            100 - eye_offset,  # right_brow_cx (視線に追従しない)
+            eye_y,
+            self.current_state.brow_tilt,
         )
 
     def _draw_mouth(self, draw):
+        """Draw mouth."""
         mouth_cx = 50  # 水平中央
         mouth_cy = self.LAYOUT["mouth_cy"]
         st = self.current_state
@@ -505,49 +525,14 @@ class RobotFace:
             return
 
         # カーブする口
-        p0 = self._xy(
-            mouth_cx - self.LAYOUT["mouth_curve_half_width"], mouth_cy
-        )
-        p2 = self._xy(
-            mouth_cx + self.LAYOUT["mouth_curve_half_width"], mouth_cy
-        )
+        dx = self.LAYOUT["mouth_curve_half_width"]
+        p0 = self._xy(mouth_cx - dx, mouth_cy)
+        p2 = self._xy(mouth_cx + dx, mouth_cy)
         p1 = self._xy(mouth_cx, mouth_cy + st.mouth_curve)
+        c0 = self.COLORS["mouth_line"]
+        w0 = self._w(5)
 
-        self._draw_bezier_curve(
-            draw,
-            p0,
-            p1,
-            p2,
-            color=self.COLORS["mouth_line"],
-            width=self._w(5),
-        )
-
-    def _draw_eyes(self, draw, brow_tilt: float):
-        eye_y = self.LAYOUT["eye_y"]
-        eye_offset = self.LAYOUT["eye_offset"]
-        self._draw_eye(
-            draw,
-            eye_offset,
-            eye_y,
-            self.current_state.left_eye,
-            brow_tilt,  # <-- ここを修正
-            self.current_gaze_x,
-        )
-        self._draw_eye(
-            draw,
-            100 - eye_offset,
-            eye_y,
-            self.current_state.right_eye,
-            brow_tilt,
-            self.current_gaze_x,
-        )
-        self._draw_brows(
-            draw,
-            eye_offset,  # left_brow_cx (視線に追従しない)
-            100 - eye_offset,  # right_brow_cx (視線に追従しない)
-            eye_y,
-            brow_tilt,
-        )
+        self._draw_bezier_curve(draw, p0, p1, p2, color=c0, width=w0)
 
     def draw(self, screen_width: int, screen_height: int, bg_color: tuple):
         # 画像生成
@@ -556,7 +541,7 @@ class RobotFace:
         draw = ImageDraw.Draw(img)
 
         self._draw_outline(draw)
-        self._draw_eyes(draw, self.current_state.brow_tilt)
+        self._draw_eyes(draw)
         self._draw_mouth(draw)
 
         # パディングして画面サイズに合わせる (中央寄せなど)
