@@ -2,9 +2,9 @@
 prompts.md
 Plan.md
 Tasks.md
-.gemini/
+# .gemini/
 # .serena/
-archives/
+# archives/
 
 #
 ottopi0.toml
