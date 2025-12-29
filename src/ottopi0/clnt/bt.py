@@ -35,7 +35,7 @@ class Bt:
         self.is_active = True
 
         # init BlueTooth
-        self.bt_input = PiBtInput(debug=False)
+        self.bt_input = PiBtInput(debug=self.__debug)
         self.input_dev = self.bt_input.search_input_devs(self.btdev_keyword)
         self.__log.debug("input_dev=%s", self.input_dev)
 
@@ -81,7 +81,7 @@ class Bt:
 
         return _keymap
 
-    def cb_ev(self, key_name, key_state, onkeys):
+    def cb_ev(self, key_name, key_state, onkeys) -> bool:
         """Event Callback."""
 
         # if onkeys == self.prev_onkeys:
@@ -129,6 +129,8 @@ class Bt:
 
         if _cmd_str:
             self.jrpc_clnt.jrpc_call(_cmd_str)
+
+        return True
 
     def main(self):
         """Main."""
