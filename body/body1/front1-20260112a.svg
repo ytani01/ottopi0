@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 2970 2100"
+   height="210mm"
+   width="297mm"
+   version="1.2"
+   id="svg76"
+   sodipodi:docname="front1-20260112a.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <sodipodi:namedview
+     id="namedview76"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.4521644"
+     inkscape:cx="577.06964"
+     inkscape:cy="441.75438"
+     inkscape:current-layer="g10" />
+  <title
+     id="title1">FreeCAD SVG Export</title>
+  <desc
+     id="desc1">Drawing page: Page exported from FreeCAD document: front1_20260112a</desc>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:groupmode="layer"
+     inkscape:label="TechDraw"
+     id="Page">
+    <g
+       transform="scale(10.000000, 10.000000)"
+       style="stroke: none;"
+       id="Default_Template_A4_Landscape.svg">
+      <metadata
+         id="metadata8">
+        <rdf:RDF>
+          <cc:Work
+             rdf:about="">
+            <dc:format>image/svg+xml</dc:format>
+            <dc:type
+               rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+            <dc:title>FreeCAD SVG Export</dc:title>
+          </cc:Work>
+        </rdf:RDF>
+      </metadata>
+    </g>
+    <g
+       stroke-linejoin="bevel"
+       stroke="black"
+       stroke-width="1"
+       fill="none"
+       stroke-linecap="square"
+       fill-rule="evenodd"
+       id="DrawingContent">
+      <g
+         transform="matrix(10.0443,0,0,-10.0396,1766.2404,1100.198)"
+         font-size="31.75px"
+         stroke-linejoin="miter"
+         font-family="'MS UI Gothic'"
+         font-style="normal"
+         stroke="#191919"
+         stroke-width="0.7"
+         fill="none"
+         stroke-linecap="square"
+         font-weight="400"
+         stroke-miterlimit="4"
+         stroke-opacity="1"
+         id="g10">
+        <path
+           style="vector-effect:non-scaling-stroke;fill:none;stroke:#ff0000;stroke-width:0.263478;stroke-dasharray:none;stroke-opacity:1;-inkscape-stroke:hairline"
+           d="m -30.985494,-16.00749 h 57.97286 v 37.017321 h -57.97286 V -16.00749"
+           id="path76" />
+        <path
+           style="vector-effect:non-scaling-stroke;fill:none;stroke:#0000ff;stroke-width:0.263478;stroke-dasharray:none;stroke-opacity:1;-inkscape-stroke:hairline"
+           d="M 31.985026,-3.0014044 V 18.008427 h 5.497427 V 29.51381 c 0,0.828788 -0.671286,1.500703 -1.499298,1.500703 h -5.997193 v 2.50117 h -9.995321 v -2.50117 H 4.9976604 v -3.001405 h -9.9953208 v 3.001405 H -19.990641 v 2.50117 h -9.995321 v -2.50117 h -5.997193 c -0.828012,0 -1.499298,-0.671915 -1.499298,-1.500703 v -59.02762 c 0,-0.828788 0.671286,-1.500703 1.499298,-1.500703 h 5.997193 v -2.50117 h 9.995321 v 2.50117 h 39.981282 v -2.50117 h 9.995321 v 2.50117 h 5.997193 c 0.828012,0 1.499298,0.671915 1.499298,1.500703 v 26.5124056 h -5.497427"
+           id="path10" />
+      </g>
+    </g>
+  </g>
+</svg>
